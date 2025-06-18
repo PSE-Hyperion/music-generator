@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=76.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "music_generator"
+version = "0.0.0"
+description = "Generates music with ML using LSTM"
+readme = "README.md"
+requires-python = ">=3.11,<4.0"
+authors = [{ name="Jan", email="uutbr@student.kit.edu" }]
+license = { text="MIT" }
+keywords = ["tensorflow", "music21", "matplotlib", "AI", "ML", "LSTM"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent"
+]
+
+dependencies = [
+  "numpy>=1.26",
+  "tensorflow_cpu>=2.19",
+  "music21>=9.7",
+  "matplotlib>=3.10"
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+select = ["E", "F", "I"]
+ignore = ["E501"]
+fixable = ["ALL"]

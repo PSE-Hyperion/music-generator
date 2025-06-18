@@ -1,0 +1,10 @@
+# python cache and bytecode
+__pycache__/
+*.py[cod]
+# log files, temporary files
+*.log
+*.tmp
+# builds
+build/
+# IDE files
+.vscode/
