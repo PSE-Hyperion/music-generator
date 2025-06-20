@@ -8,3 +8,8 @@ __pycache__/
 build/
 # IDE files
 .vscode/
+
+# Keep folder structure in data/ with .gitkeep, ignore everything else
+data/*
+!data/**/
+!data/**/.gitkeep
