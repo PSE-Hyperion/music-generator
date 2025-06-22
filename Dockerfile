@@ -27,4 +27,4 @@ COPY	--from=builder /usr/local /usr/local
 
 WORKDIR	/app
 
-CMD 	["python"]
+CMD 	["bash"]
