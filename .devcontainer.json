@@ -3,6 +3,9 @@
   "build": {
     "dockerfile": "./Dockerfile"
   },
+  "settings": {
+    "python.defaultInterpreterPath": "/usr/bin/python"
+  },
   "features": {
     "ghcr.io/devcontainers/features/git:1": {}
   },
