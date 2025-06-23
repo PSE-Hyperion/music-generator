@@ -65,17 +65,22 @@ def handle_process(args : list[str]):
     print("processed")
 
 def handle_train(args : list[str]):
-    #   get processed via label
+    #   get processed via id
     #   build model
     #   train model
     #   save model
 
     try:
-        X, y, input_shape, note_to_int = DatasetManager.load_tokenized_data(args[0])
+        processed_id = args[0]
+        model_id = args[1]
 
-        model = models.LSTMModel(args[1], input_shape)
+        X, y, input_shape, note_to_int = DatasetManager.load_tokenized_data(processed_id)
+
+        model = models.LSTMModel(model_id, input_shape)
 
         train.train_model(model, X, y)
+
+        # save model
 
     except Exception as e:
         print(f"[ERROR] {e}")
