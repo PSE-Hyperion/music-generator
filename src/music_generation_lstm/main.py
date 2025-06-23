@@ -1,6 +1,9 @@
 from midi import parser, writer
 from tokenization.tokenizer import Tokenizer
 
+from managers.model_management import ModelManager
+#from managers.dataset_management import DatasetManager
+
 
 def handle_u_input(input : str):
     parts = input.split(" ")
@@ -22,18 +25,24 @@ def handle_u_input(input : str):
 def handle_process(args : list[str]):
     #   parses midi file(s) to music21.stream.Score
     #   tokenize score(s)
-    #
+    #   numerize tokens
+    #   save processed data (ready for training data)
 
     try:
         scores = parser.parse_midi(SHORT_CUT_DATASET[args[0]])
     except Exception as e:
         print(e)
+        return
 
     try:
         tokenizer = Tokenizer()
-        tokenizer.encode(scores=scores)
+        tokens = tokenizer.encode(scores=scores)
+        stream = tokenizer.decode(tokens)       # test
+        writer.write_midi("test", stream)       # test
     except Exception as e:
-        pass
+        print()
+        print(e)
+        return
 
 
 
@@ -41,22 +50,41 @@ def handle_process(args : list[str]):
     print("processed")
 
 def handle_train(args : list[str]):
+    #   get processed via label
+    #   build model
+    #   train model
+    #   save model
     print("train")
 
 def handle_generate(args : list[str]):
+    #   get model via label
+    #   get midi
+    #   get start sequence from midi
+    #   generate with model using start sequence
+    #   write result in folder
+
+    print("generate")
+
+def handle_show(args : list[str]):
+    #   get model via label
+    #   get midi
+    #   get start sequence from midi
+    #   generate with model using start sequence
+    #   write result in folder
+
     print("generate")
 
 COMMAND_HANDLERS = {
-    "process": handle_process,          # -p 110 kpop110
-    "train": handle_train,
-    "generate": handle_generate,
-
+    "-p": handle_process,          # -p shortcut_dataset_id kpop110
+    "-t": handle_train,              # -t model_id processed_id
+    "-g": handle_generate,        # -g model_id input generate_id
+    "-s" : handle_show                # -s models/raw_datasets/results/processed_datasets
 }
 
 SHORT_CUT_DATASET = {
-    "1": "kpop_1_d",
-    "10": "kpop_10_d",
-    "110": "kpop_110_d"
+    "1": "kpop_1_dataset",
+    "10": "kpop_10_dataset",
+    "110": "kpop_110_dataset"
 }
 
 if __name__ == "__main__":
