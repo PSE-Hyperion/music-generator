@@ -23,9 +23,18 @@ def sequenize(nums : list[int]):
     return (X, y)
 
 def reshape_X(X, num_featuers : int):
+    #   reshapes X training data to numpy array (matrix)
+    #
+    #
+
+    print("Started reshaping...", end="\r")
+
     X = np.array(X)
     X = np.reshape(X, (len(X), SEQUENCE_LENGTH, 1))
     X = X / float(num_featuers)
+
+    print("Finished reshaping.")
+    print(f"{len(X)}-{SEQUENCE_LENGTH}-1")
     return X
 
 
