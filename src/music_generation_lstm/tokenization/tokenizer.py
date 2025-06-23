@@ -1,6 +1,7 @@
 # tokenizer class, that holds token to int map and can en- and decode token or integer lists
 
 from music21 import converter, stream, note, chord
+from config import SEQUENCE_LENGTH
 
 def quantize(value, resolution=1/8):
     return round(value / resolution) * resolution
@@ -14,6 +15,7 @@ class Tokenizer():
         #
         #
         #
+        self.sequence_length = SEQUENCE_LENGTH
         self.num_features = len(unique_tokens)
         self.token_to_int = {token: i for i, token in enumerate(unique_tokens)}
 
@@ -22,8 +24,12 @@ class Tokenizer():
         print(f"- Token-to-int dict: {self.token_to_int}")
 
 
-    # uses map on token list
-    def encode(self, scores : list[stream.Score]) -> list[str]:
+
+    def tokenize(self, scores : list[stream.Score]) -> list[str]:
+        #
+        #
+        #
+
         print("Start encoding to tokens...", end="\r")
 
         total_tokens = []
@@ -48,7 +54,7 @@ class Tokenizer():
         return tokens
 
     # uses reversed map on integer list
-    def decode(self, numerical_sequence : list[str]) -> stream.Stream: # token list for testing, but should become int list
+    def detokenize(self, numerical_sequence : list[str]) -> stream.Stream: # token list for testing, but should become int list
         #
         #
         #
