@@ -12,6 +12,6 @@ QUANTIZATION_PRECISION: Final = 1/8
 # Paths
 
 RAW_MIDI_DIR: Final = "data/midi/raw"
-RESULT_MIDI_DIR: Final = "data/midi/result"
+RESULT_MIDI_DIR: Final = "data/midi/results"
 MODELS_DIR: Final = "data/models"
 PROCESSED_DIR: Final = "data/processed"
