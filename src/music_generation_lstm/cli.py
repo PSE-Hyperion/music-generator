@@ -1,16 +1,24 @@
 # optional seperate cli file
 
+import models.models as models
+from models import train
+
 from midi import parser, writer
+from processing import process
 from tokenization.tokenizer import Tokenizer
 
 from managers.model_management import ModelManager
-#from managers.dataset_management import DatasetManager
+from managers.dataset_management import DatasetManager
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
 
 
 def handle_u_input(input : str):
+    #   split user input into parts
+    #   search first part (command) in command map, that maps a command to a handler function
+    #
+
     parts = input.split(" ")
     if len(parts) < 2:
         print("Invalid input.")
@@ -35,19 +43,21 @@ def handle_process(args : list[str]):
 
     try:
         scores = parser.parse_midi(SHORT_CUT_DATASET[args[0]])
-    except Exception as e:
-        print(e)
-        return
 
-    try:
         tokenizer = Tokenizer()
-        tokens = tokenizer.encode(scores=scores)
-        stream = tokenizer.decode(tokens)       # test
-        writer.write_midi("test", stream)       # test
+        tokens = tokenizer.tokenize(scores=scores)
+        #stream = tokenizer.detokenize(tokens)       # test
+        #writer.write_midi("test", stream)           # test
+
+        nums = process.numerize(tokens, tokenizer.token_to_int)
+        X, y = process.sequenize(nums)
+        X = process.reshape_X(X, tokenizer.num_features)
+
+        DatasetManager.save_tokenized_data(args[1], X, y, (tokenizer.sequence_length, tokenizer.num_features), tokenizer.token_to_int)
+
     except Exception as e:
         print()
-        print(e)
-        return
+        print(f"[ERROR] {e}")
 
 
 
@@ -59,7 +69,17 @@ def handle_train(args : list[str]):
     #   build model
     #   train model
     #   save model
-    print("train")
+
+    try:
+        X, y, input_shape, note_to_int = DatasetManager.load_tokenized_data(args[0])
+
+        model = models.LSTMModel(args[1], input_shape)
+
+        train.train_model(model, X, y)
+
+    except Exception as e:
+        print(f"[ERROR] {e}")
+
 
 def handle_generate(args : list[str]):
     #   get model via label
@@ -104,7 +124,7 @@ class CommandCompleter(Completer):
         text = document.text_before_cursor
         parts = text.split(" ")
 
-        # Only provide completions for the first word
+        # Only provide completions for the command part             (maybe extend later to also provide completion for dataset and model ids)
         if len(parts) <= 1:
             word = parts[0] if parts else ""
             for cmd in COMMANDS:
