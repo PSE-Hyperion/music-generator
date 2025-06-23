@@ -6,69 +6,68 @@ import shutil
 import numpy as np
 
 from config import PROCESSED_DIR
+from typing import Final
 
 class DatasetManager():
 
+    JSON_METADATA_SHAPE: Final = "shape"
+    JSON_METADATA_MAP: Final = "map"
+
     @staticmethod
-    def save_tokenized_data(data_name : str, tokenized_data) -> bool: # tuple of tokenized data list and input shape and dict
-        target_folder_path = os.path.join(PROCESSED_DIR, data_name)
-        os.makedirs(target_folder_path, exist_ok=True)
+    def save_tokenized_data(id : str, X, y, input_shape, token_to_int): # tuple of tokenized data list and input shape and dict
+        target_folder_path = os.path.join(PROCESSED_DIR, id)
+        os.makedirs(target_folder_path, exist_ok=False)
         try:
-            print(f"Start to process {data_name}")
+            print(f"Start saving processed dataset as {id}...", end="\r")
 
             # Save .npz file inside subfolder
-            np.savez_compressed(os.path.join(target_folder_path, data_name), X=tokenized_data.X, y=tokenized_data.y)
-
-            print(f"Token saved.\nName: {data_name}\nInput Shape: {tokenized_data.input_shape}\nDictionary size: {len(tokenized_data.note_to_int)}")
+            np.savez_compressed(os.path.join(target_folder_path, id), X=X, y=y)
 
             # Write shared metadata once
             metadata = {
-                "midi_file_names": tokenized_data.midi_file_names,
-                "input_shape": tokenized_data.input_shape,
-                "note_to_int": tokenized_data.note_to_int
+                DatasetManager.JSON_METADATA_SHAPE: input_shape,
+                DatasetManager.JSON_METADATA_MAP: token_to_int
             }
 
             metadata_path = os.path.join(target_folder_path, "metadata.json")
             with open(metadata_path, "w") as f:
                 json.dump(metadata, f, indent=4)
 
-            print(f"Processing of {data_name} successful. Metadata saved at {metadata_path}")
-            return True
-
         except Exception as e:
-            print(f"Failed to save tokenized data: {e}")
             shutil.rmtree(target_folder_path)
-            return False
+            raise Exception(f"Failed to save tokenized data: {e}")
+
+        print(f"Finished saving processed dataset as {id}.")
+        print(f"Input Shape: {input_shape}\nDictionary size: {len(token_to_int)}")
 
     @staticmethod
-    def load_tokenized_data(data_name: str):
-        target_folder_path = os.path.join(PROCESSED_DIR, data_name)
-        target_data_path = os.path.join(target_folder_path, data_name + ".npz")
+    def load_tokenized_data(id: str):
+        print("Enter tokenized data getter")
+        target_folder_path = os.path.join(PROCESSED_DIR, id)
+        target_data_path = os.path.join(target_folder_path, id + ".npz")
         target_metadata_path = os.path.join(target_folder_path, "metadata.json")
-
+        print(1)
         if not os.path.exists(target_data_path):
-            print(f"File not found. Searched for {target_data_path}")
-            return
-
+            raise Exception(f"File not found. Searched for {target_data_path}")
+        print(2)
         # Load X, y, num_classes
         npz_data = np.load(target_data_path)
         X = npz_data["X"]
         y = npz_data["y"]
-
+        print(3)
         if not os.path.exists(target_metadata_path):
-            print("Metadata couldn't be found")
-            return
+            raise Exception("Metadata couldn't be found")
+        print(4)
 
         with open(target_metadata_path) as f:
             config = json.load(f)
-        data_midi_file_names = config["midi_file_names"]
-        data_input_shape = config["input_shape"]
-        data_note_to_int = config["note_to_int"]
+        data_input_shape = config[DatasetManager.JSON_METADATA_SHAPE]
+        data_note_to_int = config[DatasetManager.JSON_METADATA_MAP]
 
 
         print("Tokenized data loaded")
 
-        return (data_midi_file_names, X, y, data_input_shape, data_note_to_int)
+        return X, y, data_input_shape, data_note_to_int
 
     @staticmethod
     def delete_data(name : str):
@@ -84,6 +83,7 @@ class DatasetManager():
         os.makedirs(PROCESSED_DIR, exist_ok=True)
         for entry in os.listdir(PROCESSED_DIR):
             if not (entry == "metadata.json" or entry == ".gitkeep"):
+                print("This will never happen")
                 data_str_list.append(entry)
 
         return data_str_list

@@ -1,7 +1,7 @@
 from keras import Sequential
 from keras.src.layers import LSTM, Dense, Dropout, Input
 from keras.src.models import Model
-from typing import Optional
+from typing import Optional, Final
 
 class BaseModel():
     #
@@ -13,7 +13,7 @@ class BaseModel():
     def __init__(self, name : str, input_shape : tuple[int, int]):
         self.name = name
         self.input_shape = input_shape
-        self.model: Optional[Model] = None
+        self.model: Model
 
     def build(self):
         raise NotImplementedError
@@ -25,7 +25,7 @@ class LSTMModel(BaseModel):
     #   LSTM model class, that implements the architecture of an lstm model
     #
 
-    TYPE = "LSTM"
+    TYPE: Final = "LSTM"
 
     def __init__(self, name : str, input_shape : tuple[int, int]):
         super().__init__(name=name, input_shape=input_shape)
@@ -39,9 +39,10 @@ class LSTMModel(BaseModel):
             LSTM(128, return_sequences=True),
             Dropout(0.2),
             LSTM(128),
-            Dense(self.input_shape, activation="softmax")       # not sure if input_shape[1] (raises error, but previous solution) or input_shape
+            Dense(units=self.input_shape[1], activation="softmax")       # not sure if input_shape[1] (raises error, but previous solution) or input_shape
         ])
         self.model.compile(loss="categorical_crossentropy", optimizer="adam")
+        print(f"Model {self.name} build")
 
 
 class ModelFactory():
