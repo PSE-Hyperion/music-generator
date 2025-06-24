@@ -7,7 +7,8 @@
     "python.defaultInterpreterPath": "/usr/bin/python"
   },
   "features": {
-    "ghcr.io/devcontainers/features/git:1": {}
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/jsburckhardt/devcontainer-features/ruff:1": {}
   },
   "customizations": {
     "vscode": {
