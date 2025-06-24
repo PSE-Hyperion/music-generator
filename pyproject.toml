@@ -29,10 +29,5 @@ nogpu =  ["tensorflow_cpu>=2.19"]
 gpu = ["tensorflow>=2.19"]
 
 
-[tool.pdm]
-global = true
-venv = false
-
-
 [tool.ruff]
 line-length = 120
