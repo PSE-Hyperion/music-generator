@@ -1,0 +1,4 @@
+
+
+# Batching for processing
+# Finding the issue, that results in note cutoff
