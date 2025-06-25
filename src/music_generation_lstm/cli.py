@@ -108,13 +108,13 @@ def handle_exit():
     print("You've exited the program.")
 
 COMMAND_HANDLERS = {
-    "-p": handle_process,          # -p shortcut_dataset_id kpop110
-    "-t": handle_train,              # -t model_id processed_id
-    "-g": handle_generate,        # -g model_id input generate_id
-    "-s" : handle_show                # -s models/raw_datasets/results/processed_datasets
+    "-process": handle_process,          # -p shortcut_dataset_id kpop110
+    "-train": handle_train,              # -t model_id processed_id
+    "-generate": handle_generate,        # -g model_id input generate_id
+    "-show" : handle_show                # -s models/raw_datasets/results/processed_datasets
 }
 
-COMMANDS = ["-p", "-t", "-g", "-s", "exit"]
+COMMANDS = ["-process", "-train", "-generate", "-show", "exit"]
 
 SHORT_CUT_DATASET = {
     "1": "kpop_1_dataset",
