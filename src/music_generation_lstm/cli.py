@@ -42,18 +42,21 @@ def handle_process(args : list[str]):
     #   save processed data (ready for training data)
 
     try:
-        scores = parser.parse_midi(SHORT_CUT_DATASET[args[0]])
+        dataset_id = SHORT_CUT_DATASET[args[0]]
+        processed_dataset_id = args[1]
 
-        tokenizer = Tokenizer()
-        tokens = tokenizer.tokenize(scores=scores)
+        scores = parser.parse_midi(dataset_id)
+
+        tokenizer = Tokenizer(dataset_id)
+        embedded_token_events_per_score = tokenizer.tokenize(scores=scores)
         #stream = tokenizer.detokenize(tokens)       # test
         #writer.write_midi("test", stream)           # test
 
-        nums = process.numerize(tokens, tokenizer.token_to_int)
-        X, y = process.sequenize(nums)
-        #X = process.reshape_X(X, tokenizer.num_features)
+        embedded_numeric_events_per_score = process.numerize(embedded_token_events_per_score, tokenizer)
+        X, y = process.sequenize(embedded_numeric_events_per_score)
+        X = process.reshape_X(X)
 
-        #DatasetManager.save_tokenized_data(args[1], X, y, (tokenizer.sequence_length, tokenizer.num_features), tokenizer.token_to_int)
+        DatasetManager.save_tokenized_data(processed_dataset_id, X, y, tokenizer)
 
     except Exception as e:
         print()
@@ -71,12 +74,39 @@ def handle_train(args : list[str]):
     #   save model
 
     try:
-        processed_id = args[0]
-        model_id = args[1]
+        model_id = args[0]
+        processed_dataset_id = args[1]
 
-        X, y, input_shape, note_to_int = DatasetManager.load_tokenized_data(processed_id)
+        X, y, input_shape, map_id = DatasetManager.load_tokenized_data(processed_dataset_id)
+
+        # uh uh, stinky: update asap
+        import os
+        import json
+        token_maps_dir = os.path.join("data/token_maps", map_id)
+        with open(os.path.join(token_maps_dir, "type_map")) as f:
+            type_map = json.load(f)
+        with open(os.path.join(token_maps_dir, "pitch_map")) as f:
+            pitch_map = json.load(f)
+        with open(os.path.join(token_maps_dir, "duration_map")) as f:
+            duration_map = json.load(f)
+        with open(os.path.join(token_maps_dir, "delta_offset_map")) as f:
+            delta_offset_map = json.load(f)
+        with open(os.path.join(token_maps_dir, "velocity_map")) as f:
+            velocity_map = json.load(f)
+        with open(os.path.join(token_maps_dir, "instrument_map")) as f:
+            instrument_map = json.load(f)
+
+        vocab_sizes = {
+            'type': len(type_map),
+            'pitch': len(pitch_map),
+            'duration': len(duration_map),
+            'delta_offset': len(delta_offset_map),
+            'velocity': len(velocity_map),
+            'instrument': len(instrument_map),
+        }
 
         model = models.LSTMModel(model_id, input_shape)
+        model.build(vocab_sizes=vocab_sizes)
 
         train.train_model(model, X, y)
 
@@ -117,9 +147,12 @@ COMMAND_HANDLERS = {
 COMMANDS = ["-process", "-train", "-generate", "-show", "exit"]
 
 SHORT_CUT_DATASET = {
-    "1": "kpop_1_dataset",
-    "10": "kpop_10_dataset",
-    "110": "kpop_110_dataset"
+    "k1": "kpop_1_dataset",
+    "k2": "kpop_10_dataset",
+    "k3": "kpop_110_dataset",
+    "m1": "maestro_1_dataset",
+    "m2": "maestro_10_dataset",
+    "m3": "maestro_50_dataset"
 }
 
 

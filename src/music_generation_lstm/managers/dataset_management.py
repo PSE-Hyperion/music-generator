@@ -6,15 +6,17 @@ import shutil
 import numpy as np
 
 from config import PROCESSED_DIR
+from tokenization.tokenizer import Tokenizer
+
 from typing import Final
 
 class DatasetManager():
 
-    JSON_METADATA_SHAPE: Final = "shape"
-    JSON_METADATA_MAP: Final = "map"
+    JSON_METADATA_SHAPE: Final = "input_shape"
+    JSON_METADATA_MAP_ID: Final = "map_id"
 
     @staticmethod
-    def save_tokenized_data(id : str, X, y, input_shape, token_to_int): # tuple of tokenized data list and input shape and dict
+    def save_tokenized_data(id : str, X, y, tokenizer : Tokenizer): # tuple of tokenized data list and input shape and dict
         target_folder_path = os.path.join(PROCESSED_DIR, id)
         os.makedirs(target_folder_path, exist_ok=False)
         try:
@@ -25,8 +27,8 @@ class DatasetManager():
 
             # Write shared metadata once
             metadata = {
-                DatasetManager.JSON_METADATA_SHAPE: input_shape,
-                DatasetManager.JSON_METADATA_MAP: token_to_int
+                DatasetManager.JSON_METADATA_SHAPE: f"{X.shape}",
+                DatasetManager.JSON_METADATA_MAP_ID: f"{tokenizer.dataset_id}"
             }
 
             metadata_path = os.path.join(target_folder_path, "metadata.json")
@@ -38,7 +40,7 @@ class DatasetManager():
             raise Exception(f"Failed to save tokenized data: {e}")
 
         print(f"Finished saving processed dataset as {id}.")
-        print(f"Input Shape: {input_shape}\nDictionary size: {len(token_to_int)}")
+        print(f"Input Shape: {X.shape}")
 
     @staticmethod
     def load_tokenized_data(id: str):
@@ -46,28 +48,27 @@ class DatasetManager():
         target_folder_path = os.path.join(PROCESSED_DIR, id)
         target_data_path = os.path.join(target_folder_path, id + ".npz")
         target_metadata_path = os.path.join(target_folder_path, "metadata.json")
-        print(1)
+
         if not os.path.exists(target_data_path):
             raise Exception(f"File not found. Searched for {target_data_path}")
-        print(2)
+
         # Load X, y, num_classes
         npz_data = np.load(target_data_path)
         X = npz_data["X"]
         y = npz_data["y"]
-        print(3)
+
         if not os.path.exists(target_metadata_path):
             raise Exception("Metadata couldn't be found")
-        print(4)
 
         with open(target_metadata_path) as f:
             config = json.load(f)
         data_input_shape = config[DatasetManager.JSON_METADATA_SHAPE]
-        data_note_to_int = config[DatasetManager.JSON_METADATA_MAP]
+        data_map_id = config[DatasetManager.JSON_METADATA_MAP_ID]
 
 
         print("Tokenized data loaded")
 
-        return X, y, data_input_shape, data_note_to_int
+        return X, y, data_input_shape, data_map_id
 
     @staticmethod
     def delete_data(name : str):

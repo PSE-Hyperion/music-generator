@@ -3,11 +3,11 @@
 import os
 
 from music21.stream import Stream
-from config import RESULT_MIDI_DIR
+from config import RESULTS_MIDI_DIR
 
 def write_midi(id : str, stream : Stream):
     print(f"Started saving {id}...", end="\r")
-    write_dir = os.path.join(RESULT_MIDI_DIR, id)
+    write_dir = os.path.join(RESULTS_MIDI_DIR, id)
     os.makedirs(write_dir, exist_ok=False)
     stream.write("midi", fp=os.path.join(write_dir, f"{id}.mid"))
     print(f"Finished saving {id}.")
