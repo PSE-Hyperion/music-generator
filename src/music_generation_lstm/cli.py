@@ -51,9 +51,9 @@ def handle_process(args : list[str]):
 
         nums = process.numerize(tokens, tokenizer.token_to_int)
         X, y = process.sequenize(nums)
-        X = process.reshape_X(X, tokenizer.num_features)
+        #X = process.reshape_X(X, tokenizer.num_features)
 
-        DatasetManager.save_tokenized_data(args[1], X, y, (tokenizer.sequence_length, tokenizer.num_features), tokenizer.token_to_int)
+        #DatasetManager.save_tokenized_data(args[1], X, y, (tokenizer.sequence_length, tokenizer.num_features), tokenizer.token_to_int)
 
     except Exception as e:
         print()
@@ -102,7 +102,7 @@ def handle_show(args : list[str]):
     #   generate with model using start sequence
     #   write result in folder
 
-    print("generate")
+    print("show")
 
 def handle_exit():
     print("You've exited the program.")

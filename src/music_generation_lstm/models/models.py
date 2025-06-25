@@ -41,7 +41,7 @@ class LSTMModel(BaseModel):
             LSTM(128),
             Dense(units=self.input_shape[1], activation="softmax")       # not sure if input_shape[1] (raises error, but previous solution) or input_shape
         ])
-        self.model.compile(loss="categorical_crossentropy", optimizer="adam")
+        self.model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
         print(f"Model {self.name} build")
 
 

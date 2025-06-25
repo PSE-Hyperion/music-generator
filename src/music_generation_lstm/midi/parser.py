@@ -10,29 +10,34 @@ def parse_midi(dataset : str) -> list[stream.Score]:
     #
 
     path = os.path.join(RAW_MIDI_DIR, dataset)
-
     print(f"Started parsing at {path}")
 
     scores = []
+
     if os.path.isdir(path):
         print("Folder found")
-        midi_files = glob.glob(os.path.join(path, "*.mid"))
+
+        midi_files = glob.glob(os.path.join(path, "*.mid")) + glob.glob(os.path.join(path, "*.midi"))
         total = len(midi_files)
         for curr, file in enumerate(midi_files, start=1):
             print(f"[Parsing progress] {curr}/{total}", end="\r")
             try:
                 scores.append(converter.parse(file))
             except Exception as e:
-                print(e)
+                print(f"\nError parsing {file}: {e}")
         print("")
     elif os.path.isfile(path):
         print("File found")
-        if path[-4:] == ".mid":
-            scores.append(converter.parse(path))
-    else:
-        raise Exception("Invalid path.")
 
-    print(f"{len(scores)} midi files parsed")
+        if path.lower().endswith((".mid", ".midi")):
+            try:
+                scores.append(converter.parse(path))
+            except Exception as e:
+                print(f"Error parsing {path}: {e}")
+    else:
+        raise Exception("Invalid path.")    # Instead of exception, maybe ignore file and print warning
+
+    print(f"{len(scores)} MIDI files parsed")
     return scores
 
 
