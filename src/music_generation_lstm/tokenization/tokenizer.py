@@ -1,7 +1,7 @@
 # tokenizer class, that holds token to int map and can en- and decode token or integer lists
 
 from music21 import converter, stream, note, chord, instrument
-from config import SEQUENCE_LENGTH
+from config import SEQUENCE_LENGTH, QUANTIZATION_PRECISION_DELTA_OFFSET, QUANTIZATION_PRECISION_DURATION
 from fractions import Fraction
 
 class EmbeddedTokenEvent():
@@ -13,7 +13,7 @@ class EmbeddedTokenEvent():
         self.velocity = velocity
         self.instrument = instrument
 
-def quantize(value, resolution=1/8) -> float:
+def quantize(value, resolution : float = 1/8) -> float:
     return round(value / resolution) * resolution
 
 def note_event(note : note.Note, instrument : instrument.Instrument, curr_offset : float, part_of_chord : bool = False, first_chord_note : bool = False) -> EmbeddedTokenEvent:
@@ -26,8 +26,8 @@ def note_event(note : note.Note, instrument : instrument.Instrument, curr_offset
     return EmbeddedTokenEvent(
         f"TYPE_{label}",
         f"PITCH{note.pitch}",
-        f"DURATION_{float(Fraction(note.quarterLength))}",
-        f"OFFSET_{curr_offset}",
+        f"DURATION_{quantize(value=float(Fraction(note.quarterLength)), resolution=QUANTIZATION_PRECISION_DURATION)}",
+        f"OFFSET_{quantize(value=curr_offset, resolution=QUANTIZATION_PRECISION_DELTA_OFFSET)}",
         f"VELOCITY_{note.volume.velocity}",
         f"INSTRUMENT_{instrument.instrumentName}"
     )
@@ -36,15 +36,15 @@ def rest_event(rest : note.Rest, curr_offset : float) -> EmbeddedTokenEvent:
     return EmbeddedTokenEvent(
         "REST",
         "NO_PITCH",
-        f"DURATION_{float(Fraction(rest.quarterLength))}",
-        f"OFFSET_{curr_offset}",
+        f"DURATION_{quantize(value=float(Fraction(rest.quarterLength)), resolution=QUANTIZATION_PRECISION_DURATION)}",
+        f"OFFSET_{quantize(value=curr_offset, resolution=QUANTIZATION_PRECISION_DELTA_OFFSET)}",
         "NO_VELOCITY",
         "NO_INSTRUMENT"
     )
 
 class Tokenizer():
-    def __init__(self):
-        self.token_to_int = {}  # more specific
+    def __init__(self, dataset_id : str):
+        self.dataset_id = dataset_id
 
     # builds the map
     def build(self, embedded_token_events_per_score : list[list[EmbeddedTokenEvent]]):
@@ -103,15 +103,37 @@ class Tokenizer():
         self.num_features_instrument = len(self.instrument_map)
 
         print("Build tokenizer")
+        self.save_maps()
 
 
+    def save_maps(self):            # preliminary
+        import json
+        import os
+        from config import TOKEN_MAPS_DIR
+        print("Start saving maps...")
+        folder_path = os.path.join(TOKEN_MAPS_DIR, self.dataset_id)
+        os.makedirs(folder_path, exist_ok=False)
+        with open(os.path.join(folder_path, "type_map"), "w") as f:
+            json.dump(self.type_map, f, indent=4)
+        with open(os.path.join(folder_path, "pitch_map"), "w") as f:
+            json.dump(self.pitch_map, f, indent=4)
+        with open(os.path.join(folder_path, "duration_map"), "w") as f:
+            json.dump(self.duration_map, f, indent=4)
+        with open(os.path.join(folder_path, "delta_offset_map"), "w") as f:
+            json.dump(self.delta_offset_map, f, indent=4)
+        with open(os.path.join(folder_path, "velocity_map"), "w") as f:
+            json.dump(self.velocity_map, f, indent=4)
+        with open(os.path.join(folder_path, "instrument_map"), "w") as f:
+            json.dump(self.instrument_map, f, indent=4)
+        print("Finished saving maps.")
 
-    def tokenize(self, scores : list[stream.Score]) -> list[str]:   # return list of EmbeddedTokenEvents
+
+    def tokenize(self, scores : list[stream.Score]) -> list[list[EmbeddedTokenEvent]]:   # return list of EmbeddedTokenEvents
         #   receives a list of scores, that it will tokenize to EmbeddedTokenEvents
         #   EmbeddedTokenEvents is a group of tokens per event
         #   The list of scores is turned into a list of lists of embedded token events
 
-        print("Start encoding to tokens...", end="\r")
+        print("Start encoding to tokens...")
 
         embedded_token_events_per_score = []
 
@@ -152,12 +174,13 @@ class Tokenizer():
                         embedded_token_events.append((abs_offset, rest_event(event, curr_delta_offset)))
                         rest_counter += 1
 
+
             print(f"FOR SCORE {score_counter}:")
             print(f"Events in embedded tokens: {len(embedded_token_events)}")
             print(f"Notes in embedded tokens: {note_counter}")
             print(f"Rests in embedded tokens: {rest_counter}")
             print(f"Chords in embedded tokens: {chord_counter}")
-            print(f"Note in chords in embedded tokens: {note_in_chord_counter}")
+            print(f"Notes in chords in embedded tokens: {note_in_chord_counter}")
 
             ###########################################################################################################################################
 
