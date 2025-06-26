@@ -1,17 +1,63 @@
-# python cache and bytecode
+# runtime-environment/binaries
 __pycache__/
 *.py[cod]
-# log files, temporary files
-*.log
-*.tmp
-# builds
+.python-version
+*$py.class
+env/
+.env/
+.ENV/
+venv/
+.venv/
+virtualenv/
+.virtualenv/
+
+# installation/build/debug
 build/
+cython_debug/
+develop-eggs/
+dist/
+*.egg
+eggs/
+.eggs/
+*.egg-info/
+.installed.cfg
+lib/
+lib64/
+parts/
+sdist/
+MANIFEST
+*.manifest
+*.spec
+*.whl
+
+# logs/var/temporary
+.cache
+downloads/
+*.log
+pip-log.txt
+pip-delete-this-directory.txt
+*.tmp
+var/
+
+# testing/quality-control
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+test-results/
+pylint-report.txt
+
 # IDE files
 .vscode/
 .idea/
+
 # Virtual environments
-.venv
-.virtualenv
 # Keep folder structure in data/ with .gitkeep, ignore everything else
 data/*
 !data/**/
