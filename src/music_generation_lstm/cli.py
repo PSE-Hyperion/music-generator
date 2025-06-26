@@ -127,6 +127,10 @@ def handle_generate(args : list[str]):
     #   generate with model using start sequence
     #   write result in folder
 
+    return
+    ModelManager()
+    writer
+
     print("generate")
 
 def handle_show(args : list[str]):

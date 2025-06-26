@@ -2,15 +2,23 @@ import os
 from music21 import converter, stream, note, chord, instrument
 from fractions import Fraction
 
-original = "data/midi/raw/maestro_1_dataset/MIDI-Unprocessed_Chamber2_MID--AUDIO_09_R3_2018_wav--1.midi"
+more_info = False
+
+original = "data/midi/raw/1bitdragon/chord_repeated_same.mid"
 
 score = converter.parse(original)
 
 flat = score.flatten().notesAndRests            # .stream() if we want to have more control or access
 
-print(flat[-10:])
 
-print("Start tokenize...")
+print("\n" * 5)
+
+print("Reconstruction creates these events:")
+for event in flat:
+    print(f"{event}")
+
+print("\n" * 5)
+
 
 def quantize(value, resolution=1/32):
     return round(value / resolution) * resolution
@@ -55,41 +63,32 @@ for event in flat:
         prev_offset = abs_offset
 
         if isinstance(event, note.Note):
-            embedded_tokens.append((abs_offset, note_event(event, curr_instrument, curr_delta_offset)))
+            embedded_tokens.append(note_event(event, curr_instrument, curr_delta_offset))
             note_counter += 1
         elif isinstance(event, chord.Chord):
             for i, n in enumerate(event.notes, start=0):
                 if i == 0:
                     chord_delta_offset = curr_delta_offset
-                    embedded_tokens.append((abs_offset, note_event(n, curr_instrument, curr_delta_offset, part_of_chord=True, first_chord_note=True)))
+                    embedded_tokens.append(note_event(n, curr_instrument, curr_delta_offset, part_of_chord=True, first_chord_note=True))
                     note_in_chord_counter += 1
                     continue
-                embedded_tokens.append((abs_offset, (note_event(n, curr_instrument, chord_delta_offset, part_of_chord=True))))
+                embedded_tokens.append(note_event(n, curr_instrument, chord_delta_offset, part_of_chord=True))
                 note_in_chord_counter += 1
             chord_counter += 1
         elif isinstance(event, note.Rest):
-            embedded_tokens.append((abs_offset, rest_event(event, curr_delta_offset)))
+            embedded_tokens.append(rest_event(event, curr_delta_offset))
             rest_counter += 1
 
-
-print(f"Events in embedded tokens: {len(embedded_tokens)}")
-print(f"Notes in embedded tokens: {note_counter}")
-print(f"Rests in embedded tokens: {rest_counter}")
-print(f"Chords in embedded tokens: {chord_counter}")
-print(f"Note in chords in embedded tokens: {note_in_chord_counter}")
+# Optional print
+if more_info:
+    print(f"Events in embedded tokens: {len(embedded_tokens)}")
+    print(f"Notes in embedded tokens: {note_counter}")
+    print(f"Rests in embedded tokens: {rest_counter}")
+    print(f"Chords in embedded tokens: {chord_counter}")
+    print(f"Note in chords in embedded tokens: {note_in_chord_counter}")
 
 ###########################################################################################################################################
 
-
-print("Start sorting...")
-
-embedded_tokens.sort(key=lambda x: x[0])
-
-# Extract just the events in time order
-embedded_tokens = [event for _, event in embedded_tokens]
-
-
-print("Finished sorting.")
 
 
 pitches = set()
@@ -116,13 +115,15 @@ offset_map = {o: i for i, o in enumerate(sorted(offsets))}
 velocity_map = {v: i for i, v in enumerate(sorted(velocities))}
 instrument_map = {i: j for j, i in enumerate(sorted(instruments))}
 
-print(f"Pitch map size: {len(pitch_map)}")
-print(f"Dur map size: {len(duration_map)}")
-print(f"Offset map size: {len(offset_map)}")
-print(f"Veloc map size: {len(velocity_map)}")
-print(f"Instr map size: {len(instrument_map)}")
+# Optional print
+if more_info:
+    print(f"Pitch map size: {len(pitch_map)}")
+    print(f"Dur map size: {len(duration_map)}")
+    print(f"Offset map size: {len(offset_map)}")
+    print(f"Veloc map size: {len(velocity_map)}")
+    print(f"Instr map size: {len(instrument_map)}")
 
-print(f"Total unique tokens: {len(pitch_map)+len(duration_map)+len(offset_map)+len(velocity_map)+len(instrument_map)}")
+    print(f"Total unique tokens: {len(pitch_map)+len(duration_map)+len(offset_map)+len(velocity_map)+len(instrument_map)}")
 
 ###########################################################################################################################################
 
@@ -139,7 +140,16 @@ def is_first_chord_note(embedded_token) -> bool:
     return embedded_token[0].startswith("CHORD-NOTE-START")
 
 
-print("Start reverting...")
+
+print("\n" * 5)
+
+print("Tokenization creates these tokens:")
+for embedded_token in embedded_tokens:
+    print(f"{embedded_token[0]}")
+
+print("\n" * 5)
+
+
 
 
 s = stream.Stream()
@@ -196,23 +206,32 @@ if chord_notes:
     note_in_chord_counter += len(notes)
 
 
+# Optional print
+if more_info:
+    print(f"Events in midi: {len(s) + note_in_chord_counter - len(s.recurse().getElementsByClass(chord.Chord))}")
+    print(f"Notes in midi: {len(s.recurse().getElementsByClass(note.Note))}")
+    print(f"Rests in midi: {len(s.recurse().getElementsByClass(note.Rest))}")
+    print(f"Chords in midi: {len(s.recurse().getElementsByClass(chord.Chord))}")
+    print(f"Note in chords in midi: {note_in_chord_counter}")
 
-print(f"Events in midi: {len(s) + note_in_chord_counter - len(s.recurse().getElementsByClass(chord.Chord))}")
-print(f"Notes in midi: {len(s.recurse().getElementsByClass(note.Note))}")
-print(f"Rests in midi: {len(s.recurse().getElementsByClass(note.Rest))}")
-print(f"Chords in midi: {len(s.recurse().getElementsByClass(chord.Chord))}")
-print(f"Note in chords in midi: {note_in_chord_counter}")
+
+print("\n" * 5)
+
+print("Reconstruction creates these events:")
+for event in s:
+    print(f"{event}")
+
+print("\n" * 5)
 
 
-
-print(s[-10:])
 
 ###########################################################################################################################################
 
 u_input = input("Save result (y/n)?")
 
 if u_input == "y":
-    base_name = "perfect_piano_embedded"
+    file_name = os.path.basename(original)
+    base_name = f"{os.path.splitext(file_name)[0]}_test"
     index = 0
     file_path = os.path.join("data/midi/results", f"{base_name}_{index}.mid")
 
