@@ -1,5 +1,5 @@
 # Set the base image for the project image
-ARG	TAG=latest
+ARG	    TAG=latest
 FROM 	tensorflow/tensorflow:${TAG} AS base
 
 # Stage 1: Building the image
@@ -21,7 +21,6 @@ FROM 	base
 
 WORKDIR	/app
 
-COPY	./ ./
 COPY	--from=builder /usr/local /usr/local
 
 WORKDIR	/app

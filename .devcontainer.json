@@ -1,17 +1,17 @@
 {
   "name": "Dev Container for LSTM music generator",
-  "build": {
-    "dockerfile": "./Dockerfile"
-  },
-  "settings": {
-    "python.defaultInterpreterPath": "/usr/bin/python"
-  },
+  "dockerComposeFile": "./docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/app/",
   "features": {
     "ghcr.io/devcontainers/features/git:1": {},
     "ghcr.io/jsburckhardt/devcontainer-features/ruff:1": {}
   },
   "customizations": {
     "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/bin/python"
+      },
       "extensions": [
         "ms-python.python",
         "charliermarsh.ruff",
