@@ -214,11 +214,11 @@ u_input = input("Save result (y/n)?")
 if u_input == "y":
     base_name = "perfect_piano_embedded"
     index = 0
-    file_path = os.path.join("data/results", f"{base_name}_{index}.mid")
+    file_path = os.path.join("data/midi/results", f"{base_name}_{index}.mid")
 
     while os.path.exists(file_path):
         index += 1
-        file_path = os.path.join("data/results", f"{base_name}_{index}.mid")
+        file_path = os.path.join("data/midi/results", f"{base_name}_{index}.mid")
 
 
     s.write("midi", fp=file_path)

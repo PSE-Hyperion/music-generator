@@ -14,6 +14,8 @@ TRAINING_EPOCHS: Final = 1
 
 TRAINING_BATCH_SIZE: Final = 24
 
+ALLOWED_MUSIC_FILE_EXTENSIONS: Final = [".mid", ".midi"]
+
 
 # Paths
 

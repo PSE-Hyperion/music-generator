@@ -45,29 +45,30 @@ def handle_process(args : list[str]):
         dataset_id = SHORT_CUT_DATASET[args[0]]
         processed_dataset_id = args[1]
 
-        scores = parser.parse_midi(dataset_id)
-
+        midi_paths = parser.get_midi_paths_from_dataset(dataset_id)
         tokenizer = Tokenizer(dataset_id)
-        embedded_token_events_per_score = tokenizer.tokenize(scores=scores)
-        #stream = tokenizer.detokenize(tokens)       # test
-        #writer.write_midi("test", stream)           # test
 
-        embedded_numeric_events_per_score = process.numerize(embedded_token_events_per_score, tokenizer)
-        X, y = process.sequenize(embedded_numeric_events_per_score)
-        X = process.reshape_X(X)
+        for midi_path in midi_paths:    # seperate load and processing, share vocab data in shared tokenizer object
+            try:
+                score = parser.parse_midi(midi_path)
 
-        DatasetManager.save_tokenized_data(processed_dataset_id, X, y, tokenizer)
+                embedded_token_events = tokenizer.tokenize(score)   # might be handled now
+
+                embedded_numeric_events = process.numerize(embedded_token_events, tokenizer)   # might be handled now
+                X, y = process.sequenize(embedded_numeric_events)   # might be handled now
+                X = process.reshape_X(X)
+
+                DatasetManager.save_processed_data(processed_dataset_id, midi_path, X, y, tokenizer) # might be handled now
+            except Exception as e:
+                print(f"[ERROR] {e}")       # WARNING, when song is too short for sequence, the maps are still updated to contain the tokens of the song
+        tokenizer.save_maps()
 
     except Exception as e:
         print()
         print(f"[ERROR] {e}")
 
 
-
-
-    print("processed")
-
-def handle_train(args : list[str]):
+def handle_train(args : list[str]):                 # TRAIN DOESNT WORK NOW, SINCE THE PROCESSED DATA IS SAVED DIFFERENTLY
     #   get processed via id
     #   build model
     #   train model

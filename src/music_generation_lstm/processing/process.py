@@ -15,24 +15,23 @@ class EmbeddedNumericEvent():
         self.velocity = velocity
         self.instrument = instrument
 
-def numerize(embedded_token_events_per_score : list[list[EmbeddedTokenEvent]], tokenizer : Tokenizer) -> list[list[EmbeddedNumericEvent]]: # cancer
-    embedded_numeric_events_per_score = []
-    for embedded_token_events in embedded_token_events_per_score:
-        embedded_numeric_events = []
-        for embedded_token_event in embedded_token_events:
-            embedded_numeric_event = EmbeddedNumericEvent(
-                tokenizer.type_map[embedded_token_event.type],
-                tokenizer.pitch_map[embedded_token_event.pitch],
-                tokenizer.duration_map[embedded_token_event.duration],
-                tokenizer.delta_offset_map[embedded_token_event.delta_offset],
-                tokenizer.velocity_map[embedded_token_event.velocity],
-                tokenizer.instrument_map[embedded_token_event.instrument],
-            )
-            embedded_numeric_events.append(embedded_numeric_event)
-        embedded_numeric_events_per_score.append(embedded_numeric_events)
-    return embedded_numeric_events_per_score
+def numerize(embedded_token_events : list[EmbeddedTokenEvent], tokenizer : Tokenizer) -> list[EmbeddedNumericEvent]:
 
-def sequenize(embedded_numeric_events_per_score: list[list[EmbeddedNumericEvent]]):
+    embedded_numeric_events = []
+    for embedded_token_event in embedded_token_events:
+        embedded_numeric_event = EmbeddedNumericEvent(
+            tokenizer.type_map[embedded_token_event.type],
+            tokenizer.pitch_map[embedded_token_event.pitch],
+            tokenizer.duration_map[embedded_token_event.duration],
+            tokenizer.delta_offset_map[embedded_token_event.delta_offset],
+            tokenizer.velocity_map[embedded_token_event.velocity],
+            tokenizer.instrument_map[embedded_token_event.instrument],
+        )
+        embedded_numeric_events.append(embedded_numeric_event)
+
+    return embedded_numeric_events
+
+def sequenize(embedded_numeric_events: list[EmbeddedNumericEvent]):
     #   creates sequences of feature tuples (extracts feature num val from embeddednumericevent class) and corresponding next event feature tuples
     #   uses sliding window of size of SEQUENCE_LENGTH
     #   X contains sequences of features of an event, y contains the next features of an event
@@ -43,35 +42,34 @@ def sequenize(embedded_numeric_events_per_score: list[list[EmbeddedNumericEvent]
 
     X, y = [], []
 
-    for embedded_numeric_events in embedded_numeric_events_per_score:
-        if len(embedded_numeric_events) < SEQUENCE_LENGTH + 1:
-            print("Skipped a score, since the song was shorter than the sequence length")
-            continue
 
-        for i in range(len(embedded_numeric_events) - SEQUENCE_LENGTH):
-            input_seq = [
-                (
-                    event.type,
-                    event.pitch,
-                    event.duration,
-                    event.delta_offset,
-                    event.velocity,
-                    event.instrument
-                )
-                for event in embedded_numeric_events[i:i + SEQUENCE_LENGTH]
-            ]
-            output_event = embedded_numeric_events[i + SEQUENCE_LENGTH]
-            output_tuple = (
-                output_event.type,
-                output_event.pitch,
-                output_event.duration,
-                output_event.delta_offset,
-                output_event.velocity,
-                output_event.instrument
+    if len(embedded_numeric_events) < SEQUENCE_LENGTH + 1:
+        raise Exception("Skipped a score, since the song was shorter than the sequence length")
+
+    for i in range(len(embedded_numeric_events) - SEQUENCE_LENGTH):
+        input_seq = [
+            (
+                event.type,
+                event.pitch,
+                event.duration,
+                event.delta_offset,
+                event.velocity,
+                event.instrument
             )
+            for event in embedded_numeric_events[i:i + SEQUENCE_LENGTH]
+        ]
+        output_event = embedded_numeric_events[i + SEQUENCE_LENGTH]
+        output_tuple = (
+            output_event.type,
+            output_event.pitch,
+            output_event.duration,
+            output_event.delta_offset,
+            output_event.velocity,
+            output_event.instrument
+        )
 
-            X.append(input_seq)
-            y.append(output_tuple)
+        X.append(input_seq)
+        y.append(output_tuple)
 
     print("Finished sequenizing")
     return X, y

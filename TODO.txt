@@ -1,4 +1,5 @@
 
 
-# Batching for processing
+# Batching for processing (cant handle processing of mid to bigger sized datasets)
 # Finding the issue, that results in note cutoff
+#

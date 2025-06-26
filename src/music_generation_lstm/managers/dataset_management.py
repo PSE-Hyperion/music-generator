@@ -16,14 +16,19 @@ class DatasetManager():
     JSON_METADATA_MAP_ID: Final = "map_id"
 
     @staticmethod
-    def save_tokenized_data(id : str, X, y, tokenizer : Tokenizer): # tuple of tokenized data list and input shape and dict
-        target_folder_path = os.path.join(PROCESSED_DIR, id)
+    def save_processed_data(processed_dataset_id : str, music_path : str, X, y, tokenizer : Tokenizer):
+        #
+        #
+        #
+
+        music_file_name = os.path.splitext(os.path.basename(music_path))[0]
+        target_folder_path = os.path.join(PROCESSED_DIR, processed_dataset_id, music_file_name)
         os.makedirs(target_folder_path, exist_ok=False)
         try:
-            print(f"Start saving processed dataset as {id}...", end="\r")
+            print(f"Start saving processed dataset as {processed_dataset_id}...", end="\r")
 
             # Save .npz file inside subfolder
-            np.savez_compressed(os.path.join(target_folder_path, id), X=X, y=y)
+            np.savez_compressed(os.path.join(target_folder_path, processed_dataset_id), X=X, y=y)
 
             # Write shared metadata once
             metadata = {
@@ -39,7 +44,7 @@ class DatasetManager():
             shutil.rmtree(target_folder_path)
             raise Exception(f"Failed to save tokenized data: {e}")
 
-        print(f"Finished saving processed dataset as {id}.")
+        print(f"Finished saving processed dataset as {processed_dataset_id}.")
         print(f"Input Shape: {X.shape}")
 
     @staticmethod
