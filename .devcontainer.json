@@ -1,6 +1,6 @@
 {
   "name": "Dev Container for LSTM music generator",
-  "dockerComposeFile": "./docker-compose.yml",
+  "dockerComposeFile": ".docker/docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/app/",
   "features": {
