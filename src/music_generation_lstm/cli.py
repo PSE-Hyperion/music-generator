@@ -46,10 +46,13 @@ def handle_process(args : list[str]):
         processed_dataset_id = args[1]
 
         midi_paths = parser.get_midi_paths_from_dataset(dataset_id)
-        tokenizer = Tokenizer(dataset_id)
+        tokenizer = Tokenizer(processed_dataset_id)
 
-        for midi_path in midi_paths:    # seperate load and processing, share vocab data in shared tokenizer object
+        total = len(midi_paths)
+
+        for index, midi_path in enumerate(midi_paths, start=1):    # seperate load and processing, share vocab data in shared tokenizer object
             try:
+                print(f"[PROGRESS] Processing ({index}/{total})")
                 score = parser.parse_midi(midi_path)
 
                 embedded_token_events = tokenizer.tokenize(score)   # might be handled now

@@ -11,7 +11,7 @@ def get_midi_paths_from_dataset(dataset_id : str) -> list[str]:
     #   this is used to avoid loading all files at same
     #   the returned files then can be used to process all songs of the dataset seperatly
 
-    print(f"Started parsing at {dataset_id}")
+    print(f"Started parsing {dataset_id}...")
 
     path = os.path.join(RAW_MIDI_DIR, dataset_id)
 
@@ -31,7 +31,6 @@ def get_midi_paths_from_dataset(dataset_id : str) -> list[str]:
     else:
         raise Exception("Invalid path.")
 
-    print(midi_paths)
     return midi_paths
 
 def parse_midi(music_path : str) -> stream.Score:

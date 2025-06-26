@@ -33,7 +33,7 @@ class DatasetManager():
             # Write shared metadata once
             metadata = {
                 DatasetManager.JSON_METADATA_SHAPE: f"{X.shape}",
-                DatasetManager.JSON_METADATA_MAP_ID: f"{tokenizer.dataset_id}"
+                DatasetManager.JSON_METADATA_MAP_ID: f"{tokenizer.processed_dataset_id}"
             }
 
             metadata_path = os.path.join(target_folder_path, "metadata.json")

@@ -16,6 +16,11 @@ class EmbeddedNumericEvent():
         self.instrument = instrument
 
 def numerize(embedded_token_events : list[EmbeddedTokenEvent], tokenizer : Tokenizer) -> list[EmbeddedNumericEvent]:
+    #
+    #
+    #
+
+    print("Start numerize...")
 
     embedded_numeric_events = []
     for embedded_token_event in embedded_token_events:
@@ -29,6 +34,8 @@ def numerize(embedded_token_events : list[EmbeddedTokenEvent], tokenizer : Token
         )
         embedded_numeric_events.append(embedded_numeric_event)
 
+    print("Finished numerize.")
+
     return embedded_numeric_events
 
 def sequenize(embedded_numeric_events: list[EmbeddedNumericEvent]):
@@ -38,7 +45,7 @@ def sequenize(embedded_numeric_events: list[EmbeddedNumericEvent]):
     #   X = [[1, 2], [2, 3], [3, 4]], y = [3, 4, 5]
     #   sequence X[i] is followed by y[i]
 
-    print("Start sequenizing...", end="\r")
+    print("Start sequenizing...")
 
     X, y = [], []
 
@@ -80,11 +87,11 @@ def reshape_X(X):
     #   embedding layers expect integers, so we dont need to normalize
     #
 
-    print("Started reshaping...", end="\r")
+    print("Started reshaping...")
 
     X = np.array(X, dtype=np.int32)
 
-    print("Finished reshaping.")
+    print("Finished reshaping")
     return X
 
 
