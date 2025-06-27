@@ -11,8 +11,6 @@ def read_and_merge_events(path: str) -> Tuple[List[Dict], int]:
     ppq = mid.ticks_per_beat
     merged: List[Dict] = []
 
-    print(f"Parts: {len(mid.tracks)}")
-
     # Meta events (tempo, time_signature) from track 0
     abs_tick = 0
     for msg in mid.tracks[0]:
@@ -179,7 +177,8 @@ def write_from_merged_events(events: List[Dict], ppq: int, out_path: str):
 
 # ─── Full round‐trip in __main__ ──────────────────────────────────────
 if __name__ == '__main__':
-    in_file  = "data/midi/raw/144.mid"
+    file_name = "chopin"
+    in_file  = f"data/midi/raw/Tokenize Dis/{file_name}.midi"
     events, ppq = read_and_merge_events(in_file)
 
     # Quantization grid: change this to 0.25, 0.125, 0.0625 etc.
@@ -192,6 +191,22 @@ if __name__ == '__main__':
     tokens = tokenize_events(events, ppq, resolution_qn)
     print(f"Generated {len(tokens)} tokens (quantized to {resolution_qn} qn)")
 
+    # optional json for unique tokens
+    if True:
+        appended_tokens = []
+        for token in tokens:
+            appended_token = ""
+            for feature in token:
+                appended_token += f"_{str(feature)}"
+            appended_tokens.append(appended_token)
+
+        unique_tokens = sorted(set(appended_tokens))
+        token_to_int = {token: idx for idx, token in enumerate(unique_tokens)}
+
+        import json
+        with open("data/processed/unique_mido_events.json", "w") as f:
+            json.dump(token_to_int, f, indent=4)
+
     # (Feed `tokens` into your AI; produce `tokens_out`)
     tokens_out = tokens  # for test round‐trip
 
@@ -200,5 +215,5 @@ if __name__ == '__main__':
 
     if False:
         # Write back to MIDI
-        out_file = "data/midi/results/not_mido2.mid"
+        out_file = f"data/midi/results/mido_{file_name}.midi"
         write_from_merged_events(events_rt, ppq, out_file)

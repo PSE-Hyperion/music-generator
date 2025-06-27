@@ -1,7 +1,7 @@
 # load midi file(s) from given path and return them converted to music21 score
 import os
 import glob
-from music21 import converter, stream
+from mido import MidiFile
 from config import RAW_MIDI_DIR, ALLOWED_MUSIC_FILE_EXTENSIONS
 
 
@@ -33,22 +33,18 @@ def get_midi_paths_from_dataset(dataset_id : str) -> list[str]:
 
     return midi_paths
 
-def parse_midi(music_path : str) -> stream.Score:
-    #   parses music file to score
+def parse_midi(music_path : str) -> MidiFile:
+    #   parses music file to mido Midifile
     #
     #
 
     if os.path.isfile(music_path):
         try:
-            parsed = converter.parse(music_path)
-            if isinstance(parsed, stream.Score):
-                return parsed
-            else:
-                raise Exception("Parsed music file isn't Score.")   # Instead of exception, maybe ignore file and print warning
+            return MidiFile(music_path)
         except Exception as e:
-            raise Exception(f"Parsing of {music_path} failed: {e}") # Instead of exception, maybe ignore file and print warning
+            raise Exception(f"Parsing of {music_path} failed and was ignored: {e}")
     else:
-        raise Exception(f"Invalid path {music_path}")
+        raise Exception(f"Invalid path {music_path}. File was ignored")
 
 
 

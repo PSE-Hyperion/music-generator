@@ -1,7 +1,10 @@
 
 
 #   Testing if Batching for processing is correctly implemented
-#   Adding batching for training
-#   Finding the issue, that results in note cutoff
-#   Shuffling training data
-#   SELECT SEQUENCE LENGTH DEPENDING ON MEAN AMOUNT OF EVENTS OF SCORES IN DATASET (i.e s1 has 10 event, s2 has 12 events, s3 has 11 events -> chose SEQUENCE_LENGTH as least third of mean(10,11,12))
+
+#   Adding batching for training (via Sequence keras class)
+#   Shuffling training data in Sequence
+
+#   Rewriting some logic concerning the switch from m21 to mido
+
+#   SELECT SEQUENCE LENGTH DEPENDING ON MEAN AMOUNT OF EVENTS OF SCORES IN DATASET (i.e s1 has 10 event, s2 has 12 events, s3 has 11 events -> chose SEQUENCE_LENGTH as least third of mean(10,11,12) and smaller as smallest song?)

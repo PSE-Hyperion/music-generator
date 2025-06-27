@@ -1,269 +1,247 @@
 import os
-from music21 import converter, stream, note, chord, instrument
-from fractions import Fraction
+from typing import List, Dict, Any, Tuple
+from mido import MidiFile, MidiTrack, Message, MetaMessage
 
 more_info = False
 
-joao = "Tokenize Dis/Haydn MIDI-Unprocessed_23_R1_2006_01-05_ORIG_MID--AUDIO_23_R1_2006_02_Track02_wav.midi"
-chopin = "Tokenize Dis/Chopin MIDI-Unprocessed_06_R3_2011_MID--AUDIO_R3-D3_05_Track05_wav.midi"
+haydn = "haydn.midi"
+chopin = "chopin.midi"
+minuet = "minuet.mid"
+toccata = "toccata.midi"
+twinkle = "twinkle.mid"
 kpop = "144.mid"
 
-original = f"data/midi/raw/{kpop}"
-
-score = converter.parse(original)
-
-flat = score.flatten().notesAndRests            # .stream() if we want to have more control or access
 
 
-print("\n" * 5)
+def read_and_merge_events(midi: MidiFile) -> Tuple[List[Dict], int]:
+    """
+    Merge tempo, time‐signature, note, and pedal (control change 64,66,67) events
+    from all tracks into a global, time‐sorted list with absolute ticks.
+    """
+    ppq = midi.ticks_per_beat
+    merged: List[Dict] = []
 
-print("Original score events:")
-for event in flat:
-    print(f"{event}, Duration: {event.duration}, Offset: {event.offset}")
+    # Meta events (tempo, time_signature) from track 0
+    abs_tick = 0
+    for msg in midi.tracks[0]:
+        abs_tick += msg.time
+        if msg.is_meta and msg.type in ('set_tempo', 'time_signature'):
+            entry = {'abs_tick': abs_tick, 'type': msg.type}
+            if msg.type == 'set_tempo':
+                entry['tempo'] = msg.tempo
+            else:
+                entry['numerator'] = msg.numerator
+                entry['denominator'] = msg.denominator
+            merged.append(entry)
 
-print("\n" * 5)
+    # Note and pedal events from every track
+    for track in midi.tracks:
+        abs_tick = 0
+        for msg in track:
+            abs_tick += msg.time
+            # Pedal CC: 64 = sustain, 66 = sostenuto, 67 = soft
+            if msg.type == 'control_change' and msg.control in (64, 66, 67):
+                merged.append({
+                    'abs_tick': abs_tick,
+                    'type': 'control_change',
+                    'control': msg.control,
+                    'value': msg.value
+                })
+            # Note on
+            elif msg.type == 'note_on' and msg.velocity > 0:
+                merged.append({
+                    'abs_tick': abs_tick,
+                    'type': 'note_on',
+                    'note': msg.note,
+                    'velocity': msg.velocity
+                })
+            # Note off (or on with zero velocity)
+            elif msg.type == 'note_off' or (msg.type == 'note_on' and msg.velocity == 0):
+                merged.append({
+                    'abs_tick': abs_tick,
+                    'type': 'note_off',
+                    'note': msg.note,
+                    'velocity': 0
+                })
+
+    # Sort globally by absolute tick
+    merged.sort(key=lambda e: e['abs_tick'])
+    return merged, ppq
 
 
 
 def quantize(value, resolution=1/32):
     return round(value / resolution) * resolution
 
-def note_event(note : note.Note, instrument : instrument.Instrument, curr_offset : float, part_of_chord : bool = False, first_chord_note : bool = False):
-    label = "NOTE_"
-    signature = 1
-    if part_of_chord:
-        label = "CHORD-NOTE_"
-        signature = 4
-        if first_chord_note:
-            label = "CHORD-NOTE-START_"             # was, wenn chords in unterschiedlichen parts gleichzeitig stattfinden
+def note_on_event(event : Dict[Any, Any]) -> List[str]:
+    return ["NOTE_ON", str(event["note"]), str(event["velocity"])]
 
-    return (
-        f"{label}{note.pitch}",
-        f"DURATION_{float(Fraction(note.quarterLength))}",      # times time signature maybe ???
-        f"OFFSET_{curr_offset}",
-        f"VELOCITY_{note.volume.velocity}",
-        f"INSTRUMENT_{instrument.instrumentName}"
-    )
+def note_off_event(event : Dict[Any, Any]) -> List[str]:
+    return ["NOTE_OFF", str(event["note"])]
 
-def chord_note_event(chord_note : note.Note, chord_duration, instrument : instrument.Instrument, curr_offset : float, first_chord_note : bool = False):
+def control_change_event(event : Dict[Any, Any]) -> List[str]:
+    return ["CONTROL_CHANGE", str(event['control']), str(event['value'])]
 
-    label = "CHORD-NOTE_"
-    signature = 4
-    if first_chord_note:
-        label = "CHORD-NOTE-START_"
+def set_tempo_event(event : Dict[Any, Any]) -> List[str]:
+    return ["SET_TEMPO", str(event["tempo"])]
 
-    return (
-        f"{label}{chord_note.pitch}_{float(Fraction(chord_duration))}",
-        f"DURATION_{float(Fraction(chord_note.quarterLength))}",      # times time signature maybe ???
-        f"OFFSET_{curr_offset}",
-        f"VELOCITY_{chord_note.volume.velocity}",
-        f"INSTRUMENT_{instrument.instrumentName}"
-    )
+def time_signature_event(event : Dict[Any, Any]) -> List[str]:
+    return ["TIME_SIG", str(event["numerator"]), str(event["denominator"])]
 
-def rest_event(rest : note.Rest, curr_offset : float):
-    return (
-        "REST",
-        f"DURATION_{float(Fraction(rest.quarterLength))}",      # times time signature maybe ???
-        f"OFFSET_{curr_offset}",
-        "NO_VELOCITY",
-        "NO_INSTRUMENT"
-    )
+def time_shift_event(q_delta : float) -> List[str]:
+    return ["TIME_SHIFT", str(q_delta)]
 
-embedded_tokens = []
-curr_instrument = instrument.Instrument("Piano")
-
-prev_offset = 0.0
-
-note_counter = 0
-rest_counter = 0
-chord_counter = 0
-note_in_chord_counter = 0
-
-for event in flat:
-        abs_offset = float(event.offset)
-        curr_delta_offset = abs_offset - prev_offset
-        prev_offset = abs_offset
-
-        if isinstance(event, note.Note):
-            embedded_tokens.append(note_event(event, curr_instrument, curr_delta_offset))
-            note_counter += 1
-        elif isinstance(event, chord.Chord):
-            chord_duration = event.quarterLength
-            for i, n in enumerate(event.notes, start=0):
-                if i == 0:
-                    chord_delta_offset = curr_delta_offset
-                    embedded_tokens.append(chord_note_event(n, chord_duration, curr_instrument, curr_delta_offset, first_chord_note=True))
-                    note_in_chord_counter += 1
-                    continue
-                embedded_tokens.append(chord_note_event(n, chord_duration, curr_instrument, chord_delta_offset))
-                note_in_chord_counter += 1
-            chord_counter += 1
-        elif isinstance(event, note.Rest):
-            embedded_tokens.append(rest_event(event, curr_delta_offset))
-            rest_counter += 1
-
-# Optional print
-if more_info:
-    print(f"Events in embedded tokens: {len(embedded_tokens)}")
-    print(f"Notes in embedded tokens: {note_counter}")
-    print(f"Rests in embedded tokens: {rest_counter}")
-    print(f"Chords in embedded tokens: {chord_counter}")
-    print(f"Note in chords in embedded tokens: {note_in_chord_counter}")
-
-###########################################################################################################################################
+def resolution_ticks_event(resolution_ticks : float) -> List[str]:
+    return ["RESOLUTION_TICKS", str(resolution_ticks)]
 
 
+def tokenize_events(midi: MidiFile, resolution_qn = 1/8) -> List[str]:
+    events, ppq = read_and_merge_events(midi)
 
-pitches = set()
-durations = set()
-offsets = set()
-velocities = set()
-instruments = set()
+    """
+    Converts absolute‐tick events into tokens, quantizing time‐shifts:
+      ('TIME_SHIFT', quantized_delta_ticks)
+      ('NOTE_ON', (note, velocity))
+      ('NOTE_OFF', note)
+      ('CONTROL_CHANGE', (control, value))
+      ('SET_TEMPO', tempo)
+      ('TIME_SIG', (numerator, denominator))
 
-for embedded_token in embedded_tokens:          # maybe use embeddedtoken class
-    pitch = embedded_token[0]
-    pitches.add(pitch)
-    duration = embedded_token[1]
-    durations.add(duration)
-    offset = embedded_token[2]
-    offsets.add(offset)
-    velocity = embedded_token[3]
-    velocities.add(velocity)
-    instr = embedded_token[4]
-    instruments.add(instr)
-
-pitch_map = {p: i for i, p in enumerate(sorted(pitches))}
-duration_map   = {d: i for i, d in enumerate(sorted(durations))}
-offset_map = {o: i for i, o in enumerate(sorted(offsets))}
-velocity_map = {v: i for i, v in enumerate(sorted(velocities))}
-instrument_map = {i: j for j, i in enumerate(sorted(instruments))}
-
-# Optional print
-if more_info:
-    print(f"Pitch map size: {len(pitch_map)}")
-    print(f"Dur map size: {len(duration_map)}")
-    print(f"Offset map size: {len(offset_map)}")
-    print(f"Veloc map size: {len(velocity_map)}")
-    print(f"Instr map size: {len(instrument_map)}")
-
-    print(f"Total unique tokens: {len(pitch_map)+len(duration_map)+len(offset_map)+len(velocity_map)+len(instrument_map)}")
-
-###########################################################################################################################################
-
-def is_embedded_token_rest(embedded_token) -> bool:
-    return embedded_token[0] == "REST"
-
-def is_embedded_token_note(embedded_token) -> bool:
-    return embedded_token[0].startswith("NOTE")
-
-def is_embedded_token_part_of_chord(embedded_token) -> bool:
-    return embedded_token[0].startswith("CHORD-NOTE")
-
-def is_first_chord_note(embedded_token) -> bool:
-    return embedded_token[0].startswith("CHORD-NOTE-START")
+    resolution_qn: grid in quarter‐notes (e.g. 0.25 = 16th notes)
+    """
+    tokens: List[str] = []
+    last_tick = 0
 
 
+    # number of ticks per quantization step
+    resolution_ticks = max(1, round(ppq * resolution_qn))
 
-print("\n" * 5)
+    tokens.extend(resolution_ticks_event(ppq))
 
-print("Tokenization creates these tokens:")
-for embedded_token in embedded_tokens:
-    print(f"{embedded_token}\n")
+    for event in events:
+        raw_delta = event['abs_tick'] - last_tick
+        # quantize to nearest grid step
+        q_delta = round(raw_delta / resolution_ticks) * resolution_ticks
+        # advance our tick pointer by the quantized amount
+        last_tick += q_delta
 
-print("\n" * 5)
+        if q_delta > 0:
+            tokens.extend(time_shift_event(q_delta))
 
+        t = event['type']
+        if t == 'note_on':
+            tokens.extend(note_on_event(event))
+        elif t == 'note_off':
+            tokens.extend(note_off_event(event))
+        elif t == 'control_change':
+            tokens.extend(control_change_event(event))
+        elif t == 'set_tempo':
+            tokens.extend(set_tempo_event(event))
+        elif t == 'time_signature':
+            tokens.extend(time_signature_event(event))
+    return tokens
 
+def detokenize_events(tokens: List[str]) -> MidiFile:
+    """
+    Rebuilds a MidiFile from a flat list of string tokens.
+    """
+    out = MidiFile()
+    track = MidiTrack()
+    out.tracks.append(track)
 
+    abs_tick = 0
+    i = 0
+    resolution_ticks = 480  # Default fallback
 
-s = stream.Stream()
-chord_notes = []
-current_offset = 0.0  # absolute offset
+    while i < len(tokens):
+        token = tokens[i]
 
-note_in_chord_counter = 0
+        if token == "RESOLUTION_TICKS":
+            resolution_ticks = int(tokens[i+1])
+            out.ticks_per_beat = resolution_ticks
+            i += 2
+            continue
 
-for embedded_token in embedded_tokens:
-    if is_embedded_token_rest(embedded_token):
-        dur = float(embedded_token[1].split("_")[1])
-        delta_offset = float(embedded_token[2].split("_")[1])
-        current_offset += delta_offset
-        s.insert(current_offset, note.Rest(quarterLength=dur))
+        if token == "TIME_SHIFT":
+            abs_tick += int(tokens[i+1])
+            i += 2
+            continue
 
-    elif is_embedded_token_note(embedded_token):
-        pitch = embedded_token[0].split("_")[1]
-        dur = float(embedded_token[1].split("_")[1])
-        delta_offset = float(embedded_token[2].split("_")[1])
-        velocity = int(embedded_token[3].split("_")[1])
-        current_offset += delta_offset
-        n = note.Note(pitch, quarterLength=dur)
-        n.volume.velocity = velocity
-        s.insert(current_offset, n)
+        if token == "NOTE_ON":
+            note = int(tokens[i+1])
+            velocity = int(tokens[i+2])
+            msg = Message('note_on', note=note, velocity=velocity, time=abs_tick)
+            track.append(msg)
+            abs_tick = 0
+            i += 3
+            continue
 
-    elif is_embedded_token_part_of_chord(embedded_token):
-        # Flush previous chord if this is a new chord start
-        if len(chord_notes) > 0 and is_first_chord_note(embedded_token):
-            chord_offset = chord_notes[0][0]
-            notes = [n for _, n, _ in chord_notes]
+        if token == "NOTE_OFF":
+            note = int(tokens[i+1])
+            msg = Message('note_off', note=note, velocity=0, time=abs_tick)
+            track.append(msg)
+            abs_tick = 0
+            i += 2
+            continue
 
-            duration = float(chord_notes[0][2])  # Convert string to float
-            s.insert(chord_offset, chord.Chord(notes, quarterLength=duration))
-            note_in_chord_counter += len(notes)
-            chord_notes = []
+        if token == "CONTROL_CHANGE":
+            control = int(tokens[i+1])
+            value = int(tokens[i+2])
+            msg = Message('control_change', control=control, value=value, time=abs_tick)
+            track.append(msg)
+            abs_tick = 0
+            i += 3
+            continue
 
-        token_type, pitch, chord_duration = embedded_token[0].split("_")
-        dur = float(embedded_token[1].split("_")[1])
-        delta_offset = float(embedded_token[2].split("_")[1])
-        velocity = int(embedded_token[3].split("_")[1])
+        if token == "SET_TEMPO":
+            tempo = int(tokens[i+1])
+            msg = MetaMessage('set_tempo', tempo=tempo, time=abs_tick)
+            track.append(msg)
+            abs_tick = 0
+            i += 2
+            continue
 
-        if len(chord_notes) == 0:
-            current_offset += delta_offset  # Only update on first note of chord
+        if token == "TIME_SIG":
+            numerator = int(tokens[i+1])
+            denominator = int(tokens[i+2])
+            msg = MetaMessage('time_signature', numerator=numerator, denominator=denominator, time=abs_tick)
+            track.append(msg)
+            abs_tick = 0
+            i += 3
+            continue
 
-        n = note.Note(pitch, quarterLength=dur)
-        n.volume.velocity = velocity
-        chord_notes.append((current_offset, n, chord_duration))
+        # Unknown token, skip
 
-# Flush remaining chord notes
-if chord_notes:
-    chord_offset = chord_notes[0][0]
-    notes = [n for _, n, _ in chord_notes]
-    duration = float(chord_notes[0][2])  # Convert string to float
-    s.insert(chord_offset, chord.Chord(notes, quarterLength=duration))
-    note_in_chord_counter += len(notes)
+        # TODO: Handle cases, in which
 
-
-# Optional print
-if more_info:
-    print(f"Events in midi: {len(s) + note_in_chord_counter - len(s.recurse().getElementsByClass(chord.Chord))}")
-    print(f"Notes in midi: {len(s.recurse().getElementsByClass(note.Note))}")
-    print(f"Rests in midi: {len(s.recurse().getElementsByClass(note.Rest))}")
-    print(f"Chords in midi: {len(s.recurse().getElementsByClass(chord.Chord))}")
-    print(f"Note in chords in midi: {note_in_chord_counter}")
-
-
-print("\n" * 5)
-
-print("Reconstruction creates these events:")
-for event in s:
-    print(f"{event}, Duration: {event.duration}, Offset: {event.offset}")
-
-print("\n" * 5)
+        i += 1
+    return out
 
 
 ###########################################################################################################################################
 
-u_input = input("Save result (y/n)?")
+parse_dis = [haydn, chopin, minuet, toccata, twinkle]
 
-if u_input == "y":
-    file_name = os.path.basename(original)
-    base_name = f"{os.path.splitext(file_name)[0]}_test"
-    index = 0
-    file_path = os.path.join("data/midi/results", f"{base_name}_{index}.mid")
+for parse in parse_dis:
+    file_path = f"data/midi/raw/Tokenize Dis/{parse}"
 
-    while os.path.exists(file_path):
-        index += 1
+    midi = MidiFile(file_path)
+    tokens = tokenize_events(midi)
+    result = detokenize_events(tokens)
+
+    u_input = input(f"Save result {parse} (y/n)?")
+
+    if u_input == "y":
+        file_name = os.path.basename(file_path)
+        base_name = f"{os.path.splitext(file_name)[0]}_test"
+        index = 0
         file_path = os.path.join("data/midi/results", f"{base_name}_{index}.mid")
 
+        while os.path.exists(file_path):
+            index += 1
+            file_path = os.path.join("data/midi/results", f"{base_name}_{index}.mid")
 
-    s.write("midi", fp=file_path)
-    print("Saved result")
-elif u_input == "n":
-    print("Wasnt saved")
+        result.save(file_path)
+        print("Saved result")
+    elif u_input == "n":
+        print("Wasnt saved")

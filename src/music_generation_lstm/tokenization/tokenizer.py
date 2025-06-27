@@ -1,52 +1,177 @@
-# tokenizer class, that holds token to int map and can en- and decode token or integer lists
 
-from music21 import converter, stream, note, chord, instrument
-from config import SEQUENCE_LENGTH, QUANTIZATION_PRECISION_DELTA_OFFSET, QUANTIZATION_PRECISION_DURATION, TOKEN_MAPS_DIR
-from fractions import Fraction
 import json
+
+from config import SEQUENCE_LENGTH, QUANTIZATION_RESOLUTION, TOKEN_MAPS_DIR
 import os
+from typing import List, Dict, Any, Tuple
+from mido import MidiFile, MidiTrack, Message, MetaMessage
 
 
-class EmbeddedTokenEvent():
-    def __init__(self, type : str, pitch : str, duration : str, delta_offset : str, velocity : str, instrument : str):
-        self.type = type
-        self.pitch = pitch
-        self.duration = duration
-        self.delta_offset = delta_offset
-        self.velocity = velocity
-        self.instrument = instrument
+
+
 
 
 def quantize(value, resolution : float = 1/8) -> float:
     return round(value / resolution) * resolution
 
-def note_event(note : note.Note, instrument : instrument.Instrument, curr_offset : float, part_of_chord : bool = False, first_chord_note : bool = False) -> EmbeddedTokenEvent:
-    label = "NOTE"
-    if part_of_chord:
-        label = "CHORD-NOTE"
-        if first_chord_note:
-            label = "CHORD-NOTE-START"             # was, wenn chords in unterschiedlichen parts gleichzeitig stattfinden
+def _read_and_merge_events(midi: MidiFile) -> Tuple[List[Dict], int]:
+        """
+        Merge tempo, time‐signature, note, and pedal (control change 64,66,67) events
+        from all tracks into a global, time‐sorted list with absolute ticks.
+        """
+        ppq = midi.ticks_per_beat
+        merged: List[Dict] = []
 
-    return EmbeddedTokenEvent(
-        f"TYPE_{label}",
-        f"PITCH{note.pitch}",
-        f"DURATION_{quantize(value=float(Fraction(note.quarterLength)), resolution=QUANTIZATION_PRECISION_DURATION)}",
-        f"OFFSET_{quantize(value=curr_offset, resolution=QUANTIZATION_PRECISION_DELTA_OFFSET)}",
-        f"VELOCITY_{note.volume.velocity}",
-        f"INSTRUMENT_{instrument.instrumentName}"
-    )
+        # Meta events (tempo, time_signature) from track 0
+        abs_tick = 0
+        for msg in midi.tracks[0]:
+            abs_tick += msg.time
+            if msg.is_meta and msg.type in ('set_tempo', 'time_signature'):
+                entry = {'abs_tick': abs_tick, 'type': msg.type}
+                if msg.type == 'set_tempo':
+                    entry['tempo'] = msg.tempo
+                else:
+                    entry['numerator'] = msg.numerator
+                    entry['denominator'] = msg.denominator
+                merged.append(entry)
 
-def rest_event(rest : note.Rest, curr_offset : float) -> EmbeddedTokenEvent:
-    return EmbeddedTokenEvent(
-        "REST",
-        "NO_PITCH",
-        f"DURATION_{quantize(value=float(Fraction(rest.quarterLength)), resolution=QUANTIZATION_PRECISION_DURATION)}",
-        f"OFFSET_{quantize(value=curr_offset, resolution=QUANTIZATION_PRECISION_DELTA_OFFSET)}",
-        "NO_VELOCITY",
-        "NO_INSTRUMENT"
-    )
+        # Note and pedal events from every track
+        for track in midi.tracks:
+            abs_tick = 0
+            for msg in track:
+                abs_tick += msg.time
+                # Pedal CC: 64 = sustain, 66 = sostenuto, 67 = soft
+                if msg.type == 'control_change' and msg.control in (64, 66, 67):
+                    merged.append({
+                        'abs_tick': abs_tick,
+                        'type': 'control_change',
+                        'control': msg.control,
+                        'value': msg.value
+                    })
+                # Note on
+                elif msg.type == 'note_on' and msg.velocity > 0:
+                    merged.append({
+                        'abs_tick': abs_tick,
+                        'type': 'note_on',
+                        'note': msg.note,
+                        'velocity': msg.velocity
+                    })
+                # Note off (or on with zero velocity)
+                elif msg.type == 'note_off' or (msg.type == 'note_on' and msg.velocity == 0):
+                    merged.append({
+                        'abs_tick': abs_tick,
+                        'type': 'note_off',
+                        'note': msg.note,
+                        'velocity': 0
+                    })
+
+        # Sort globally by absolute tick
+        merged.sort(key=lambda e: e['abs_tick'])
+        return merged, ppq
+
+def note_on_event(event : Dict[Any, Any]) -> List[str]:
+    return ["NOTE_ON", str(event["note"]), str(event["velocity"])]
+
+def note_off_event(event : Dict[Any, Any]) -> List[str]:
+    return ["NOTE_OFF", str(event["note"])]
+
+def control_change_event(event : Dict[Any, Any]) -> List[str]:
+    return ["CONTROL_CHANGE", str(event['control']), str(event['value'])]
+
+def set_tempo_event(event : Dict[Any, Any]) -> List[str]:
+    return ["SET_TEMPO", str(event["tempo"])]
+
+def time_signature_event(event : Dict[Any, Any]) -> List[str]:
+    return ["TIME_SIG", str(event["numerator"]), str(event["denominator"])]
+
+def time_shift_event(q_delta : float) -> List[str]:
+    return ["TIME_SHIFT", str(q_delta)]
+
+def resolution_ticks_event(resolution_ticks : float) -> List[str]:
+    return ["RESOLUTION_TICKS", str(resolution_ticks)]
+
+def detokenize_events(self, tokens: List[str]) -> MidiFile:
+    """
+    Rebuilds a MidiFile from a flat list of string tokens.
+    """
+    out = MidiFile()
+    track = MidiTrack()
+    out.tracks.append(track)
+
+    abs_tick = 0
+    i = 0
+    resolution_ticks = 480  # Default fallback
+
+    while i < len(tokens):
+        token = tokens[i]
+
+        if token == "RESOLUTION_TICKS":
+            resolution_ticks = int(tokens[i+1])
+            out.ticks_per_beat = resolution_ticks
+            i += 2
+            continue
+
+        if token == "TIME_SHIFT":
+            abs_tick += int(tokens[i+1])
+            i += 2
+            continue
+
+        if token == "NOTE_ON":
+            note = int(tokens[i+1])
+            velocity = int(tokens[i+2])
+            msg = Message('note_on', note=note, velocity=velocity, time=abs_tick)
+            track.append(msg)
+            abs_tick = 0
+            i += 3
+            continue
+
+        if token == "NOTE_OFF":
+            note = int(tokens[i+1])
+            msg = Message('note_off', note=note, velocity=0, time=abs_tick)
+            track.append(msg)
+            abs_tick = 0
+            i += 2
+            continue
+
+        if token == "CONTROL_CHANGE":
+            control = int(tokens[i+1])
+            value = int(tokens[i+2])
+            msg = Message('control_change', control=control, value=value, time=abs_tick)
+            track.append(msg)
+            abs_tick = 0
+            i += 3
+            continue
+
+        if token == "SET_TEMPO":
+            tempo = int(tokens[i+1])
+            msg = MetaMessage('set_tempo', tempo=tempo, time=abs_tick)
+            track.append(msg)
+            abs_tick = 0
+            i += 2
+            continue
+
+        if token == "TIME_SIG":
+            numerator = int(tokens[i+1])
+            denominator = int(tokens[i+2])
+            msg = MetaMessage('time_signature', numerator=numerator, denominator=denominator, time=abs_tick)
+            track.append(msg)
+            abs_tick = 0
+            i += 3
+            continue
+
+        # Unknown token, skip
+
+        # TODO: Handle cases, in which
+
+        i += 1
+    return out
 
 class Tokenizer():
+    #   Tokenizer class, that turns midifiles into str tokens and str tokens into midifiles
+    #   doesnt write or load midifiles itself
+    #   keeps track of map, that gets created in batches
+    #   also saves processed dataset id, such that the maps can be saved with this id and correctly loaded with the training data later
+
     def __init__(self, processed_dataset_id : str):
         self.processed_dataset_id = processed_dataset_id
 
@@ -57,15 +182,14 @@ class Tokenizer():
         self.velocity_map = {}
         self.instrument_map = {}
 
-
-    def extend_maps(self, embedded_token_events : list[EmbeddedTokenEvent]):
+    def _extend_maps(self, tokens):
         #   extends the maps of this tokenizer instance
         #
         #
 
         print("Start extending maps of tokens...")
 
-        for event in embedded_token_events:
+        for event in tokens:
             if event.type not in self.type_map:
                 self.type_map[event.type] = len(self.type_map)
             if event.pitch not in self.pitch_map:
@@ -80,7 +204,6 @@ class Tokenizer():
                 self.instrument_map[event.instrument] = len(self.instrument_map)
 
         print("Finished extending maps of tokens.")
-
 
 
     def save_maps(self):            # preliminary
@@ -122,145 +245,48 @@ class Tokenizer():
         print("Finished saving maps")
 
 
-    def tokenize(self, score : stream.Score) -> list[EmbeddedTokenEvent]:   # return list of EmbeddedTokenEvents
-        #   receives a score, that it will tokenize to EmbeddedTokenEvents
-        #   EmbeddedTokenEvents is a group of tokens per event
-        #   The score is turned into a list of embedded token events
+    def tokenize_events(self, midi: MidiFile) -> List[str]:
+        events, ppq = _read_and_merge_events(midi)
 
-        print("Start encoding to tokens...")
+        """
+        Converts absolute‐tick events into tokens, quantizing time‐shifts:
+        ('TIME_SHIFT', quantized_delta_ticks)
+        ('NOTE_ON', (note, velocity))
+        ('NOTE_OFF', note)
+        ('CONTROL_CHANGE', (control, value))
+        ('SET_TEMPO', tempo)
+        ('TIME_SIG', (numerator, denominator))
 
-        embedded_token_events = []
-
-
-        flat = score.flatten().notesAndRests            # .stream() if we want to have more control or access
-
-        embedded_token_events = []
-        curr_instrument = instrument.Instrument("Piano")
-
-        prev_offset = 0.0
-
-        note_counter = 0
-        rest_counter = 0
-        chord_counter = 0
-        note_in_chord_counter = 0
-
-        for event in flat:
-                abs_offset = float(event.offset)
-                curr_delta_offset = abs_offset - prev_offset
-                prev_offset = abs_offset
-
-                if isinstance(event, note.Note):
-                    embedded_token_events.append((abs_offset, note_event(event, curr_instrument, curr_delta_offset)))
-                    note_counter += 1
-                elif isinstance(event, chord.Chord):
-                    for i, n in enumerate(event.notes, start=0):
-                        if i == 0:
-                            chord_delta_offset = curr_delta_offset
-                            embedded_token_events.append((abs_offset, note_event(n, curr_instrument, curr_delta_offset, part_of_chord=True, first_chord_note=True)))
-                            note_in_chord_counter += 1
-                            continue
-                        embedded_token_events.append((abs_offset, (note_event(n, curr_instrument, chord_delta_offset, part_of_chord=True))))
-                        note_in_chord_counter += 1
-                    chord_counter += 1
-                elif isinstance(event, note.Rest):
-                    embedded_token_events.append((abs_offset, rest_event(event, curr_delta_offset)))
-                    rest_counter += 1
+        resolution_qn: grid in quarter‐notes (e.g. 0.25 = 16th notes)
+        """
+        tokens: List[str] = []
+        last_tick = 0
 
 
-        print(f"Events in embedded tokens: {len(embedded_token_events)}")
-        print(f"Notes in embedded tokens: {note_counter}")
-        print(f"Rests in embedded tokens: {rest_counter}")
-        print(f"Chords in embedded tokens: {chord_counter}")
-        print(f"Notes in chords in embedded tokens: {note_in_chord_counter}")
+        # number of ticks per quantization step
+        resolution_ticks = max(1, round(ppq * QUANTIZATION_RESOLUTION))
 
-        ###########################################################################################################################################
+        tokens.extend(resolution_ticks_event(ppq))
 
+        for event in events:
+            raw_delta = event['abs_tick'] - last_tick
+            # quantize to nearest grid step
+            q_delta = round(raw_delta / resolution_ticks) * resolution_ticks
+            # advance our tick pointer by the quantized amount
+            last_tick += q_delta
 
-        print("Start sorting...")
+            if q_delta > 0:
+                tokens.extend(time_shift_event(q_delta))
 
-        embedded_token_events.sort(key=lambda x: x[0])
-
-        # Extract just the embedded token event in time order
-        embedded_token_events = [embedded_token_event for _, embedded_token_event in embedded_token_events]
-
-        print("Finished sorting.")
-
-
-        self.extend_maps(embedded_token_events)
-        return embedded_token_events
-
-    # uses reversed map on integer list
-    def detokenize(self, numerical_sequence : list[str]) -> stream.Stream: # token list for testing, but should become int list
-        #
-        #
-        #
-
-        print("Start detokenizing...", end="\r")
-
-        s = stream.Stream()
-
-
-        print("Finished detokenizing.")
-
-        return s
-
-
-    # save map to path (should be saved inside of the corresopnding model)
-    def save(self):
-        pass
-
-    # load map from path (replaces build call)
-    @classmethod
-    def load(cls):
-        pass
-
-
-
-if False:
-    from music21 import converter, stream, note, chord
-
-    score = converter.parse("original_metheny.mid")
-
-    flat = score.flatten().notesAndRests.stream()
-
-    print("Start tokenize...")
-
-    def quantize(value, resolution=1/8):
-        return round(value / resolution) * resolution
-
-    tokens = []
-    for el in flat:
-        offset = el.offset
-        if el.isNote:
-            tokens.append(f"NOTE_ON_{el.pitch}_{quantize(el.quarterLength, resolution=1/4)}_{quantize(el.offset, resolution=1/4)}")
-        elif el.isRest:
-            tokens.append(f"REST_{quantize(el.quarterLength, resolution=1/4)}_{quantize(el.offset, resolution=1/4)}")
-        elif el.isChord:
-            pitches = '.'.join(str(p) for p in el.pitches)
-            tokens.append(f"CHORD_{pitches}_{quantize(el.quarterLength, resolution=1/4)}_{quantize(el.offset, resolution=1/4)}")
-
-    unique_tokens = list(set(tokens))
-
-    print(f"Amount of unique tokens: {len(unique_tokens)}")
-
-    print("Start reverting...")
-
-    s = stream.Stream()
-    for token in tokens:
-        parts = token.split("_")
-        if token.startswith("NOTE_ON"):
-            pitch, dur, offset = parts[2], float(parts[3]), float(parts[4])
-            n = note.Note(pitch, quarterLength=dur)
-            s.insert(offset, n)
-        elif token.startswith("REST"):
-            dur, offset = float(parts[1]), float(parts[2])
-            r = note.Rest(quarterLength=dur)
-            s.insert(offset, r)
-        elif token.startswith("CHORD"):
-            pitches, dur, offset = parts[1], float(parts[2]), float(parts[3])
-            chord_obj = chord.Chord(pitches.split("."), quarterLength=dur)
-            s.insert(offset, chord_obj)
-
-
-    s.write("midi", fp="result_only_piano.mid")
-    print("Saved result")
+            t = event['type']
+            if t == 'note_on':
+                tokens.extend(note_on_event(event))
+            elif t == 'note_off':
+                tokens.extend(note_off_event(event))
+            elif t == 'control_change':
+                tokens.extend(control_change_event(event))
+            elif t == 'set_tempo':
+                tokens.extend(set_tempo_event(event))
+            elif t == 'time_signature':
+                tokens.extend(time_signature_event(event))
+        return tokens

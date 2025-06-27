@@ -41,6 +41,9 @@ def handle_process(args : list[str]):
     #   numerize tokens
     #   save processed data (ready for training data)
 
+    print("ISNT IMPLEMENTED TO WORK WITH MIDO TOKENIZER YET")
+    return
+
     try:
         dataset_id = SHORT_CUT_DATASET[args[0]]
         processed_dataset_id = args[1]
@@ -51,23 +54,29 @@ def handle_process(args : list[str]):
         total = len(midi_paths)
 
         for index, midi_path in enumerate(midi_paths, start=1):    # seperate load and processing, share vocab data in shared tokenizer object
+            print(f"[PROGRESS] Processing ({index}/{total})")
+
             try:
-                print(f"[PROGRESS] Processing ({index}/{total})")
-                score = parser.parse_midi(midi_path)
+                midi = parser.parse_midi(midi_path)
+            except Exception as e:
+                print(f"[ERROR] {e}")
+                continue
 
-                embedded_token_events = tokenizer.tokenize(score)   # might be handled now
+            try:
+                tokens = tokenizer.tokenize(midi)
 
-                embedded_numeric_events = process.numerize(embedded_token_events, tokenizer)   # might be handled now
-                X, y = process.sequenize(embedded_numeric_events)   # might be handled now
-                X = process.reshape_X(X)
+                # Needs handling of mido now
 
-                DatasetManager.save_processed_data(processed_dataset_id, midi_path, X, y, tokenizer) # might be handled now
+                #embedded_numeric_events = process.numerize(embedded_token_events, tokenizer)
+                #X, y = process.sequenize(embedded_numeric_events)
+                #X = process.reshape_X(X)
+
+                #DatasetManager.save_processed_data(processed_dataset_id, midi_path, X, y, tokenizer) # might be handled now
             except Exception as e:
                 print(f"[ERROR] {e}")       # WARNING, when song is too short for sequence, the maps are still updated to contain the tokens of the song
         tokenizer.save_maps()
 
     except Exception as e:
-        print()
         print(f"[ERROR] {e}")
 
 
@@ -76,6 +85,9 @@ def handle_train(args : list[str]):                 # TRAIN DOESNT WORK NOW, SIN
     #   build model
     #   train model
     #   save model
+
+    print("ISNT IMPLEMENTED TO WORK WITH MIDO TOKENIZER YET")
+    return
 
     try:
         model_id = args[0]
