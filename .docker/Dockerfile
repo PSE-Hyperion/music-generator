@@ -1,5 +1,5 @@
 # Set the base image for the project image
-ARG	TAG=latest
+ARG	    TAG=latest
 FROM 	tensorflow/tensorflow:${TAG} AS base
 
 # Stage 1: Building the image
@@ -9,22 +9,18 @@ RUN 	apt-get update && apt-get install -y --no-install-recommends \
       	build-essential libxml2-dev libfreetype6-dev libpng-dev \
     	&& rm -rf /var/lib/apt/lists/*
 
-RUN 	pip install --no-cache-dir pdm
-
 WORKDIR /app
 
-COPY	pyproject.toml pdm.lock ./
+COPY	../pyproject.toml ./
 
-RUN 	pdm install --prod
+RUN 	pip install -U --no-cache-dir pip \
+        && pip install --no-cache-dir ./
 
 # Staeg 2: Create clean image
 FROM 	base
 
 WORKDIR	/app
 
-COPY	./ ./
 COPY	--from=builder /usr/local /usr/local
 
 WORKDIR	/app
-
-CMD 	["python"]

@@ -1,0 +1,27 @@
+services:
+  app:
+    build:
+      context: ../
+      dockerfile: .docker/Dockerfile
+    volumes:
+        - ../:/app:cached
+    working_dir: /app
+    environment:
+      - TF_ENABLE_ONEDNN_OPTS=0
+      - TF_CPP_MIN_LOG_LEVEL=2
+    stdin_open: true   # -i
+    tty: true
+    command: bash
+  devcontainer:
+    build:
+      context: ../
+      dockerfile: .docker/Dockerfile
+    volumes:
+        - ../:/app:cached
+    working_dir: /app
+    environment:
+      - TF_ENABLE_ONEDNN_OPTS=0
+      - TF_CPP_MIN_LOG_LEVEL=2
+    stdin_open: true   # -i
+    tty: true
+    command: bash
