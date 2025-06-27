@@ -10,7 +10,7 @@ build/
 .vscode/
 
 # Keep folder structure in data/ with .gitkeep, ignore everything else
-data/*
-!data/*/
-data/*/*
-!data/*/.gitkeep
+data/**/*
+!data/**/
+!data/**/.gitkeep
+

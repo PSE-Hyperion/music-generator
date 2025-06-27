@@ -19,7 +19,8 @@ ALLOWED_MUSIC_FILE_EXTENSIONS: Final = [".mid", ".midi"]
 
 # Paths
 
-RAW_MIDI_DIR: Final = "data/midi/raw"
+DATASETS_MIDI_DIR: Final = "data/midi/datasets"
+INPUT_MIDI_DIR: Final = "data/midi/input"
 RESULTS_MIDI_DIR: Final = "data/midi/results"
 MODELS_DIR: Final = "data/models"
 PROCESSED_DIR: Final = "data/processed"

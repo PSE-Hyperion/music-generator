@@ -81,7 +81,6 @@ def sequenize(embedded_numeric_events: list[EmbeddedNumericEvent]):
     print("Finished sequenizing")
     return X, y
 
-
 def reshape_X(X):
     #   reshapes X training data to numpy array (matrix) of shape (num_sequences, SEQUENCE_LENGTH, 6)
     #   embedding layers expect integers, so we dont need to normalize
@@ -95,5 +94,5 @@ def reshape_X(X):
     return X
 
 
-def denumerize():
-    pass
+def denumerize(embedded_numeric_events : list[int], tokenizer : Tokenizer) -> list[EmbeddedTokenEvent]:
+    return []

@@ -4,8 +4,7 @@
 import numpy as np
 
 from models.models import BaseModel
-from keras.src.utils import to_categorical
-from config import TRAINING_EPOCHS, TRAINING_BATCH_SIZE, SEQUENCE_LENGTH
+from config import TRAINING_EPOCHS, TRAINING_BATCH_SIZE
 
 def temperature():
     pass
@@ -40,7 +39,8 @@ def train_model(model : BaseModel, X, y):
             epochs=TRAINING_EPOCHS,
             batch_size=TRAINING_BATCH_SIZE,
             validation_split=0.1,
-            verbose=1   # type: ignore[arg-type]
+            verbose=2   # type: ignore[arg-type]
+            # try out 1 and 2. Terminal output is weird with all the different
         )
 
     except Exception as e:

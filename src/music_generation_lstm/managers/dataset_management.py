@@ -28,9 +28,9 @@ class DatasetManager():
             print(f"Start saving processed dataset as {processed_dataset_id}...", end="\r")
 
             # Save .npz file inside subfolder
-            np.savez_compressed(os.path.join(target_folder_path, processed_dataset_id), X=X, y=y)
+            np.savez_compressed(os.path.join(target_folder_path, music_file_name), X=X, y=y)
 
-            # Write shared metadata once
+
             metadata = {
                 DatasetManager.JSON_METADATA_SHAPE: f"{X.shape}",
                 DatasetManager.JSON_METADATA_MAP_ID: f"{tokenizer.processed_dataset_id}"
@@ -48,16 +48,18 @@ class DatasetManager():
         print(f"Input Shape: {X.shape}")
 
     @staticmethod
-    def load_tokenized_data(id: str):
+    def load_tokenized_data(processed_dataset_id: str):
         print("Enter tokenized data getter")
-        target_folder_path = os.path.join(PROCESSED_DIR, id)
-        target_data_path = os.path.join(target_folder_path, id + ".npz")
+
+
+        target_folder_path = os.path.join(PROCESSED_DIR, processed_dataset_id)
+        target_data_path = os.path.join(target_folder_path, processed_dataset_id + ".npz")
         target_metadata_path = os.path.join(target_folder_path, "metadata.json")
+
 
         if not os.path.exists(target_data_path):
             raise Exception(f"File not found. Searched for {target_data_path}")
 
-        # Load X, y, num_classes
         npz_data = np.load(target_data_path)
         X = npz_data["X"]
         y = npz_data["y"]

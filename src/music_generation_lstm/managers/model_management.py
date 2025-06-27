@@ -1,7 +1,7 @@
 
 import os
 import shutil
-from models.models import BaseModel, ModelFactory
+from models.models import BaseModel
 from config import MODELS_DIR
 from keras.src.saving.saving_api import save_model as save
 from keras.src.saving.saving_api import load_model as load
@@ -34,32 +34,22 @@ class ModelManager:
     @staticmethod
     def load_model(name : str) -> BaseModel | None:
         model_dir = os.path.join(MODELS_DIR, name)
-        config_path = os.path.join(model_dir, "config.json")
+        metadata_path = os.path.join(model_dir, "config.json")
         model_path = os.path.join(model_dir, "model.keras")
 
-        if not os.path.exists(config_path):
+        if not os.path.exists(metadata_path):
             raise FileNotFoundError(f"No config found for model {name}")
         if not os.path.exists(model_path):
             raise FileNotFoundError(f"No model file found for model {name}")
 
-        with open(config_path) as f:
+        # load configs for model
+        with open(metadata_path) as f:
             config = json.load(f)
 
-        # Reconstruct and load weights
-        model_instance = ModelFactory.create_model(
-            model_type=config["type"],
-            model_name=config["name"],
-            input_shape=config["input_shape"]
-        )
-        #model_instance.history = config["history"]
-        #model_instance.note_to_int = config["note_to_int"]
+        # rebuild model
+        model = None
 
-        if model_instance is None:
-            raise ValueError("Failed loading model")
-
-        model_instance.model = cast(Optional[Model], load(model_path))
-
-        return model_instance
+        return model
 
     @staticmethod
     def delete_model(name : str):

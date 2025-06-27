@@ -42,7 +42,7 @@ def handle_process(args : list[str]):
     #   save processed data (ready for training data)
 
     try:
-        dataset_id = SHORT_CUT_DATASET[args[0]]
+        dataset_id = args[0]
         processed_dataset_id = args[1]
 
         midi_paths = parser.get_midi_paths_from_dataset(dataset_id)
@@ -77,6 +77,10 @@ def handle_train(args : list[str]):                 # TRAIN DOESNT WORK NOW, SIN
     #   train model
     #   save model
 
+    print("DOESNT WORK YET")
+    # need to load processed data correctly to work
+    return
+
     try:
         model_id = args[0]
         processed_dataset_id = args[1]
@@ -87,17 +91,17 @@ def handle_train(args : list[str]):                 # TRAIN DOESNT WORK NOW, SIN
         import os
         import json
         token_maps_dir = os.path.join("data/token_maps", map_id)
-        with open(os.path.join(token_maps_dir, "type_map")) as f:
+        with open(os.path.join(token_maps_dir, "type_map.json")) as f:
             type_map = json.load(f)
-        with open(os.path.join(token_maps_dir, "pitch_map")) as f:
+        with open(os.path.join(token_maps_dir, "pitch_map.json")) as f:
             pitch_map = json.load(f)
-        with open(os.path.join(token_maps_dir, "duration_map")) as f:
+        with open(os.path.join(token_maps_dir, "duration_map.json")) as f:
             duration_map = json.load(f)
-        with open(os.path.join(token_maps_dir, "delta_offset_map")) as f:
+        with open(os.path.join(token_maps_dir, "delta_offset_map.json")) as f:
             delta_offset_map = json.load(f)
-        with open(os.path.join(token_maps_dir, "velocity_map")) as f:
+        with open(os.path.join(token_maps_dir, "velocity_map.json")) as f:
             velocity_map = json.load(f)
-        with open(os.path.join(token_maps_dir, "instrument_map")) as f:
+        with open(os.path.join(token_maps_dir, "instrument_map.json")) as f:
             instrument_map = json.load(f)
 
         vocab_sizes = {
@@ -146,22 +150,14 @@ def handle_exit():
     print("You've exited the program.")
 
 COMMAND_HANDLERS = {
-    "-process": handle_process,          # -p shortcut_dataset_id kpop110
-    "-train": handle_train,              # -t model_id processed_id
+    "-process": handle_process,          # -p shortcut_dataset_id processed_id(new)
+    "-train": handle_train,              # -t model_id(new) processed_id
     "-generate": handle_generate,        # -g model_id input generate_id
     "-show" : handle_show                # -s models/raw_datasets/results/processed_datasets
 }
 
 COMMANDS = ["-process", "-train", "-generate", "-show", "exit"]
 
-SHORT_CUT_DATASET = {
-    "k1": "kpop_1_dataset",
-    "k2": "kpop_10_dataset",
-    "k3": "kpop_110_dataset",
-    "m1": "maestro_1_dataset",
-    "m2": "maestro_10_dataset",
-    "m3": "maestro_50_dataset"
-}
 
 
 

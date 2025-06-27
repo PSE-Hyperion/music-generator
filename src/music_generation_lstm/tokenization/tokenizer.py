@@ -1,10 +1,11 @@
-# tokenizer class, that holds token to int map and can en- and decode token or integer lists
-
-from music21 import converter, stream, note, chord, instrument
-from config import SEQUENCE_LENGTH, QUANTIZATION_PRECISION_DELTA_OFFSET, QUANTIZATION_PRECISION_DURATION, TOKEN_MAPS_DIR
-from fractions import Fraction
 import json
 import os
+
+from fractions import Fraction
+from typing import List
+
+from music21 import stream, note, chord, instrument
+from config import SEQUENCE_LENGTH, QUANTIZATION_PRECISION_DELTA_OFFSET, QUANTIZATION_PRECISION_DURATION, TOKEN_MAPS_DIR
 
 
 class EmbeddedTokenEvent():
@@ -16,35 +17,135 @@ class EmbeddedTokenEvent():
         self.velocity = velocity
         self.instrument = instrument
 
+class PendingChordNote():
+    def __init__(self, abs_offset : float, note : note.Note, chord_duration : float):
+        self.abs_offset = abs_offset
+        self.note = note
+        self.chord_duration = chord_duration
+
 
 def quantize(value, resolution : float = 1/8) -> float:
     return round(value / resolution) * resolution
 
-def note_event(note : note.Note, instrument : instrument.Instrument, curr_offset : float, part_of_chord : bool = False, first_chord_note : bool = False) -> EmbeddedTokenEvent:
-    label = "NOTE"
-    if part_of_chord:
-        label = "CHORD-NOTE"
-        if first_chord_note:
-            label = "CHORD-NOTE-START"             # was, wenn chords in unterschiedlichen parts gleichzeitig stattfinden
+def note_event(note : note.Note, instrument : instrument.Instrument, curr_offset : float) -> EmbeddedTokenEvent:
+    return EmbeddedTokenEvent(
+        type="NOTE",
+        pitch=f"{note.pitch}",
+        duration=f"{quantize(value=float(Fraction(note.quarterLength)), resolution=QUANTIZATION_PRECISION_DURATION)}",
+        delta_offset=f"{quantize(value=curr_offset, resolution=QUANTIZATION_PRECISION_DELTA_OFFSET)}",
+        velocity=f"{note.volume.velocity}",
+        instrument=f"{instrument.instrumentName}"
+    )
+
+def chord_note_event(chord_note : note.Note, chord_duration, instrument : instrument.Instrument, curr_offset : float, first_chord_note : bool = False) -> EmbeddedTokenEvent:
+    # find chord_duration type (what is it)
+
+    type = "CHORD_NOTE"
+    if first_chord_note:
+        type = "CHORD_NOTE_START"
 
     return EmbeddedTokenEvent(
-        f"TYPE_{label}",
-        f"PITCH{note.pitch}",
-        f"DURATION_{quantize(value=float(Fraction(note.quarterLength)), resolution=QUANTIZATION_PRECISION_DURATION)}",
-        f"OFFSET_{quantize(value=curr_offset, resolution=QUANTIZATION_PRECISION_DELTA_OFFSET)}",
-        f"VELOCITY_{note.volume.velocity}",
-        f"INSTRUMENT_{instrument.instrumentName}"
+        type=f"{type}",
+        pitch=f"{chord_note.pitch}",
+        # duration of chord note and of chord itself
+        duration=f"{quantize(value=float(Fraction(chord_note.quarterLength)), resolution=QUANTIZATION_PRECISION_DURATION)}_{quantize(value=float(Fraction(chord_duration)), resolution=QUANTIZATION_PRECISION_DURATION)}",      # times time signature maybe ???
+        delta_offset=f"{quantize(value=curr_offset, resolution=QUANTIZATION_PRECISION_DELTA_OFFSET)}",
+        velocity=f"{chord_note.volume.velocity}",
+        instrument=f"{instrument.instrumentName}"
     )
 
 def rest_event(rest : note.Rest, curr_offset : float) -> EmbeddedTokenEvent:
     return EmbeddedTokenEvent(
-        "REST",
-        "NO_PITCH",
-        f"DURATION_{quantize(value=float(Fraction(rest.quarterLength)), resolution=QUANTIZATION_PRECISION_DURATION)}",
-        f"OFFSET_{quantize(value=curr_offset, resolution=QUANTIZATION_PRECISION_DELTA_OFFSET)}",
-        "NO_VELOCITY",
-        "NO_INSTRUMENT"
+        type="REST",
+        pitch="NO_PITCH",
+        duration=f"{quantize(value=float(Fraction(rest.quarterLength)), resolution=QUANTIZATION_PRECISION_DURATION)}",
+        delta_offset=f"{quantize(value=curr_offset, resolution=QUANTIZATION_PRECISION_DELTA_OFFSET)}",
+        velocity="NO_VELOCITY",
+        instrument="NO_INSTRUMENT"
     )
+
+def is_embedded_token_rest(embedded_token : EmbeddedTokenEvent) -> bool:
+    return embedded_token.type == "REST"
+
+def is_embedded_token_note(embedded_token : EmbeddedTokenEvent) -> bool:
+    return embedded_token.type == "NOTE"
+
+def is_embedded_token_part_of_chord(embedded_token : EmbeddedTokenEvent) -> bool:
+    return embedded_token.type.startswith("CHORD_NOTE")
+
+def is_first_chord_note(embedded_token : EmbeddedTokenEvent) -> bool:
+    return embedded_token.type == "CHORD_NOTE_START"
+
+def detokenize(embedded_token_events : list[EmbeddedTokenEvent]) -> stream.Stream:
+    #
+    #
+    #
+
+    print("Start detokenizing...")
+
+    s = stream.Stream()
+    pending_chord_notes : List[PendingChordNote] = []
+    current_offset = 0.0  # absolute offset
+
+    note_in_chord_counter = 0
+
+    for embedded_token_event in embedded_token_events:
+        if is_embedded_token_rest(embedded_token_event):
+            dur = float(embedded_token_event.duration)
+            delta_offset = float(embedded_token_event.delta_offset)
+            current_offset += delta_offset
+            s.insert(current_offset, note.Rest(quarterLength=dur))
+
+        elif is_embedded_token_note(embedded_token_event):
+            pitch = embedded_token_event.pitch
+            dur = float(embedded_token_event.duration)
+            delta_offset = float(embedded_token_event.delta_offset)
+            velocity = int(embedded_token_event.velocity)
+            current_offset += delta_offset
+            n = note.Note(pitch, quarterLength=dur)
+            n.volume.velocity = velocity
+            s.insert(current_offset, n)
+
+        elif is_embedded_token_part_of_chord(embedded_token_event):
+            # Flush previous chord if this is a new chord start
+            print(embedded_token_event.type)
+            if len(pending_chord_notes) > 0 and is_first_chord_note(embedded_token_event):
+                first_chord_note = pending_chord_notes[0]
+                chord_offset = first_chord_note.abs_offset
+                pitches = [pending_chord_note.note.pitch for pending_chord_note in pending_chord_notes]
+                chord_duration = first_chord_note.chord_duration
+                s.insert(chord_offset, chord.Chord(pitches, quarterLength=chord_duration))
+                note_in_chord_counter += len(pitches)
+                pending_chord_notes.clear()
+
+            pitch = embedded_token_event.pitch
+            dur, chord_dur = embedded_token_event.duration.split("_")
+            dur = float(dur)
+            chord_dur = float(chord_dur)
+            delta_offset = float(embedded_token_event.delta_offset)
+            velocity = int(embedded_token_event.velocity)
+
+            if len(pending_chord_notes) == 0:
+                current_offset += delta_offset  # Only update on first note of chord
+
+            n = note.Note(pitch, quarterLength=dur)
+            n.volume.velocity = velocity
+            pending_chord_notes.append(PendingChordNote(current_offset, n, chord_dur))
+
+    # Flush remaining chord notes
+    if pending_chord_notes:
+        first_chord_note = pending_chord_notes[0]
+        chord_offset = first_chord_note.abs_offset
+        pitches = [pending_chord_note.note.pitch for pending_chord_note in pending_chord_notes]
+        chord_duration = first_chord_note.chord_duration
+        s.insert(chord_offset, chord.Chord(pitches, quarterLength=chord_duration))
+        note_in_chord_counter += len(pitches)
+        pending_chord_notes.clear()
+
+
+    print("Finished detokenizing.")
+
+    return s
 
 class Tokenizer():
     def __init__(self, processed_dataset_id : str):
@@ -57,6 +158,13 @@ class Tokenizer():
         self.velocity_map = {}
         self.instrument_map = {}
 
+        self.sequence_length = SEQUENCE_LENGTH
+        self.num_features_type = 0
+        self.num_features_pitch = 0
+        self.num_features_duration = 0
+        self.num_features_delta_offset = 0
+        self.num_features_velocity = 0
+        self.num_features_instrument = 0
 
     def extend_maps(self, embedded_token_events : list[EmbeddedTokenEvent]):
         #   extends the maps of this tokenizer instance
@@ -80,8 +188,6 @@ class Tokenizer():
                 self.instrument_map[event.instrument] = len(self.instrument_map)
 
         print("Finished extending maps of tokens.")
-
-
 
     def save_maps(self):            # preliminary
         #
@@ -121,7 +227,6 @@ class Tokenizer():
 
         print("Finished saving maps")
 
-
     def tokenize(self, score : stream.Score) -> list[EmbeddedTokenEvent]:   # return list of EmbeddedTokenEvents
         #   receives a score, that it will tokenize to EmbeddedTokenEvents
         #   EmbeddedTokenEvents is a group of tokens per event
@@ -129,12 +234,9 @@ class Tokenizer():
 
         print("Start encoding to tokens...")
 
-        embedded_token_events = []
+        flat = score.flatten().notesAndRests
 
-
-        flat = score.flatten().notesAndRests            # .stream() if we want to have more control or access
-
-        embedded_token_events = []
+        embedded_token_events : List[EmbeddedTokenEvent] = []
         curr_instrument = instrument.Instrument("Piano")
 
         prev_offset = 0.0
@@ -150,117 +252,40 @@ class Tokenizer():
                 prev_offset = abs_offset
 
                 if isinstance(event, note.Note):
-                    embedded_token_events.append((abs_offset, note_event(event, curr_instrument, curr_delta_offset)))
+                    embedded_token_events.append(note_event(event, curr_instrument, curr_delta_offset))
                     note_counter += 1
                 elif isinstance(event, chord.Chord):
+                    chord_duration = event.quarterLength
                     for i, n in enumerate(event.notes, start=0):
                         if i == 0:
                             chord_delta_offset = curr_delta_offset
-                            embedded_token_events.append((abs_offset, note_event(n, curr_instrument, curr_delta_offset, part_of_chord=True, first_chord_note=True)))
-                            note_in_chord_counter += 1
-                            continue
-                        embedded_token_events.append((abs_offset, (note_event(n, curr_instrument, chord_delta_offset, part_of_chord=True))))
+                            embedded_token_events.append(chord_note_event(n, chord_duration, curr_instrument, curr_delta_offset, first_chord_note=True))
+                        else:
+                            embedded_token_events.append(chord_note_event(n, chord_duration, curr_instrument, chord_delta_offset))
+                        print(embedded_token_events[-1].type) # TODO DELETE
                         note_in_chord_counter += 1
                     chord_counter += 1
                 elif isinstance(event, note.Rest):
-                    embedded_token_events.append((abs_offset, rest_event(event, curr_delta_offset)))
+                    embedded_token_events.append(rest_event(event, curr_delta_offset))
                     rest_counter += 1
 
-
-        print(f"Events in embedded tokens: {len(embedded_token_events)}")
-        print(f"Notes in embedded tokens: {note_counter}")
-        print(f"Rests in embedded tokens: {rest_counter}")
-        print(f"Chords in embedded tokens: {chord_counter}")
-        print(f"Notes in chords in embedded tokens: {note_in_chord_counter}")
-
-        ###########################################################################################################################################
-
-
-        print("Start sorting...")
-
-        embedded_token_events.sort(key=lambda x: x[0])
-
-        # Extract just the embedded token event in time order
-        embedded_token_events = [embedded_token_event for _, embedded_token_event in embedded_token_events]
-
-        print("Finished sorting.")
+        # Optional print
+        if False:
+            print(f"Events in embedded tokens: {len(embedded_token_events)}")
+            print(f"Notes in embedded tokens: {note_counter}")
+            print(f"Rests in embedded tokens: {rest_counter}")
+            print(f"Chords in embedded tokens: {chord_counter}")
+            print(f"Note in chords in embedded tokens: {note_in_chord_counter}")
 
 
         self.extend_maps(embedded_token_events)
         return embedded_token_events
 
-    # uses reversed map on integer list
-    def detokenize(self, numerical_sequence : list[str]) -> stream.Stream: # token list for testing, but should become int list
-        #
-        #
-        #
-
-        print("Start detokenizing...", end="\r")
-
-        s = stream.Stream()
-
-
-        print("Finished detokenizing.")
-
-        return s
-
-
-    # save map to path (should be saved inside of the corresopnding model)
-    def save(self):
-        pass
-
-    # load map from path (replaces build call)
     @classmethod
     def load(cls):
+        #
+        #   load all variables declared in __init__()
+        #
+
         pass
 
-
-
-if False:
-    from music21 import converter, stream, note, chord
-
-    score = converter.parse("original_metheny.mid")
-
-    flat = score.flatten().notesAndRests.stream()
-
-    print("Start tokenize...")
-
-    def quantize(value, resolution=1/8):
-        return round(value / resolution) * resolution
-
-    tokens = []
-    for el in flat:
-        offset = el.offset
-        if el.isNote:
-            tokens.append(f"NOTE_ON_{el.pitch}_{quantize(el.quarterLength, resolution=1/4)}_{quantize(el.offset, resolution=1/4)}")
-        elif el.isRest:
-            tokens.append(f"REST_{quantize(el.quarterLength, resolution=1/4)}_{quantize(el.offset, resolution=1/4)}")
-        elif el.isChord:
-            pitches = '.'.join(str(p) for p in el.pitches)
-            tokens.append(f"CHORD_{pitches}_{quantize(el.quarterLength, resolution=1/4)}_{quantize(el.offset, resolution=1/4)}")
-
-    unique_tokens = list(set(tokens))
-
-    print(f"Amount of unique tokens: {len(unique_tokens)}")
-
-    print("Start reverting...")
-
-    s = stream.Stream()
-    for token in tokens:
-        parts = token.split("_")
-        if token.startswith("NOTE_ON"):
-            pitch, dur, offset = parts[2], float(parts[3]), float(parts[4])
-            n = note.Note(pitch, quarterLength=dur)
-            s.insert(offset, n)
-        elif token.startswith("REST"):
-            dur, offset = float(parts[1]), float(parts[2])
-            r = note.Rest(quarterLength=dur)
-            s.insert(offset, r)
-        elif token.startswith("CHORD"):
-            pitches, dur, offset = parts[1], float(parts[2]), float(parts[3])
-            chord_obj = chord.Chord(pitches.split("."), quarterLength=dur)
-            s.insert(offset, chord_obj)
-
-
-    s.write("midi", fp="result_only_piano.mid")
-    print("Saved result")

@@ -2,7 +2,7 @@
 import os
 import glob
 from music21 import converter, stream
-from config import RAW_MIDI_DIR, ALLOWED_MUSIC_FILE_EXTENSIONS
+from config import DATASETS_MIDI_DIR, ALLOWED_MUSIC_FILE_EXTENSIONS
 
 
 
@@ -13,7 +13,7 @@ def get_midi_paths_from_dataset(dataset_id : str) -> list[str]:
 
     print(f"Started parsing {dataset_id}...")
 
-    path = os.path.join(RAW_MIDI_DIR, dataset_id)
+    path = os.path.join(DATASETS_MIDI_DIR, dataset_id)
 
     midi_paths = []
 
