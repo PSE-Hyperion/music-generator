@@ -1,7 +1,7 @@
 {
   "name": "Dev Container for LSTM music generator",
   "dockerComposeFile": ".docker/docker-compose.yml",
-  "service": "app",
+  "service": "devcontainer",
   "workspaceFolder": "/app/",
   "features": {
     "ghcr.io/devcontainers/features/git:1": {},
