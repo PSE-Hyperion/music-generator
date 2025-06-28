@@ -77,7 +77,9 @@ def load_tokenized_data(processed_dataset_id: str):
 
     return X, y, data_input_shape, data_map_id
 
-@staticmethod
+
+#not needed anymore
+""" @staticmethod
 def delete_data(name : str):
     data_dir = os.path.join(PROCESSED_DIR, name)
     if not os.path.exists(data_dir):
@@ -94,10 +96,11 @@ def get_all_data_str_list() -> list[str]:
             print("This will never happen")
             data_str_list.append(entry)
 
-    return data_str_list
+    return data_str_list 
 
 @staticmethod
 def does_data_exist(name : str) -> bool:
     data_folder_dir = os.path.join(PROCESSED_DIR, name)
     return os.path.exists(data_folder_dir)
+    """
 
