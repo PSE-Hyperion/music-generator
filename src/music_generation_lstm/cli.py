@@ -7,7 +7,7 @@ from midi import parser, writer
 from processing import process
 from tokenization.tokenizer import Tokenizer
 
-from managers.model_management import ModelManager
+from music_generation_lstm.managers.model_io import ModelManager
 from managers.dataset_management import DatasetManager
 
 from prompt_toolkit import PromptSession
