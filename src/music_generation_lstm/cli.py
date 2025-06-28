@@ -3,12 +3,13 @@
 import models.models as models
 from models import train
 
-from midi import parser, writer
+from midi import parser
 from processing import process
 from tokenization.tokenizer import Tokenizer
 
-from models.model_io import ModelManager
-from processing.processed_io import DatasetManager
+#from models.model_io import ModelManager
+#from processing.processed_io import DatasetManager
+from processing import processed_io
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
@@ -61,7 +62,7 @@ def handle_process(args : list[str]):
                 X, y = process.sequenize(embedded_numeric_events)   # might be handled now
                 X = process.reshape_X(X)
 
-                DatasetManager.save_processed_data(processed_dataset_id, midi_path, X, y, tokenizer) # might be handled now
+                processed_io.save_processed_data(processed_dataset_id, midi_path, X, y, tokenizer) # might be handled now
             except Exception as e:
                 print(f"[ERROR] {e}")       # WARNING, when song is too short for sequence, the maps are still updated to contain the tokens of the song
         tokenizer.save_maps()
@@ -85,7 +86,7 @@ def handle_train(args : list[str]):                 # TRAIN DOESNT WORK NOW, SIN
         model_id = args[0]
         processed_dataset_id = args[1]
 
-        X, y, input_shape, map_id = DatasetManager.load_tokenized_data(processed_dataset_id)
+        X, y, input_shape, map_id = processed_io.load_tokenized_data(processed_dataset_id)
 
         # uh uh, stinky: update asap
         import os
@@ -130,11 +131,6 @@ def handle_generate(args : list[str]):
     #   get start sequence from midi
     #   generate with model using start sequence
     #   write result in folder
-
-    return
-    ModelManager()
-    writer
-
     print("generate")
 
 def handle_show(args : list[str]):
