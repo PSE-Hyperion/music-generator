@@ -3,7 +3,30 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
 
 
-def handle_u_input(input : str):
+def handle_process(args : list[str]):
+    dataset_id = args[0]
+    processed_dataset_id = args[1]
+
+    controller.process(dataset_id, processed_dataset_id)
+
+
+def handle_train(args : list[str]):                 # TRAIN DOESNT WORK NOW, SINCE THE PROCESSED DATA IS SAVED DIFFERENTLY
+    model_id = args[0]
+    processed_dataset_id = args[1]
+
+    controller.train(model_id, processed_dataset_id)
+
+
+def handle_generate(args : list[str]):
+    controller.generate()
+
+def handle_show(args : list[str]):
+    controller.show()
+
+def handle_exit():
+    controller.exit()
+
+def process_input(input : str):
     #   split user input into parts
     #   search first part (command) in command map, that maps a command to a handler function
     #
@@ -24,31 +47,6 @@ def handle_u_input(input : str):
     handler(args)
 
 
-def handle_process(args : list[str]):
-    dataset_id = args[0]
-    processed_dataset_id = args[1]
-
-    controller.process(dataset_id, processed_dataset_id)
-
-
-def handle_train(args : list[str]):                 # TRAIN DOESNT WORK NOW, SINCE THE PROCESSED DATA IS SAVED DIFFERENTLY
-    try:
-        model_id = args[0]
-        processed_dataset_id = args[1]
-
-        controller.train(model_id, processed_dataset_id)
-    except Exception as e:
-        print(f"[ERROR] {e}")
-
-
-def handle_generate(args : list[str]):
-    controller.generate()
-
-def handle_show(args : list[str]):
-    controller.show()
-
-def handle_exit():
-    controller.exit()
 
 COMMAND_HANDLERS = {
     "-process": handle_process,          # -p shortcut_dataset_id processed_id(new)
@@ -83,6 +81,6 @@ def start_session():
             if u_input.strip() == "exit":
                 handle_exit()
                 break
-            handle_u_input(u_input)
+            process_input(u_input)
         except Exception as e:
             print(f"[ERROR] {e}")
