@@ -4,10 +4,10 @@ import shutil
 from models.models import BaseModel
 from config import MODELS_DIR
 from keras.src.saving.saving_api import save_model as save
-from keras.src.saving.saving_api import load_model as load
-from keras.src.models import Model
+#from keras.src.saving.saving_api import load_model as load
+#from keras.src.models import Model
 import json
-from typing import cast, Optional
+#from typing import cast, Optional      #not needed anymore
 
 
 
@@ -31,7 +31,7 @@ def save_model(model : BaseModel):
     with open(os.path.join(model_dir, "config.json"), "w") as f:
         json.dump(config, f)
 
-@staticmethod
+""" @staticmethod
 def load_model(name : str) -> BaseModel | None:
     model_dir = os.path.join(MODELS_DIR, name)
     metadata_path = os.path.join(model_dir, "config.json")
@@ -49,7 +49,7 @@ def load_model(name : str) -> BaseModel | None:
     # rebuild model
     model = None
 
-    return model
+    return model """ #not needed anymore
 
 @staticmethod
 def delete_model(name : str):
