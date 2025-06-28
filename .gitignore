@@ -59,6 +59,5 @@ pylint-report.txt
 
 # Virtual environments
 # Keep folder structure in data/ with .gitkeep, ignore everything else
-data/*
-!data/**/
+data/**
 !data/**/.gitkeep
