@@ -156,12 +156,11 @@ class Maps():
         self.velocity = {}
         self.instrument = {}
 
-    #aus tokenizer, aufrufe anpasssen
+    #aus tokenizer, aufrufe anpasssen, soll in maps_io
     def extend(self, embedded_token_events : list[EmbeddedTokenEvent]):
         #   extends the maps of this tokenizer instance
         #
         #
-
         print("Start extending maps of tokens...")
         for ev in embedded_token_events:
             if ev.type not in self.type:
