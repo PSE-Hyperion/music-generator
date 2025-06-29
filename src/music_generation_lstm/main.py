@@ -1,11 +1,11 @@
 import cli
 
-
-
-if __name__ == "__main__":
-    #   The expected entry point of the program
-    #   Starts a cli session
+def main():
+    #   Starts the program by starting a cli session
     #
-
-    pass
+    #
     cli.start_session()
+
+# entry point for  script execution
+if __name__ == "__main__":
+    main()
