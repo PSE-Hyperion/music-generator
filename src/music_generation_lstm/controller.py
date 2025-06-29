@@ -4,7 +4,11 @@ from tokenization.tokenizer import Tokenizer
 from managers.model_management import ModelManager
 from managers.dataset_management import DatasetManager
 
+<<<<<<< HEAD
 def process(dataset_id: int, processed_dataset_id):
+=======
+def process(dataset_id: str, processed_dataset_id: str):
+>>>>>>> development-jan
     #   parses midi file(s) to music21.stream.Score
     #   tokenize score(s)
     #   numerize tokens
@@ -30,7 +34,11 @@ def process(dataset_id: int, processed_dataset_id):
     tokenizer.save_maps()
 
 
+<<<<<<< HEAD
 def train(model_id: int, processed_dataset_id: int):                 # TRAIN DOESNT WORK NOW, SINCE THE PROCESSED DATA IS SAVED DIFFERENTLY
+=======
+def train(model_id: str, processed_dataset_id: str):                 # TRAIN DOESNT WORK NOW, SINCE THE PROCESSED DATA IS SAVED DIFFERENTLY
+>>>>>>> development-jan
     #   get processed via id
     #   build model
     #   train model
