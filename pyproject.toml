@@ -30,5 +30,9 @@ nogpu =  ["tensorflow_cpu>=2.19"]
 gpu = ["tensorflow>=2.19"]
 
 
+[project.scripts]
+music-gen = "music_generation_lstm:main"
+
+
 [tool.ruff]
 line-length = 120
