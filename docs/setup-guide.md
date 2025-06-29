@@ -20,3 +20,21 @@ There should pop up a console window with the interactive Python interpreter. GP
 1. Install the Dev Container extension in VS Code
 2. It should recognize the .devcontainer file in the repo and show a message. Otherwise press F1 and type something like 'Dev: open container', then select the .devcontainer file.
 VS Code will now run inside the Docker container. All necessary extensions, style checks etc. should get installed automatically.
+<<<<<<< HEAD
+=======
+
+# Working with the tools
+## Docker
+### Rebuilding an image
+After editing (or pulling changes of) the docker files, you should rebuil the images. `docker compose -f .docker/docker-compose.yml`
+You should also rebuild the dev container after doing this.
+### Cleanup
+You should clean your docker system from time to time. Use `docker system prune -a --volumes` to clean everything up. Keep in mind that your computer has to download everything again after doing this.
+
+## Python/pip
+### Installing new packages
+1. Type in the dev container (or docker) console `pip install [package]`
+The installation will be removed after the next rebuild. Tomake it permanently:
+2. Add the package to pyproject.toml in the dependencies with the version number. `[package]>=[version]`
+You can see the version with `pip show [package]`
+>>>>>>> 77d4819494d4c1a549c16c3d95be71a5e2f8a8b9
