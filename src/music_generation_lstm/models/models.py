@@ -2,7 +2,7 @@
 from keras.src.layers import LSTM, Embedding, Concatenate, Dense, Dropout, Input
 from keras.src.models import Model
 
-from config import SEQUENCE_LENGTH
+from config import SEQUENCE_LENGTH #Simple test
 
 class BaseModel():
     #
