@@ -7,9 +7,9 @@ from config import DATASETS_MIDI_DIR, ALLOWED_MUSIC_FILE_EXTENSIONS
 
 
 def get_midi_paths_from_dataset(dataset_id : str) -> list[str]:
-    #   get all midi file paths in dataset
-    #   this is used to avoid loading all files at same
-    #   the returned files then can be used to process all songs of the dataset seperatly
+    #   Get all midi file paths in dataset
+    #   This is used to avoid loading all files at same
+    #   The returned files then can be used to process all songs of the dataset seperatly
 
     print(f"Started parsing {dataset_id}...")
 
@@ -34,9 +34,9 @@ def get_midi_paths_from_dataset(dataset_id : str) -> list[str]:
     return midi_paths
 
 def parse_midi(music_path : str) -> stream.Score:
-    #   parses music file to score
-    #
-    #
+    #   Parses music file to score using music21 converter
+    #   Returns it, if the parsed result is a Score instance (not Opus or Part)
+    #   Otherwise throws exceptions
 
     if os.path.isfile(music_path):
         try:
