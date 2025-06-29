@@ -1,13 +1,12 @@
-#- soll methoden zum speichern der maps einer tokenizer klasse haben (guck, wie der tokenizer bis jetzt die daten selbst speichert, und
-# #mache das zu eigener funktion im token_map_io file
-#- statt tokenizer.save_maps() soll dann im cli file token_map_io.save_token_maps() aufgerufen werden
-#- eine leere funktion für load_token_maps wäre auch gut, nur, damit sie schonmal da steht
+
 import os
 import json
 from config import TOKEN_MAPS_DIR, SEQUENCE_LENGTH
 
 from tokenization import tokenizer
 
+# saves all the tokenmaps into a file
+# you can find the file in TOKEN_MAPS_DIR plus id
 def save_token_maps(tokenizer: tokenizer):
     print("Start saving maps...")
 

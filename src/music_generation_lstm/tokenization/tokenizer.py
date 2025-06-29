@@ -147,6 +147,7 @@ def detokenize(embedded_token_events : list[EmbeddedTokenEvent]) -> stream.Strea
 
     return s
 
+# Collection of all the maps
 class Maps():
     def __init__(self):
         self.type = {}
@@ -156,7 +157,6 @@ class Maps():
         self.velocity = {}
         self.instrument = {}
 
-    #aus tokenizer, aufrufe anpasssen, soll in maps_io
     def extend(self, embedded_token_events : list[EmbeddedTokenEvent]):
         #   extends the maps of this tokenizer instance
         #
