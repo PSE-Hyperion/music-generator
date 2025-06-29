@@ -21,7 +21,7 @@ classifiers = [
 dependencies = [
   "music21>=9.7",
   "matplotlib>=3.10",
-  "prompot-toolkit>=3.0"
+  "prompt-toolkit>=3.0"
 ]
 
 
