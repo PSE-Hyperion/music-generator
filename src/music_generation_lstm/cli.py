@@ -1,5 +1,3 @@
-# optional seperate cli file
-
 import models.models as models
 from models import train
 
@@ -17,12 +15,14 @@ from prompt_toolkit.completion import Completer, Completion
 def handle_u_input(input : str):
     #   split user input into parts
     #   search first part (command) in command map, that maps a command to a handler function
-    #
+    #   if command exists, call handler function
 
     parts = input.split(" ")
+
     if len(parts) < 2:
         print("Invalid input.")
         return
+
     command = parts[0]
     args = parts[1:]
 
