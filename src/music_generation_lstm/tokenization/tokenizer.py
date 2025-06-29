@@ -24,7 +24,7 @@ class PendingChordNote():
         self.chord_duration = chord_duration
 
 
-def quantize(value, resolution : float = 1/8) -> float:
+def quantize(value, resolution : float = 1/8) -> float: #Any particular reason for 1/8?
     return round(value / resolution) * resolution
 
 def note_event(note : note.Note, instrument : instrument.Instrument, curr_offset : float) -> EmbeddedTokenEvent:

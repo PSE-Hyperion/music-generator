@@ -10,7 +10,7 @@ def handle_process(args : list[str]):
     controller.process(dataset_id, processed_dataset_id)
 
 
-def handle_train(args : list[str]):                 # TRAIN DOESNT WORK NOW, SINCE THE PROCESSED DATA IS SAVED DIFFERENTLY
+def handle_train(args : list[str]): # TRAIN DOESNT WORK NOW, SINCE THE PROCESSED DATA IS SAVED DIFFERENTLY
     model_id = args[0]
     processed_dataset_id = args[1]
 
