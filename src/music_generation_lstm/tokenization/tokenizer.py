@@ -5,7 +5,7 @@ from fractions import Fraction
 from typing import List
 
 from music21 import stream, note, chord, instrument
-from config import SEQUENCE_LENGTH, QUANTIZATION_PRECISION_DELTA_OFFSET, QUANTIZATION_PRECISION_DURATION, TOKEN_MAPS_DIR
+from config import SEQUENCE_LENGTH, QUANTIZATION_PRECISION_DELTA_OFFSET, QUANTIZATION_PRECISION_DURATION
 
 
 class EmbeddedTokenEvent():
@@ -147,16 +147,42 @@ def detokenize(embedded_token_events : list[EmbeddedTokenEvent]) -> stream.Strea
 
     return s
 
+class Maps():
+    def __init__(self):
+        self.type = {}
+        self.pitch = {}
+        self.duration = {}
+        self.delta_offset = {}
+        self.velocity = {}
+        self.instrument = {}
+
+    #aus tokenizer, aufrufe anpasssen
+    def extend(self, embedded_token_events : list[EmbeddedTokenEvent]):
+        #   extends the maps of this tokenizer instance
+        #
+        #
+
+        print("Start extending maps of tokens...")
+        for ev in embedded_token_events:
+            if ev.type not in self.type:
+                self.type[ev.type] = len(self.type)
+            if ev.pitch not in self.pitch:
+                self.pitch[ev.pitch] = len(self.pitch)
+            if ev.duration not in self.duration:
+                self.duration[ev.duration] = len(self.duration)
+            if ev.delta_offset not in self.delta:
+                self.delta[ev.delta_offset] = len(self.delta)
+            if ev.velocity not in self.velocity:
+                self.velocity[ev.velocity] = len(self.velocity)
+            if ev.instrument not in self.instr:
+                self.instr[ev.instrument] = len(self.instr)
+        print("Finished extending maps of tokens.")
+
+
 class Tokenizer():
+
     def __init__(self, processed_dataset_id : str):
         self.processed_dataset_id = processed_dataset_id
-
-        self.type_map = {}
-        self.pitch_map = {}
-        self.duration_map = {}
-        self.delta_offset_map = {}
-        self.velocity_map = {}
-        self.instrument_map = {}
 
         self.sequence_length = SEQUENCE_LENGTH
         self.num_features_type = 0
@@ -166,66 +192,8 @@ class Tokenizer():
         self.num_features_velocity = 0
         self.num_features_instrument = 0
 
-    def extend_maps(self, embedded_token_events : list[EmbeddedTokenEvent]):
-        #   extends the maps of this tokenizer instance
-        #
-        #
+        self.maps.__init__
 
-        print("Start extending maps of tokens...")
-
-        for event in embedded_token_events:
-            if event.type not in self.type_map:
-                self.type_map[event.type] = len(self.type_map)
-            if event.pitch not in self.pitch_map:
-                self.pitch_map[event.pitch] = len(self.pitch_map)
-            if event.duration not in self.duration_map:
-                self.duration_map[event.duration] = len(self.duration_map)
-            if event.delta_offset not in self.delta_offset_map:
-                self.delta_offset_map[event.delta_offset] = len(self.delta_offset_map)
-            if event.velocity not in self.velocity_map:
-                self.velocity_map[event.velocity] = len(self.velocity_map)
-            if event.instrument not in self.instrument_map:
-                self.instrument_map[event.instrument] = len(self.instrument_map)
-
-        print("Finished extending maps of tokens.")
-
-    def save_maps(self):            # preliminary
-        #
-        #
-        #
-
-        print("Start saving maps...")
-
-        total_unique_tokens = len(self.type_map) + len(self.pitch_map)+len(self.duration_map)+len(self.delta_offset_map)+len(self.velocity_map)+len(self.instrument_map)
-
-        print(f"Total unique tokens: {total_unique_tokens}")
-
-        # save important information in tokenizer just in case, could also be saved in data
-        self.sequence_length = SEQUENCE_LENGTH
-        self.num_features_type = len(self.type_map)
-        self.num_features_pitch = len(self.pitch_map)
-        self.num_features_duration = len(self.duration_map)
-        self.num_features_delta_offset = len(self.delta_offset_map)
-        self.num_features_velocity = len(self.velocity_map)
-        self.num_features_instrument = len(self.instrument_map)
-
-
-        folder_path = os.path.join(TOKEN_MAPS_DIR, self.processed_dataset_id)
-        os.makedirs(folder_path, exist_ok=False)
-        with open(os.path.join(folder_path, "type_map.json"), "w") as f:
-            json.dump(self.type_map, f, indent=4)
-        with open(os.path.join(folder_path, "pitch_map.json"), "w") as f:
-            json.dump(self.pitch_map, f, indent=4)
-        with open(os.path.join(folder_path, "duration_map.json"), "w") as f:
-            json.dump(self.duration_map, f, indent=4)
-        with open(os.path.join(folder_path, "delta_offset_map.json"), "w") as f:
-            json.dump(self.delta_offset_map, f, indent=4)
-        with open(os.path.join(folder_path, "velocity_map.json"), "w") as f:
-            json.dump(self.velocity_map, f, indent=4)
-        with open(os.path.join(folder_path, "instrument_map.json"), "w") as f:
-            json.dump(self.instrument_map, f, indent=4)
-
-        print("Finished saving maps")
 
     def tokenize(self, score : stream.Score) -> list[EmbeddedTokenEvent]:   # return list of EmbeddedTokenEvents
         #   receives a score, that it will tokenize to EmbeddedTokenEvents
@@ -278,7 +246,7 @@ class Tokenizer():
             print(f"Note in chords in embedded tokens: {note_in_chord_counter}")
 
 
-        self.extend_maps(embedded_token_events)
+        self.maps.extend_maps(embedded_token_events)
         return embedded_token_events
 
     @classmethod

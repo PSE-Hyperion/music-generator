@@ -10,6 +10,7 @@ from tokenization.tokenizer import Tokenizer
 #from models.model_io import ModelManager
 #from processing.processed_io import DatasetManager
 from processing import processed_io
+from tokenization import token_map_io
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
@@ -65,7 +66,7 @@ def handle_process(args : list[str]):
                 processed_io.save_processed_data(processed_dataset_id, midi_path, X, y, tokenizer) # might be handled now
             except Exception as e:
                 print(f"[ERROR] {e}")       # WARNING, when song is too short for sequence, the maps are still updated to contain the tokens of the song
-        tokenizer.save_maps()
+        token_map_io.save_maps()
 
     except Exception as e:
         print()
