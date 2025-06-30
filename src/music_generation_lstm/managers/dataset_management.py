@@ -5,8 +5,8 @@ import shutil
 
 import numpy as np
 
-from config import PROCESSED_DIR
-from tokenization.tokenizer import Tokenizer
+from ..config import PROCESSED_DIR
+from ..tokenization.tokenizer import Tokenizer
 
 from typing import Final
 
