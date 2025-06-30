@@ -5,8 +5,8 @@ from keras.src.models import Model
 from config import SEQUENCE_LENGTH
 
 class BaseModel():
-    #
     #   Base model class, that defines an abstract implementation of a model class
+    #
     #
 
 
@@ -16,13 +16,17 @@ class BaseModel():
         self.model: Model
 
     def build(self):
+        #   Should define the architecture of a model
+        #
+        #
+
         raise NotImplementedError
 
 
 
 class LSTMModel(BaseModel):
-    #
     #   LSTM model class, that implements the architecture of an lstm model
+    #
     #
 
 
@@ -30,8 +34,12 @@ class LSTMModel(BaseModel):
         super().__init__(name=name, input_shape=input_shape)
 
 
-    # builds the architecture
     def build(self, vocab_sizes, embedding_dims=32, lstm_units=128):
+        #   Builds the architecture of the lstm model
+        #
+        #
+
+
         # Inputs for each of the 6 features
         input_layers = {
             name: Input(shape=(SEQUENCE_LENGTH,), name=f"{name}")
