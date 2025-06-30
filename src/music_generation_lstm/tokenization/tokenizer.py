@@ -192,7 +192,6 @@ class Tokenizer():
         self.num_features_instrument = 0
 
         self.sixtuple_token_maps = SixtupleTokenMaps()
-        self.sixtuple_token_maps.__init__
 
 
 
