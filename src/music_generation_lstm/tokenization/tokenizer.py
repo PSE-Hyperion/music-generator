@@ -148,7 +148,7 @@ def detokenize(embedded_token_events : list[EmbeddedTokenEvent]) -> stream.Strea
     return s
 
 # Collection of all the maps
-class Maps():
+class SixtupleTokenMaps():
     def __init__(self):
         self.type = {}
         self.pitch = {}
@@ -191,7 +191,9 @@ class Tokenizer():
         self.num_features_velocity = 0
         self.num_features_instrument = 0
 
+        self.maps = SixtupleTokenMaps()
         self.maps.__init__
+
 
 
     def tokenize(self, score : stream.Score) -> list[EmbeddedTokenEvent]:   # return list of EmbeddedTokenEvents

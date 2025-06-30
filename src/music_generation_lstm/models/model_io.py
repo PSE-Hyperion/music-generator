@@ -11,7 +11,6 @@ import json
 
 
 
-@staticmethod
 def save_model(model : BaseModel):
     model_dir = os.path.join(MODELS_DIR, model.name)
     os.makedirs(model_dir, exist_ok=True)
@@ -31,7 +30,7 @@ def save_model(model : BaseModel):
     with open(os.path.join(model_dir, "config.json"), "w") as f:
         json.dump(config, f)
 
-""" @staticmethod
+
 def load_model(name : str) -> BaseModel | None:
     model_dir = os.path.join(MODELS_DIR, name)
     metadata_path = os.path.join(model_dir, "config.json")
@@ -49,9 +48,9 @@ def load_model(name : str) -> BaseModel | None:
     # rebuild model
     model = None
 
-    return model """ #not needed anymore
+    return model
 
-@staticmethod
+
 def delete_model(name : str):
     model_dir = os.path.join(MODELS_DIR, name)
 
@@ -60,7 +59,6 @@ def delete_model(name : str):
 
     shutil.rmtree(model_dir)
 
-@staticmethod
 def get_all_models_str_list() -> list[str]:
     models_str_list = []
     os.makedirs(MODELS_DIR, exist_ok=True)
