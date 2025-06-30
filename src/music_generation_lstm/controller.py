@@ -1,4 +1,5 @@
 import models.models as models
+from processing import process as p
 from midi import parser, writer
 from tokenization.tokenizer import Tokenizer
 from managers.model_management import ModelManager
@@ -22,9 +23,9 @@ def process(dataset_id: str, processed_dataset_id: str):
 
         embedded_token_events = tokenizer.tokenize(score)   # might be handled now
 
-        embedded_numeric_events = process.numerize(embedded_token_events, tokenizer)   # might be handled now
-        X, y = process.sequenize(embedded_numeric_events)   # might be handled now
-        X = process.reshape_X(X)
+        embedded_numeric_events = p.numerize(embedded_token_events, tokenizer)   # might be handled now
+        X, y = p.sequenize(embedded_numeric_events)   # might be handled now
+        X = p.reshape_X(X)
 
         DatasetManager.save_processed_data(processed_dataset_id, midi_path, X, y, tokenizer) # might be handled now
     tokenizer.save_maps()
