@@ -4,6 +4,7 @@ from midi import parser, writer
 from tokenization.tokenizer import Tokenizer
 from managers.model_management import ModelManager
 from managers.dataset_management import DatasetManager
+from processing import process as p
 
 def process(dataset_id: str, processed_dataset_id: str):
     #   parses midi file(s) to music21.stream.Score
@@ -84,14 +85,11 @@ def generate():
     #   generate with model using start sequence
     #   write result in folder
 
-    return
-    ModelManager()
-    writer
 
     print("generate")
 
 
-def show(args : list[str]):
+def show():
     #   get model via label
     #   get midi
     #   get start sequence from midi

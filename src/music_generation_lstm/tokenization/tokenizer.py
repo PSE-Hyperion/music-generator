@@ -167,8 +167,8 @@ class Tokenizer():
         self.num_features_instrument = 0
 
     def extend_maps(self, embedded_token_events : list[EmbeddedTokenEvent]):
-        #   extends the maps of this tokenizer instance
-        #
+        #   Extends the maps of this tokenizer instance
+        #   While using this tokenizer, the maps get updated for each new feature found in the given tokenized list of embedded token events
         #
 
         print("Start extending maps of tokens...")
@@ -189,7 +189,7 @@ class Tokenizer():
 
         print("Finished extending maps of tokens.")
 
-    def save_maps(self):            # preliminary
+    def save_maps(self):
         #
         #
         #
@@ -227,8 +227,8 @@ class Tokenizer():
 
         print("Finished saving maps")
 
-    def tokenize(self, score : stream.Score) -> list[EmbeddedTokenEvent]:   # return list of EmbeddedTokenEvents
-        #   receives a score, that it will tokenize to EmbeddedTokenEvents
+    def tokenize(self, score : stream.Score) -> list[EmbeddedTokenEvent]:
+        #   Receives a score, that it will tokenize to embedded token events
         #   EmbeddedTokenEvents is a group of tokens per event
         #   The score is turned into a list of embedded token events
 
