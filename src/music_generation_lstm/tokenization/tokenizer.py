@@ -76,6 +76,7 @@ def is_embedded_token_part_of_chord(embedded_token : EmbeddedTokenEvent) -> bool
 def is_first_chord_note(embedded_token : EmbeddedTokenEvent) -> bool:
     return embedded_token.type == "CHORD_NOTE_START"
 
+
 def detokenize(embedded_token_events : list[EmbeddedTokenEvent]) -> stream.Stream:
     #
     #
@@ -141,7 +142,6 @@ def detokenize(embedded_token_events : list[EmbeddedTokenEvent]) -> stream.Strea
         s.insert(chord_offset, chord.Chord(pitches, quarterLength=chord_duration))
         note_in_chord_counter += len(pitches)
         pending_chord_notes.clear()
-
 
     print("Finished detokenizing.")
 
