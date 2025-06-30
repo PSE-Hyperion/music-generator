@@ -8,7 +8,7 @@ from music21 import stream, note, chord, instrument
 from config import SEQUENCE_LENGTH, QUANTIZATION_PRECISION_DELTA_OFFSET, QUANTIZATION_PRECISION_DURATION, TOKEN_MAPS_DIR
 
 
-class EmbeddedTokenEvent():
+class TokenEvent():
     def __init__(self, type : str, pitch : str, duration : str, delta_offset : str, velocity : str, instrument : str):
         self.type = type
         self.pitch = pitch
@@ -27,8 +27,8 @@ class PendingChordNote():
 def quantize(value, resolution : float = 1/8) -> float: #Any particular reason for 1/8?
     return round(value / resolution) * resolution
 
-def note_event(note : note.Note, instrument : instrument.Instrument, curr_offset : float) -> EmbeddedTokenEvent:
-    return EmbeddedTokenEvent(
+def note_event(note : note.Note, instrument : instrument.Instrument, curr_offset : float) -> TokenEvent:
+    return TokenEvent(
         type="NOTE",
         pitch=f"{note.pitch}",
         duration=f"{quantize(value=float(Fraction(note.quarterLength)), resolution=QUANTIZATION_PRECISION_DURATION)}",
@@ -37,14 +37,14 @@ def note_event(note : note.Note, instrument : instrument.Instrument, curr_offset
         instrument=f"{instrument.instrumentName}"
     )
 
-def chord_note_event(chord_note : note.Note, chord_duration, instrument : instrument.Instrument, curr_offset : float, first_chord_note : bool = False) -> EmbeddedTokenEvent:
+def chord_note_event(chord_note : note.Note, chord_duration, instrument : instrument.Instrument, curr_offset : float, first_chord_note : bool = False) -> TokenEvent:
     # find chord_duration type (what is it)
 
     type = "CHORD_NOTE"
     if first_chord_note:
         type = "CHORD_NOTE_START"
 
-    return EmbeddedTokenEvent(
+    return TokenEvent(
         type=f"{type}",
         pitch=f"{chord_note.pitch}",
         # duration of chord note and of chord itself
@@ -54,8 +54,8 @@ def chord_note_event(chord_note : note.Note, chord_duration, instrument : instru
         instrument=f"{instrument.instrumentName}"
     )
 
-def rest_event(rest : note.Rest, curr_offset : float) -> EmbeddedTokenEvent:
-    return EmbeddedTokenEvent(
+def rest_event(rest : note.Rest, curr_offset : float) -> TokenEvent:
+    return TokenEvent(
         type="REST",
         pitch="NO_PITCH",
         duration=f"{quantize(value=float(Fraction(rest.quarterLength)), resolution=QUANTIZATION_PRECISION_DURATION)}",
@@ -64,19 +64,19 @@ def rest_event(rest : note.Rest, curr_offset : float) -> EmbeddedTokenEvent:
         instrument="NO_INSTRUMENT"
     )
 
-def is_embedded_token_rest(embedded_token : EmbeddedTokenEvent) -> bool:
+def is_embedded_token_rest(embedded_token : TokenEvent) -> bool:
     return embedded_token.type == "REST"
 
-def is_embedded_token_note(embedded_token : EmbeddedTokenEvent) -> bool:
+def is_embedded_token_note(embedded_token : TokenEvent) -> bool:
     return embedded_token.type == "NOTE"
 
-def is_embedded_token_part_of_chord(embedded_token : EmbeddedTokenEvent) -> bool:
+def is_embedded_token_part_of_chord(embedded_token : TokenEvent) -> bool:
     return embedded_token.type.startswith("CHORD_NOTE")
 
-def is_first_chord_note(embedded_token : EmbeddedTokenEvent) -> bool:
+def is_first_chord_note(embedded_token : TokenEvent) -> bool:
     return embedded_token.type == "CHORD_NOTE_START"
 
-def detokenize(embedded_token_events : list[EmbeddedTokenEvent]) -> stream.Stream:
+def detokenize(embedded_token_events : list[TokenEvent]) -> stream.Stream:
     #
     #
     #
@@ -166,7 +166,7 @@ class Tokenizer():
         self.num_features_velocity = 0
         self.num_features_instrument = 0
 
-    def extend_maps(self, embedded_token_events : list[EmbeddedTokenEvent]):
+    def extend_maps(self, embedded_token_events : list[TokenEvent]):
         #   Extends the maps of this tokenizer instance
         #   While using this tokenizer, the maps get updated for each new feature found in the given tokenized list of embedded token events
         #
@@ -227,7 +227,7 @@ class Tokenizer():
 
         print("Finished saving maps")
 
-    def tokenize(self, score : stream.Score) -> list[EmbeddedTokenEvent]:
+    def tokenize(self, score : stream.Score) -> list[TokenEvent]:
         #   Receives a score, that it will tokenize to embedded token events
         #   EmbeddedTokenEvents is a group of tokens per event
         #   The score is turned into a list of embedded token events
@@ -236,7 +236,7 @@ class Tokenizer():
 
         flat = score.flatten().notesAndRests
 
-        embedded_token_events : List[EmbeddedTokenEvent] = []
+        embedded_token_events : List[TokenEvent] = []
         curr_instrument = instrument.Instrument("Piano")
 
         prev_offset = 0.0

@@ -7,6 +7,7 @@ from models.models import BaseModel
 from config import TRAINING_EPOCHS, TRAINING_BATCH_SIZE
 
 def temperature():
+    #TODO: Implement prediction with temperature - Probably more logical in generate.py
     pass
 
 def split_X_y(X, y):

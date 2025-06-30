@@ -4,9 +4,9 @@
 import numpy as np
 
 from config import SEQUENCE_LENGTH
-from tokenization.tokenizer import Tokenizer, EmbeddedTokenEvent
+from tokenization.tokenizer import Tokenizer, TokenEvent
 
-class EmbeddedNumericEvent():
+class NumerizedTokenEvent():
     def __init__(self, type : int, pitch : int, duration : int, delta_offset : int, velocity : int, instrument : int):
         self.type = type
         self.pitch = pitch
@@ -15,39 +15,39 @@ class EmbeddedNumericEvent():
         self.velocity = velocity
         self.instrument = instrument
 
-def numerize(embedded_token_events : list[EmbeddedTokenEvent], tokenizer : Tokenizer) -> list[EmbeddedNumericEvent]:
-    #   Turns a list of embedded token events into it's numeric equivalent
+def numerize(token_events : list[TokenEvent], tokenizer : Tokenizer) -> list[NumerizedTokenEvent]:
+    #   Turns a list of token events into its numeric representation
     #   Uses maps of the given tokenizer
     #
 
     print("Start numerize...")
 
     embedded_numeric_events = []
-    for embedded_token_event in embedded_token_events:
-        embedded_numeric_event = EmbeddedNumericEvent(
-            tokenizer.type_map[embedded_token_event.type],
-            tokenizer.pitch_map[embedded_token_event.pitch],
-            tokenizer.duration_map[embedded_token_event.duration],
-            tokenizer.delta_offset_map[embedded_token_event.delta_offset],
-            tokenizer.velocity_map[embedded_token_event.velocity],
-            tokenizer.instrument_map[embedded_token_event.instrument],
+    for token_event in token_events:
+        numerized_token_event = NumerizedTokenEvent(
+            tokenizer.type_map[token_event.type],
+            tokenizer.pitch_map[token_event.pitch],
+            tokenizer.duration_map[token_event.duration],
+            tokenizer.delta_offset_map[token_event.delta_offset],
+            tokenizer.velocity_map[token_event.velocity],
+            tokenizer.instrument_map[token_event.instrument],
         )
-        embedded_numeric_events.append(embedded_numeric_event)
+        embedded_numeric_events.append(numerized_token_event)
 
     print("Finished numerize.")
 
     return embedded_numeric_events
 
-def sequenize(embedded_numeric_events: list[EmbeddedNumericEvent]):
-    #   creates sequences of feature tuples (extracts feature num val from embeddednumericevent class) and corresponding next event feature tuples
+def sequenize(embedded_numeric_events: list[NumerizedTokenEvent]):
+    #   creates sequences of feature tuples (extracts feature num val from NumerizedNumericEvent class) and corresponding targets event feature tuples
     #   uses sliding window of size of SEQUENCE_LENGTH
-    #   X contains sequences of features of an event, y contains the next features of an event
-    #   X = [[1, 2], [2, 3], [3, 4]], y = [3, 4, 5]
-    #   sequence X[i] is followed by y[i]
+    #   inputs contains sequences of features of an event, targets contains the next features of an event
+    #   Ex: inputs = [[1, 2], [2, 3], [3, 4]], targets = [3, 4, 5]
+    #   sequence inputs[i] is followed by targets[i]
 
-    print("Start sequenizing...")
+    print("Start preparing the training sequences...")
 
-    X, y = [], []
+    inputs, targets = [], []
 
 
     if len(embedded_numeric_events) < SEQUENCE_LENGTH + 1:
@@ -65,21 +65,21 @@ def sequenize(embedded_numeric_events: list[EmbeddedNumericEvent]):
             )
             for event in embedded_numeric_events[i:i + SEQUENCE_LENGTH]
         ]
-        output_event = embedded_numeric_events[i + SEQUENCE_LENGTH]
-        output_tuple = (
-            output_event.type,
-            output_event.pitch,
-            output_event.duration,
-            output_event.delta_offset,
-            output_event.velocity,
-            output_event.instrument
+        target_event = embedded_numeric_events[i + SEQUENCE_LENGTH]
+        target_tuple = (
+            target_event.type,
+            target_event.pitch,
+            target_event.duration,
+            target_event.delta_offset,
+            target_event.velocity,
+            target_event.instrument
         )
 
-        X.append(input_seq)
-        y.append(output_tuple)
+        inputs.append(input_seq)
+        targets.append(target_tuple)
 
-    print("Finished sequenizing")
-    return X, y
+    print("Finished preparing the training sequences")
+    return inputs, targets
 
 def reshape_X(X):
     #   reshapes X training data to numpy array (matrix) of shape (num_sequences, SEQUENCE_LENGTH, 6)
@@ -94,7 +94,7 @@ def reshape_X(X):
     return X
 
 
-def denumerize(embedded_numeric_events : list[EmbeddedNumericEvent], tokenizer : Tokenizer) -> list[EmbeddedTokenEvent]:
+def denumerize(embedded_numeric_events : list[NumerizedTokenEvent], tokenizer : Tokenizer) -> list[TokenEvent]:
     #   Turns list of embedded numeric events into list of embedded token events, by using the maps provided by the given tokenizer instance
     #
     #
