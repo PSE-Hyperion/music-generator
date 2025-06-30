@@ -162,19 +162,19 @@ class SixtupleTokenMaps():
         #
         #
         print("Start extending maps of tokens...")
-        for ev in embedded_token_events:
-            if ev.type not in self.type:
-                self.type[ev.type] = len(self.type)
-            if ev.pitch not in self.pitch:
-                self.pitch[ev.pitch] = len(self.pitch)
-            if ev.duration not in self.duration:
-                self.duration[ev.duration] = len(self.duration)
-            if ev.delta_offset not in self.delta:
-                self.delta[ev.delta_offset] = len(self.delta)
-            if ev.velocity not in self.velocity:
-                self.velocity[ev.velocity] = len(self.velocity)
-            if ev.instrument not in self.instr:
-                self.instr[ev.instrument] = len(self.instr)
+        for event in embedded_token_events:
+            if event.type not in self.type:
+                self.type[event.type] = len(self.type)
+            if event.pitch not in self.pitch:
+                self.pitch[event.pitch] = len(self.pitch)
+            if event.duration not in self.duration:
+                self.duration[event.duration] = len(self.duration)
+            if event.delta_offset not in self.delta:
+                self.delta[event.delta_offset] = len(self.delta)
+            if event.velocity not in self.velocity:
+                self.velocity[event.velocity] = len(self.velocity)
+            if event.instrument not in self.instr:
+                self.instr[event.instrument] = len(self.instr)
         print("Finished extending maps of tokens.")
 
 
@@ -191,8 +191,8 @@ class Tokenizer():
         self.num_features_velocity = 0
         self.num_features_instrument = 0
 
-        self.maps = SixtupleTokenMaps()
-        self.maps.__init__
+        self.sixtuple_token_maps = SixtupleTokenMaps()
+        self.sixtuple_token_maps.__init__
 
 
 
