@@ -24,7 +24,7 @@ def process(dataset_id: str, processed_dataset_id: str):
         embedded_token_events = tokenizer.tokenize(score)   # might be handled now
 
         embedded_numeric_events = p.numerize(embedded_token_events, tokenizer)   # might be handled now
-        X, y = p.sequenize(embedded_numeric_events)   # might be handled now
+        X, y = p.prepare_training_sequences(embedded_numeric_events)   # might be handled now
         X = p.reshape_X(X)
 
         DatasetManager.save_processed_data(processed_dataset_id, midi_path, X, y, tokenizer) # might be handled now

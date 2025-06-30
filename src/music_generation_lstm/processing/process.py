@@ -38,7 +38,7 @@ def numerize(token_events : list[TokenEvent], tokenizer : Tokenizer) -> list[Num
 
     return embedded_numeric_events
 
-def sequenize(embedded_numeric_events: list[NumerizedTokenEvent]):
+def prepare_training_sequences(embedded_numeric_events: list[NumerizedTokenEvent]):
     #   creates sequences of feature tuples (extracts feature num val from NumerizedNumericEvent class) and corresponding targets event feature tuples
     #   uses sliding window of size of SEQUENCE_LENGTH
     #   inputs contains sequences of features of an event, targets contains the next features of an event
