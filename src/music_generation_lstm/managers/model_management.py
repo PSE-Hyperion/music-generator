@@ -1,8 +1,8 @@
 
 import os
 import shutil
-from ..models.models import BaseModel
-from ..config import MODELS_DIR
+from models.models import BaseModel
+from config import MODELS_DIR
 from keras.src.saving.saving_api import save_model as save
 from keras.src.saving.saving_api import load_model as load
 from keras.src.models import Model
