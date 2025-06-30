@@ -15,12 +15,9 @@ from typing import Final
 JSON_METADATA_SHAPE: Final = "input_shape"
 JSON_METADATA_MAP_ID: Final = "map_id"
 
-
+# Saves the tokenized dataset and metadata, X and y are numpy arrays, X is a sequence of integer inputs for the model
 def save_processed_data(processed_dataset_id : str, music_path : str, X, y, tokenizer : Tokenizer):
-    #
-    #
-    #
-
+    
     music_file_name = os.path.splitext(os.path.basename(music_path))[0]
     target_folder_path = os.path.join(PROCESSED_DIR, processed_dataset_id, music_file_name)
     os.makedirs(target_folder_path, exist_ok=False)
@@ -48,7 +45,7 @@ def save_processed_data(processed_dataset_id : str, music_path : str, X, y, toke
     print(f"Input Shape: {X.shape}")
 
 
-
+# Loads tokenized dataset and associated metadata for a given processed_dataset_id.
 def load_tokenized_data(processed_dataset_id: str):
     print("Enter tokenized data getter")
 
@@ -78,6 +75,7 @@ def load_tokenized_data(processed_dataset_id: str):
 
     return X, y, data_input_shape, data_map_id
 
+# Deletes the entire folder of a tokenized dataset.
 def delete_data(name : str):
     data_dir = os.path.join(PROCESSED_DIR, name)
     if not os.path.exists(data_dir):
@@ -85,7 +83,7 @@ def delete_data(name : str):
         return
     shutil.rmtree(data_dir)
 
-
+# Returns dataset IDs (folder names) inside PROCESSED_DIR excluding non-data-files: metadata, system files,...
 def get_all_data_str_list() -> list[str]:
     data_str_list = []
     os.makedirs(PROCESSED_DIR, exist_ok=True)
