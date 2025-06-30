@@ -3,8 +3,8 @@
 
 import numpy as np
 
-from models.models import BaseModel
-from config import TRAINING_EPOCHS, TRAINING_BATCH_SIZE
+from ..models.models import BaseModel
+from ..config import TRAINING_EPOCHS, TRAINING_BATCH_SIZE
 
 def temperature():
     pass

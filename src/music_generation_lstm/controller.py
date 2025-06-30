@@ -1,9 +1,9 @@
-import models.models as models
-from midi import parser, writer
-from tokenization.tokenizer import Tokenizer
-from managers.model_management import ModelManager
-from managers.dataset_management import DatasetManager
-from processing import process as p
+from .models import models
+from .midi import parser, writer
+from .tokenization.tokenizer import Tokenizer
+from .managers.model_management import ModelManager
+from .managers.dataset_management import DatasetManager
+from .processing import process as p
 
 def process(dataset_id: str, processed_dataset_id: str):
     #   parses midi file(s) to music21.stream.Score

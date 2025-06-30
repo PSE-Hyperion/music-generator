@@ -3,8 +3,8 @@
 
 import numpy as np
 
-from config import SEQUENCE_LENGTH
-from tokenization.tokenizer import Tokenizer, EmbeddedTokenEvent
+from ..config import SEQUENCE_LENGTH
+from ..tokenization.tokenizer import Tokenizer, EmbeddedTokenEvent
 
 class EmbeddedNumericEvent():
     def __init__(self, type : int, pitch : int, duration : int, delta_offset : int, velocity : int, instrument : int):
