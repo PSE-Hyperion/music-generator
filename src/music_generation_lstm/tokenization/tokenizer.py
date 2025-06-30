@@ -76,6 +76,7 @@ def is_embedded_token_part_of_chord(embedded_token : EmbeddedTokenEvent) -> bool
 def is_first_chord_note(embedded_token : EmbeddedTokenEvent) -> bool:
     return embedded_token.type == "CHORD_NOTE_START"
 
+
 def detokenize(embedded_token_events : list[EmbeddedTokenEvent]) -> stream.Stream:
     #
     #
@@ -142,7 +143,6 @@ def detokenize(embedded_token_events : list[EmbeddedTokenEvent]) -> stream.Strea
         note_in_chord_counter += len(pitches)
         pending_chord_notes.clear()
 
-
     print("Finished detokenizing.")
 
     return s
@@ -195,8 +195,8 @@ class Tokenizer():
 
 
 
-    def tokenize(self, score : stream.Score) -> list[EmbeddedTokenEvent]:   # return list of EmbeddedTokenEvents
-        #   receives a score, that it will tokenize to EmbeddedTokenEvents
+    def tokenize(self, score : stream.Score) -> list[EmbeddedTokenEvent]:
+        #   Receives a score, that it will tokenize to embedded token events
         #   EmbeddedTokenEvents is a group of tokens per event
         #   The score is turned into a list of embedded token events
 

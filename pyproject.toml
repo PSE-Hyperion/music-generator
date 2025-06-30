@@ -20,13 +20,17 @@ classifiers = [
 
 dependencies = [
   "music21>=9.7",
-  "matplotlib>=3.10",
+  "prompt-toolkit>=3.0"
 ]
 
 
 [project.optional-dependencies]
 nogpu =  ["tensorflow_cpu>=2.19"]
 gpu = ["tensorflow>=2.19"]
+
+
+[project.scripts]
+music-gen = "music_generation_lstm:main"
 
 
 [tool.ruff]

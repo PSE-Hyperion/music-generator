@@ -16,8 +16,8 @@ class EmbeddedNumericEvent():
         self.instrument = instrument
 
 def numerize(embedded_token_events : list[EmbeddedTokenEvent], tokenizer : Tokenizer) -> list[EmbeddedNumericEvent]:
-    #
-    #
+    #   Turns a list of embedded token events into it's numeric equivalent
+    #   Uses maps of the given tokenizer
     #
 
     print("Start numerize...")
@@ -94,5 +94,9 @@ def reshape_X(X):
     return X
 
 
-def denumerize(embedded_numeric_events : list[int], tokenizer : Tokenizer) -> list[EmbeddedTokenEvent]:
+def denumerize(embedded_numeric_events : list[EmbeddedNumericEvent], tokenizer : Tokenizer) -> list[EmbeddedTokenEvent]:
+    #   Turns list of embedded numeric events into list of embedded token events, by using the maps provided by the given tokenizer instance
+    #
+    #
+
     return []
