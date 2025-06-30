@@ -2,7 +2,7 @@ from tensorflow.keras.utils import Sequence
 import numpy as np
 import os
 
-class MidiSequencing(Sequence):
+class LazySequenceGenerator(Sequence):
 
     #Receives a list of .npz file paths, prepares internal indexing, optionally shuffles the order of samples
     def __init__(self, file_paths, batch_size=32, shuffle=True):
