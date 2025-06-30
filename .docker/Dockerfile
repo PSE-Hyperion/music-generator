@@ -1,6 +1,6 @@
 # Set the base image for the project image
-ARG	    TAG=latest
-FROM 	tensorflow/tensorflow:${TAG} AS base
+ARG	    EDITION=latest
+FROM 	tensorflow/tensorflow:${EDITION} AS base
 
 # Stage 1: Building the image
 FROM	base AS builder
