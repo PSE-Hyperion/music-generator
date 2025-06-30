@@ -47,7 +47,8 @@ def save_processed_data(processed_dataset_id : str, music_path : str, X, y, toke
     print(f"Finished saving processed dataset as {processed_dataset_id}.")
     print(f"Input Shape: {X.shape}")
 
-@staticmethod
+
+
 def load_tokenized_data(processed_dataset_id: str):
     print("Enter tokenized data getter")
 
@@ -76,5 +77,29 @@ def load_tokenized_data(processed_dataset_id: str):
     print("Tokenized data loaded")
 
     return X, y, data_input_shape, data_map_id
+
+def delete_data(name : str):
+    data_dir = os.path.join(PROCESSED_DIR, name)
+    if not os.path.exists(data_dir):
+        print(f"Deleting data {name} failed")
+        return
+    shutil.rmtree(data_dir)
+
+
+def get_all_data_str_list() -> list[str]:
+    data_str_list = []
+    os.makedirs(PROCESSED_DIR, exist_ok=True)
+    for entry in os.listdir(PROCESSED_DIR):
+        if not (entry == "metadata.json" or entry == ".gitkeep"):
+            print("This will never happen")
+            data_str_list.append(entry)
+
+    return data_str_list
+
+
+def does_data_exist(name : str) -> bool:
+    data_folder_dir = os.path.join(PROCESSED_DIR, name)
+    return os.path.exists(data_folder_dir)
+
 
 
