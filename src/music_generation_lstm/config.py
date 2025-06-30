@@ -1,6 +1,6 @@
 from typing import Final
 
-# contains hyperparameters like sequence length
+# Hyperparameters
 
 SEQUENCE_LENGTH: Final = 100
 
