@@ -1,8 +1,6 @@
 {
   "name": "Dev Container for LSTM music generator",
-  "dockerComposeFile": ".docker/docker-compose.yml",
-  "service": "devcontainer",
-  "workspaceFolder": "/app/",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
   "features": {
     "ghcr.io/devcontainers/features/git:1": {},
     "ghcr.io/jsburckhardt/devcontainer-features/ruff:1": {}
@@ -18,5 +16,7 @@
         "EditorConfig.EditorConfig"
       ]
     }
-  }
+  },
+  "postCreateCommand": "pip install .[nogpu]",
+  "remoteUser": "vscode"
 }
