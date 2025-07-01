@@ -5,7 +5,7 @@ from fractions import Fraction
 from typing import List
 
 from music21 import stream, note, chord, instrument
-from config import SEQUENCE_LENGTH, QUANTIZATION_PRECISION_DELTA_OFFSET, QUANTIZATION_PRECISION_DURATION
+from ..config import SEQUENCE_LENGTH, QUANTIZATION_PRECISION_DELTA_OFFSET, QUANTIZATION_PRECISION_DURATION, TOKEN_MAPS_DIR
 
 
 class EmbeddedTokenEvent():

@@ -16,3 +16,6 @@
 
 ## Program Structure
 ![Program Structure Chart](./media/project-structure-chart.png)
+ 
+## Current dependency structure of packages/modules
+![Program Dependencies](./media/project_deps.svg)
