@@ -42,9 +42,11 @@ def load_model(name : str) -> BaseModel | None:
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"No model file found for model {name}")
 
+    """
     # load configs for model
     with open(metadata_path) as f:
         config = json.load(f)
+    """
 
     # rebuild model
     model = None

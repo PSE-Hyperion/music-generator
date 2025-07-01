@@ -1,4 +1,4 @@
-import controller
+from . import controller
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
 from enum import Enum

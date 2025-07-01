@@ -3,8 +3,8 @@
 
 import numpy as np
 
-from config import SEQUENCE_LENGTH
-from tokenization.tokenizer import SixtupleTokenMaps, Sixtuple
+from ..config import SEQUENCE_LENGTH
+from ..tokenization.tokenizer import SixtupleTokenMaps, Sixtuple
 
 class NumericSixtuple():
     def __init__(self, bar : int, position : int, pitch : int, duration : int, velocity : int, tempo : int):

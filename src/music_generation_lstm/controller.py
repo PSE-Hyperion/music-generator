@@ -1,14 +1,10 @@
 import models.models as models
-import numpy as np
-
-from processing import process as p
-from midi import parser, writer
-from tokenization.tokenizer import Tokenizer
-
-from models import model_io
-from models import train as t
-from processing import processed_io
-from tokenization import token_map_io
+from .midi import parser
+from .tokenization.tokenizer import Tokenizer
+from .tokenization import token_map_io
+from .processing import process as proc, processed_io
+from .models import model_io
+from .models import train as tr
 
 def process(dataset_id: str, processed_dataset_id: str):
     #   parses midi file(s) to music21.stream.Score
@@ -26,48 +22,16 @@ def process(dataset_id: str, processed_dataset_id: str):
         print(f"[PROGRESS] Processing ({index}/{total})")
         score = parser.parse_midi(midi_path)
 
-        sixtuples = tokenizer.tokenize(score)   # might be handled now
+        sixtuples = tokenizer.tokenize(score)
 
-        embedded_numeric_events = p.numerize(sixtuples, tokenizer.sixtuple_token_maps)   # might be handled now
-        X, y = p.sequenize(embedded_numeric_events)   # might be handled now
-        X = p.reshape_X(X)
+        numeric_sixtuples = proc.numerize(sixtuples, tokenizer.sixtuple_token_maps)
+        X, y = proc.sequenize(numeric_sixtuples)
+        X = proc.reshape_X(X)
 
-        processed_io.save_processed_data(processed_dataset_id, midi_path, X, y, tokenizer) # might be handled now
+        processed_io.save_processed_data(processed_dataset_id, midi_path, X, y, tokenizer)
     token_map_io.save_token_maps(processed_dataset_id, tokenizer.sixtuple_token_maps)
 
 
-def train_b(model_id: str, processed_dataset_id: str):                 # TRAIN DOESNT WORK NOW, SINCE THE PROCESSED DATA IS SAVED DIFFERENTLY
-    #   get processed via id
-    #   build model
-    #   train model
-    #   save model
-
-
-    X, y, input_shape, map_id = processed_io.load_tokenized_data(processed_dataset_id)
-
-    # uh uh, stinky: update asap
-    import os
-    import json
-    token_maps_dir = os.path.join("data/token_maps", map_id)
-    with open(os.path.join(token_maps_dir, "metadata.json"), "r") as f:
-        metadata = json.load(f)
-
-    vocab_sizes = {
-        "bar": metadata[token_map_io.TOTAL_UNIQUE_BAR_TOKENS],
-        "position": metadata[token_map_io.TOTAL_UNIQUE_POSITION_TOKENS],
-        "pitch": metadata[token_map_io.TOTAL_UNIQUE_PITCH_TOKENS],
-        "duration": metadata[token_map_io.TOTAL_UNIQUE_DURATION_TOKENS],
-        "velocity": metadata[token_map_io.TOTAL_UNIQUE_VELOCITY_TOKENS],
-        "tempo": metadata[token_map_io.TOTAL_UNIQUE_TEMPO_TOKENS],
-    }
-
-    model = models.LSTMModel(model_id, input_shape)
-    model.build(vocab_sizes=vocab_sizes)
-
-    # Also calls plot method
-    t.train_model(model, X, y)
-
-    # save model
 
 
 def train(model_id: str, processed_dataset_id: str):
@@ -85,6 +49,7 @@ def train(model_id: str, processed_dataset_id: str):
     file_paths = processed_io.get_processed_file_paths(processed_dataset_id)
 
     # Load metadata for vocab sizes
+    # bad shouldn't be in here
     import os
     import json
     token_maps_dir = os.path.join("data/token_maps", processed_dataset_id)
@@ -100,6 +65,7 @@ def train(model_id: str, processed_dataset_id: str):
         "tempo": metadata[token_map_io.TOTAL_UNIQUE_TEMPO_TOKENS],
     }
 
+    import numpy as np  # bad, this shouldn't be in here
     # Get input shape from first file
     with np.load(file_paths[0]) as data:
         input_shape = data['X'].shape[1:]  # Remove batch dimension
@@ -108,7 +74,7 @@ def train(model_id: str, processed_dataset_id: str):
     model = models.LSTMModel(model_id, input_shape)
     model.build(vocab_sizes=vocab_sizes)
 
-    t.train_model(model, file_paths, vocab_sizes)
+    tr.train_model(model, file_paths)
 
     model_io.save_model(model)
 

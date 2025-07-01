@@ -2,7 +2,7 @@
 import os
 import glob
 from music21 import converter, stream
-from config import DATASETS_MIDI_DIR, ALLOWED_MUSIC_FILE_EXTENSIONS
+from ..config import DATASETS_MIDI_DIR, ALLOWED_MUSIC_FILE_EXTENSIONS
 
 
 
