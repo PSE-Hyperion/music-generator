@@ -1,9 +1,6 @@
-from .models import models
-from .midi import parser, writer
+from .midi import parser
 from .tokenization.tokenizer import Tokenizer
-from .managers.model_management import ModelManager
-from .managers.dataset_management import DatasetManager
-from .processing import process as p
+from .processing import process as proc, processed_io
 
 def process(dataset_id: str, processed_dataset_id: str):
     #   parses midi file(s) to music21.stream.Score
@@ -23,11 +20,11 @@ def process(dataset_id: str, processed_dataset_id: str):
 
         embedded_token_events = tokenizer.tokenize(score)   # might be handled now
 
-        embedded_numeric_events = p.numerize(embedded_token_events, tokenizer)   # might be handled now
-        X, y = p.sequenize(embedded_numeric_events)   # might be handled now
-        X = p.reshape_X(X)
+        embedded_numeric_events = proc.numerize(embedded_token_events, tokenizer)   # might be handled now
+        X, y = proc.sequenize(embedded_numeric_events)   # might be handled now
+        X = proc.reshape_X(X)
 
-        DatasetManager.save_processed_data(processed_dataset_id, midi_path, X, y, tokenizer) # might be handled now
+        processed_io.save_processed_data(processed_dataset_id, midi_path, X, y, tokenizer) # might be handled now
     tokenizer.save_maps()
 
 
@@ -39,9 +36,9 @@ def train(model_id: str, processed_dataset_id: str):                 # TRAIN DOE
 
     print("DOESNT WORK YET")
     # need to load processed data correctly to work
-    return
 
-    X, y, input_shape, map_id = DatasetManager.load_tokenized_data(processed_dataset_id)
+    """
+    X, y, input_shape, map_id = proc..load_tokenized_data(processed_dataset_id)
 
     # uh uh, stinky: update asap
     import os
@@ -75,7 +72,7 @@ def train(model_id: str, processed_dataset_id: str):                 # TRAIN DOE
     train.train_model(model, X, y)
 
     # save model
-
+    """
 
 def generate():
     #   get model via label
