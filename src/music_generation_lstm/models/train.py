@@ -1,9 +1,11 @@
-# defines how a given model is trained with the given training data
-# might want to add temperature to prediction and other features
-
 import numpy as np
 
+from . import plot
+
+from keras.src.callbacks.history import History
+
 from models.models import BaseModel
+from .lazy_sequence_generator import LazySequenceGenerator
 from config import TRAINING_EPOCHS, TRAINING_BATCH_SIZE
 
 def temperature():
@@ -23,17 +25,16 @@ def split_X_y(X, y):
 
     return X_dict, y_dict
 
-def train_model(model : BaseModel, X, y):
+def train_model_without_lazy(model : BaseModel, X, y):
     #   trains the given model
     #
     #
 
-    print(f"Start training {model.name}...", end="\r")
+    print(f"Start training {model.model_id}...")
     try:
         X_dict, y_dict = split_X_y(X, y)
 
-        #history =          # optional save history
-        model.model.fit(
+        history = model.model.fit(
             X_dict,
             [y_dict[name] for name in ['type', 'pitch', 'duration', 'delta_offset', 'velocity', 'instrument']],
             epochs=TRAINING_EPOCHS,
@@ -44,7 +45,55 @@ def train_model(model : BaseModel, X, y):
         )
 
     except Exception as e:
+        raise Exception(f"Training failed {model.model_id} {e}")
+    if isinstance(history, History):
+        plot.plot_training(history, model.model_id)
+
+    return history
+
+def train_model(model: BaseModel, file_paths: list, vocab_sizes: dict):
+    """
+    Train model using LazySequenceGenerator for memory-efficient training on large datasets.
+
+    Args:
+        model: The model to train
+        file_paths: List of paths to .npz files containing training data
+        vocab_sizes: Dictionary of vocabulary sizes for each feature
+        batch_size: Batch size for training (uses TRAINING_BATCH_SIZE if None)
+    """
+
+    print(f"Start training {model.model_id} with lazy loading...")
+
+    try:
+        # Create the lazy sequence generator
+        train_generator = LazySequenceGenerator(
+            file_paths=file_paths,
+            batch_size=TRAINING_BATCH_SIZE,
+            shuffle=True
+        )
+
+        # Calculate steps per epoch
+        steps_per_epoch = len(train_generator)
+
+        print(f"Training with {len(file_paths)} files, {train_generator.n_samples} total samples")
+        print(f"Steps per epoch: {steps_per_epoch}, Batch size: {TRAINING_BATCH_SIZE}")
+
+        # Train the model using the generator
+        history = model.model.fit(
+            train_generator,
+            epochs=TRAINING_EPOCHS,
+            steps_per_epoch=steps_per_epoch,
+            verbose=2  # type: ignore
+            # Note: validation_split doesn't work with generators,
+            # you'd need a separate validation generator
+        )
+
+    except Exception as e:
         raise Exception(f"Training failed: {e}")
 
-    print(f"Finished training {model.name}")
+    print(f"Finished training {model.model_id}")
+
+    if isinstance(history, History):
+        plot.plot_training(history, model.model_id)
+
 

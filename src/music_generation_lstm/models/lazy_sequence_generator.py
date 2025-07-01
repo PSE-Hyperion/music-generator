@@ -1,10 +1,10 @@
-from tensorflow.keras.utils import Sequence
+from keras.api.utils import Sequence
 import numpy as np
-import os
 
 class LazySequenceGenerator(Sequence):
 
-    #Receives a list of .npz file paths, prepares internal indexing, optionally shuffles the order of samples
+    # Receives a list of .npz file paths, prepares internal indexing, optionally shuffles the order of samples, also prepares them for embedding
+    # Assumes, that all file paths are correct
     def __init__(self, file_paths, batch_size=32, shuffle=True):
         self.file_paths = file_paths
         self.batch_size = batch_size
@@ -13,7 +13,10 @@ class LazySequenceGenerator(Sequence):
         self._build_sample_index()
         self.on_epoch_end()
 
-    #Stores file path and sample count for each file, builds a list of sample indices
+        # Call super().__init__ to avoid the warning
+        super().__init__()
+
+    # Stores file path and sample count for each file, builds a list of sample indices
     def _build_sample_index(self):
 
         self.data_info = []
@@ -28,11 +31,11 @@ class LazySequenceGenerator(Sequence):
 
         self.n_samples = len(self.sample_map)
 
-    #Returns how many batches exsit per epoch
+    # Returns how many batches exist per epoch
     def __len__(self):
-        return self.num_samples // self.batch_size
+        return self.n_samples // self.batch_size
 
-    #Returns a batch of samples, given the index
+    # Returns a batch of samples, given the index
     def __getitem__(self, index):
         batch_indices = self.indexes[index * self.batch_size:(index + 1) * self.batch_size]
 
@@ -46,9 +49,22 @@ class LazySequenceGenerator(Sequence):
                 x_batch.append(data['X'][sample_idx])
                 y_batch.append(data['y'][sample_idx])
 
-        return np.array(x_batch), np.array(y_batch)
+        x_array = np.array(x_batch)
+        y_array = np.array(y_batch)
 
-    #Shuffles the sample indices randomly at the end of each epoch
+        # This splitting was previously done in train.py, but now needs to be done inside of the sequence generator
+
+        # Split inputs into feature-wise dictionaries for multi-input model
+        feature_names = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
+        x_dict = {feature_names[i]: x_array[:, :, i] for i in range(6)}
+
+        # Split outputs into feature-wise arrays for multi-output model
+        # Return as tuple of numpy arrays, not list
+        y_outputs = tuple(y_array[:, i] for i in range(6))
+
+        return x_dict, y_outputs
+
+    # Shuffles the sample indices randomly at the end of each epoch
     def on_epoch_end(self):
         self.indexes = np.arange(self.n_samples)
         if self.shuffle:

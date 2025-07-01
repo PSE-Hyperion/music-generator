@@ -12,6 +12,7 @@ import json
 
 
 def save_model(model : BaseModel):
+    return
     model_dir = os.path.join(MODELS_DIR, model.name)
     os.makedirs(model_dir, exist_ok=True)
 

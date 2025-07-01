@@ -4,14 +4,15 @@ from prompt_toolkit.completion import Completer, Completion
 from enum import Enum
 
 class Command(Enum):
-    #   Contains available commands
-    #
-    #
+    """
+    All available commands
+    """
 
     PROCESS = "-process"
     TRAIN = "-train"
     GENERATE = "-generate"
     SHOW = "-show"
+    DELETE = "-delete"
     EXIT = "-exit"
 
 def handle_process(args : list[str]):
@@ -65,7 +66,6 @@ def parse_command(command: str):
     try:
         return Command(command)
     except ValueError:
-        print(f"Unknown command: {command}")
         return None
 
 def process_input(input : str):
@@ -101,7 +101,7 @@ COMMAND_HANDLERS = {
     Command.PROCESS: handle_process,          # -process dataset_id processed_id(new)
     Command.TRAIN: handle_train,              # -train model_id(new) processed_id
     Command.GENERATE: handle_generate,        # -generate model_id(new) input result_id(new) (not implemented yet)
-    Command.SHOW : handle_show                # -show models/raw_datasets/results/processed_datasets (not implemented yet)
+    Command.SHOW: handle_show                # -show models/raw_datasets/results/processed_datasets (not implemented yet)
 }
 
 
@@ -135,7 +135,7 @@ def start_session():
     while True:
         try:
             u_input = session.prompt("Music_Generation_LSTM> ")
-            if u_input.strip() == Command.EXIT:
+            if parse_command(u_input.strip()) == Command.EXIT:
                 handle_exit()
                 break
             process_input(u_input)
