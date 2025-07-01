@@ -2,17 +2,18 @@ import matplotlib.pyplot as plt
 import os
 
 from keras.api.callbacks import History
-from config import PLOT_DIR, PLOT_TRAINING
+from config import PLOT_DIR, PLOT_TRAINING, SAVE_PLOT_TRAINING
 
 # The docker container is missing a backend to display plot results (plt.show wont work)
 # This means we can add this, to allow the plots to be displayed upon training completion, if enabled,
 # or we keep this as is (should suffice)
 
 def plot_training(history : History, model_name : str):
-    dir_path = os.path.join(PLOT_DIR, f"training_{model_name}")
-    os.makedirs(dir_path, exist_ok=False)
-    _plot_training_history(history, model_name, dir_path)
-    _plot_training_metrics_separate(history, model_name, dir_path)
+    if PLOT_TRAINING:
+        dir_path = os.path.join(PLOT_DIR, f"training_{model_name}")
+        os.makedirs(dir_path, exist_ok=False)
+        _plot_training_history(history, model_name, dir_path)
+        _plot_training_metrics_separate(history, model_name, dir_path)
 
 def _plot_training_history(history : History, model_name : str, dir_path : str):
     """
@@ -69,7 +70,7 @@ def _plot_training_history(history : History, model_name : str, dir_path : str):
     plt.tight_layout()
 
     # Optional save
-    if PLOT_TRAINING:
+    if SAVE_PLOT_TRAINING:
         file_path = os.path.join(dir_path, f"training_history_{model_name}.png")
         plt.savefig(file_path, dpi=300, bbox_inches="tight")
         print(f"Training history plot saved to: {file_path}")
@@ -107,7 +108,7 @@ def _plot_training_metrics_separate(history : History, model_name: str, dir_path
     plt.tight_layout()
 
     # Optional save
-    if PLOT_TRAINING:
+    if SAVE_PLOT_TRAINING:
         file_path = os.path.join(dir_path, f"loss_{model_name}.png")
         plt.savefig(file_path, dpi=300, bbox_inches="tight")
         print(f"Loss plot saved to: {file_path}")
@@ -142,7 +143,7 @@ def _plot_training_metrics_separate(history : History, model_name: str, dir_path
 
 
     # Optional save
-    if PLOT_TRAINING:
+    if SAVE_PLOT_TRAINING:
         file_path = os.path.join(dir_path, f"accuracy_{model_name}.png")
         plt.savefig(file_path, dpi=300, bbox_inches="tight")
         print(f"Accuracy plot saved to: {file_path}")

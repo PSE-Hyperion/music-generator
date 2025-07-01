@@ -26,3 +26,4 @@ PLOT_DIR: Final = "data/plots"
 # Debugging or diagnostics
 
 PLOT_TRAINING: Final = True
+SAVE_PLOT_TRAINING: Final = True
