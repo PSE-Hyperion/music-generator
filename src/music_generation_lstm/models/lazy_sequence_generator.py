@@ -69,10 +69,24 @@ class LazySequenceGenerator(Sequence):
 
         # Split inputs into feature-wise dictionaries for multi-input model
         feature_names = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
+
         x_dict = {feature_names[i]: x_array[:, :, i] for i in range(6)}
+        """
+        Creates a map similar to this:
+        {
+            'bar':      x_array[:, :, 0],
+            'position': x_array[:, :, 1],
+            'pitch':    x_array[:, :, 2],
+            'duration': x_array[:, :, 3],
+            'velocity': x_array[:, :, 4],
+            'tempo':    x_array[:, :, 5]
+        }
+        Such that dict["bar"] only contains a 2d array with batch size * sequence length. Each entry is the bar at that
+        sequence step in a batch.
+        """
 
         # Split outputs into feature-wise arrays for multi-output model
-        # Return as tuple of numpy arrays, not list
+        # Return as tuple of numpy arrays, instead of lists (I believe lists can#t be input into a model)
         y_outputs = tuple(y_array[:, i] for i in range(6))
 
         return x_dict, y_outputs
