@@ -269,12 +269,13 @@ class Tokenizer():
         # Set first tempo
         if tempo_indications:
             current_tempo = int(tempo_indications[0].number)
-            print(f"TempoIndication found: {current_tempo}")
+            #print(f"TempoIndication found: {current_tempo}")
         elif metronome_marks:
             current_tempo = int(metronome_marks[0].number)
-            print(f"MetronomeMark found: {current_tempo}")
+            #print(f"MetronomeMark found: {current_tempo}")
         else:
-            print(f"No tempo found, using default: {current_tempo}")
+            pass
+            #print(f"No tempo found, using default: {current_tempo}")
 
 
         # Time signature is always 4/4 in our dataset
