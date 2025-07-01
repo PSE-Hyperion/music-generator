@@ -73,7 +73,7 @@ def train_model(model: BaseModel, file_paths: list):
         print(f"Training with {len(file_paths)} files, containing {train_generator.n_samples} total samples")
         print(f"Steps per epoch: {steps_per_epoch}, Batch size: {TRAINING_BATCH_SIZE}")
 
-
+        # fit() will automatically call on_epoch_end of lazy sequence generator, to get new samples
         history = model.model.fit(
             train_generator,
             epochs=TRAINING_EPOCHS,
