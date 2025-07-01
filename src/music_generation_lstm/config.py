@@ -2,13 +2,13 @@ from typing import Final
 
 # Hyperparameters
 
-SEQUENCE_LENGTH: Final = 16
+SEQUENCE_LENGTH: Final = 8
 
 GENERATION_LENGTH: Final = 50
 
-TRAINING_EPOCHS: Final = 1
+TRAINING_EPOCHS: Final = 2
 
-TRAINING_BATCH_SIZE: Final = 24
+TRAINING_BATCH_SIZE: Final = 12
 
 ALLOWED_MUSIC_FILE_EXTENSIONS: Final = [".mid", ".midi"]
 
