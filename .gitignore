@@ -61,3 +61,7 @@ pylint-report.txt
 # Keep folder structure in data/ with .gitkeep, ignore everything else
 data/**
 !data/**/.gitkeep
+
+# I've changed this like 10 times and it still doesn't work consistently
+# If you create a new folder and want to add it to the project structure, but obviously don#t want to upload all data inside
+# use the git add data/your_folder/.gitkeep

@@ -1,6 +1,6 @@
 
-from keras.src.layers import LSTM, Embedding, Concatenate, Dense, Dropout, Input
-from keras.src.models import Model
+from keras.api.layers import LSTM, Embedding, Concatenate, Dense, Dropout, Input
+from keras.api.models import Model
 
 from ..config import SEQUENCE_LENGTH
 
@@ -10,8 +10,8 @@ class BaseModel():
     #
 
 
-    def __init__(self, name : str, input_shape : tuple[int, int]):
-        self.name = name
+    def __init__(self, model_id : str, input_shape : tuple[int, int]):
+        self.model_id = model_id
         self.input_shape = input_shape
         self.model: Model
 
@@ -30,8 +30,8 @@ class LSTMModel(BaseModel):
     #
 
 
-    def __init__(self, name : str, input_shape : tuple[int, int]):
-        super().__init__(name=name, input_shape=input_shape)
+    def __init__(self, model_id : str, input_shape : tuple[int, int]):
+        super().__init__(model_id=model_id, input_shape=input_shape)
 
 
     def build(self, vocab_sizes, embedding_dims=32, lstm_units=128):
@@ -70,12 +70,12 @@ class LSTMModel(BaseModel):
             loss="sparse_categorical_crossentropy",
             optimizer="adam",
                 metrics={
-                    'type_output': 'accuracy',
-                    'pitch_output': 'accuracy',
-                    'duration_output': 'accuracy',
-                    'delta_offset_output': 'accuracy',
-                    'velocity_output': 'accuracy',
-                    'instrument_output': 'accuracy',
+                    "bar_output": "accuracy",
+                    "position_output": "accuracy",
+                    "pitch_output": "accuracy",
+                    "duration_output": "accuracy",
+                    "velocity_output": "accuracy",
+                    "tempo_output": "accuracy"
                 }
             )
 

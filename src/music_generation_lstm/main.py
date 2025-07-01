@@ -1,9 +1,9 @@
 from . import cli
 
 def main():
-    #   Starts the program by starting a cli session
-    #
-    #
+    """
+    Starts the program by starting a cli session
+    """
     cli.start_session()
 
 # entry point for  script execution

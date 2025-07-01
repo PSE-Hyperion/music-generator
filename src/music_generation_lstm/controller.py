@@ -1,6 +1,10 @@
+import models.models as models
 from .midi import parser
 from .tokenization.tokenizer import Tokenizer
+from .tokenization import token_map_io
 from .processing import process as proc, processed_io
+from .models import model_io
+from .models import train as tr
 
 def process(dataset_id: str, processed_dataset_id: str):
     #   parses midi file(s) to music21.stream.Score
@@ -18,61 +22,63 @@ def process(dataset_id: str, processed_dataset_id: str):
         print(f"[PROGRESS] Processing ({index}/{total})")
         score = parser.parse_midi(midi_path)
 
-        embedded_token_events = tokenizer.tokenize(score)   # might be handled now
+        sixtuples = tokenizer.tokenize(score)
 
-        embedded_numeric_events = proc.numerize(embedded_token_events, tokenizer)   # might be handled now
-        X, y = proc.sequenize(embedded_numeric_events)   # might be handled now
+        numeric_sixtuples = proc.numerize(sixtuples, tokenizer.sixtuple_token_maps)
+        X, y = proc.sequenize(numeric_sixtuples)
         X = proc.reshape_X(X)
 
-        processed_io.save_processed_data(processed_dataset_id, midi_path, X, y, tokenizer) # might be handled now
-    tokenizer.save_maps()
+        processed_io.save_processed_data(processed_dataset_id, midi_path, X, y, tokenizer)
+    token_map_io.save_token_maps(processed_dataset_id, tokenizer.sixtuple_token_maps)
 
 
-def train(model_id: str, processed_dataset_id: str):                 # TRAIN DOESNT WORK NOW, SINCE THE PROCESSED DATA IS SAVED DIFFERENTLY
-    #   get processed via id
-    #   build model
-    #   train model
-    #   save model
 
-    print("DOESNT WORK YET")
-    # need to load processed data correctly to work
 
+def train(model_id: str, processed_dataset_id: str):
     """
-    X, y, input_shape, map_id = proc..load_tokenized_data(processed_dataset_id)
+    Step 1:   Get processed datasets .npz file paths via provided processed_dataset_id
 
-    # uh uh, stinky: update asap
+    Step 2:   Build LSTM model architecture
+
+    Step 3:   Train model using lazy loading for memory-efficient training on large datasets (also plots training data)
+
+    Step 4:   Save model weights as model_id
+    """
+
+    # Get file paths for all processed data files
+    file_paths = processed_io.get_processed_file_paths(processed_dataset_id)
+
+    # Load metadata for vocab sizes
+    # bad shouldn't be in here
     import os
     import json
-    token_maps_dir = os.path.join("data/token_maps", map_id)
-    with open(os.path.join(token_maps_dir, "type_map.json")) as f:
-        type_map = json.load(f)
-    with open(os.path.join(token_maps_dir, "pitch_map.json")) as f:
-        pitch_map = json.load(f)
-    with open(os.path.join(token_maps_dir, "duration_map.json")) as f:
-        duration_map = json.load(f)
-    with open(os.path.join(token_maps_dir, "delta_offset_map.json")) as f:
-        delta_offset_map = json.load(f)
-    with open(os.path.join(token_maps_dir, "velocity_map.json")) as f:
-        velocity_map = json.load(f)
-    with open(os.path.join(token_maps_dir, "instrument_map.json")) as f:
-        instrument_map = json.load(f)
+    token_maps_dir = os.path.join("data/token_maps", processed_dataset_id)
+    with open(os.path.join(token_maps_dir, "metadata.json"), "r") as f:
+        metadata = json.load(f)
 
     vocab_sizes = {
-        'type': len(type_map),
-        'pitch': len(pitch_map),
-        'duration': len(duration_map),
-        'delta_offset': len(delta_offset_map),
-        'velocity': len(velocity_map),
-        'instrument': len(instrument_map),
+        "bar": metadata[token_map_io.TOTAL_UNIQUE_BAR_TOKENS],
+        "position": metadata[token_map_io.TOTAL_UNIQUE_POSITION_TOKENS],
+        "pitch": metadata[token_map_io.TOTAL_UNIQUE_PITCH_TOKENS],
+        "duration": metadata[token_map_io.TOTAL_UNIQUE_DURATION_TOKENS],
+        "velocity": metadata[token_map_io.TOTAL_UNIQUE_VELOCITY_TOKENS],
+        "tempo": metadata[token_map_io.TOTAL_UNIQUE_TEMPO_TOKENS],
     }
+
+    import numpy as np  # bad, this shouldn't be in here
+    # Get input shape from first file
+    with np.load(file_paths[0]) as data:
+        input_shape = data['X'].shape[1:]  # Remove batch dimension
+
 
     model = models.LSTMModel(model_id, input_shape)
     model.build(vocab_sizes=vocab_sizes)
 
-    train.train_model(model, X, y)
+    tr.train_model(model, file_paths)
 
-    # save model
-    """
+    model_io.save_model(model)
+
+
 
 def generate():
     #   get model via label

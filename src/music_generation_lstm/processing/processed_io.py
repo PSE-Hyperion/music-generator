@@ -1,4 +1,3 @@
-
 import json
 import os
 import shutil
@@ -17,7 +16,7 @@ JSON_METADATA_MAP_ID: Final = "map_id"
 
 # Saves the tokenized dataset and metadata, X and y are numpy arrays, X is a sequence of integer inputs for the model
 def save_processed_data(processed_dataset_id : str, music_path : str, X, y, tokenizer : Tokenizer):
-    
+
     music_file_name = os.path.splitext(os.path.basename(music_path))[0]
     target_folder_path = os.path.join(PROCESSED_DIR, processed_dataset_id, music_file_name)
     os.makedirs(target_folder_path, exist_ok=False)
@@ -98,6 +97,34 @@ def get_all_data_str_list() -> list[str]:
 def does_data_exist(name : str) -> bool:
     data_folder_dir = os.path.join(PROCESSED_DIR, name)
     return os.path.exists(data_folder_dir)
+
+def get_processed_file_paths(processed_dataset_id: str) -> list[str]:
+    """
+    Get all .npz file paths for a processed dataset.
+
+    Args:
+        processed_dataset_id: ID of the processed dataset
+
+    Returns:
+        List of absolute paths to .npz files
+    """
+    processed_dir = os.path.join(PROCESSED_DIR, processed_dataset_id)
+
+    if not os.path.exists(processed_dir):
+        raise FileNotFoundError(f"Processed dataset directory not found: {processed_dir}")
+
+    file_paths = []
+
+    # Walk through all subdirectories to find .npz files
+    for root, dirs, files in os.walk(processed_dir):
+        for file in files:
+            if file.endswith('.npz'):
+                file_paths.append(os.path.join(root, file))
+
+    if not file_paths:
+        raise FileNotFoundError(f"No .npz files found in processed dataset: {processed_dataset_id}")
+
+    return sorted(file_paths)  # Sort for consistent ordering
 
 
 

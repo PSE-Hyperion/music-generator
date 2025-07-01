@@ -4,41 +4,72 @@
 import numpy as np
 
 from ..config import SEQUENCE_LENGTH
-from ..tokenization.tokenizer import Tokenizer, EmbeddedTokenEvent
+from ..tokenization.tokenizer import SixtupleTokenMaps, Sixtuple
 
-class EmbeddedNumericEvent():
-    def __init__(self, type : int, pitch : int, duration : int, delta_offset : int, velocity : int, instrument : int):
-        self.type = type
-        self.pitch = pitch
-        self.duration = duration
-        self.delta_offset = delta_offset
-        self.velocity = velocity
-        self.instrument = instrument
+class NumericSixtuple():
+    def __init__(self, bar : int, position : int, pitch : int, duration : int, velocity : int, tempo : int):
+        self._bar = bar
+        self._position = position
+        self._pitch = pitch
+        self._duration = duration
+        self._velocity = velocity
+        self._tempo = tempo
 
-def numerize(embedded_token_events : list[EmbeddedTokenEvent], tokenizer : Tokenizer) -> list[EmbeddedNumericEvent]:
+    @property
+    def bar(self):
+        return self._bar
+
+    @property
+    def position(self):
+        return self._position
+
+    @property
+    def pitch(self):
+        return self._pitch
+
+    @property
+    def duration(self):
+        return self._duration
+
+    @property
+    def velocity(self):
+        return self._velocity
+
+    @property
+    def tempo(self):
+        return self._tempo
+
+def numerize(sixtuples : list[Sixtuple], sixtuple_token_maps : SixtupleTokenMaps) -> list[NumericSixtuple]:
     #   Turns a list of embedded token events into it's numeric equivalent
     #   Uses maps of the given tokenizer
     #
 
     print("Start numerize...")
 
-    embedded_numeric_events = []
-    for embedded_token_event in embedded_token_events:
-        embedded_numeric_event = EmbeddedNumericEvent(
-            tokenizer.type_map[embedded_token_event.type],
-            tokenizer.pitch_map[embedded_token_event.pitch],
-            tokenizer.duration_map[embedded_token_event.duration],
-            tokenizer.delta_offset_map[embedded_token_event.delta_offset],
-            tokenizer.velocity_map[embedded_token_event.velocity],
-            tokenizer.instrument_map[embedded_token_event.instrument],
+    bar_map = sixtuple_token_maps.bar_map
+    position_map = sixtuple_token_maps.position_map
+    pitch_map = sixtuple_token_maps.pitch_map
+    duration_map = sixtuple_token_maps.duration_map
+    velocity_map = sixtuple_token_maps.velocity_map
+    tempo_map = sixtuple_token_maps.tempo_map
+
+    numeric_sixtuples = []
+    for sixtuple in sixtuples:
+        numeric_sixtuple = NumericSixtuple(
+            bar_map[sixtuple.bar],
+            position_map[sixtuple.position],
+            pitch_map[sixtuple.pitch],
+            duration_map[sixtuple.duration],
+            velocity_map[sixtuple.velocity],
+            tempo_map[sixtuple.tempo],
         )
-        embedded_numeric_events.append(embedded_numeric_event)
+        numeric_sixtuples.append(numeric_sixtuple)
 
     print("Finished numerize.")
 
-    return embedded_numeric_events
+    return numeric_sixtuples
 
-def sequenize(embedded_numeric_events: list[EmbeddedNumericEvent]):
+def sequenize(numeric_sixtuples: list[NumericSixtuple]):
     #   creates sequences of feature tuples (extracts feature num val from embeddednumericevent class) and corresponding next event feature tuples
     #   uses sliding window of size of SEQUENCE_LENGTH
     #   X contains sequences of features of an event, y contains the next features of an event
@@ -50,29 +81,29 @@ def sequenize(embedded_numeric_events: list[EmbeddedNumericEvent]):
     X, y = [], []
 
 
-    if len(embedded_numeric_events) < SEQUENCE_LENGTH + 1:
+    if len(numeric_sixtuples) < SEQUENCE_LENGTH + 1:
         raise Exception("Skipped a score, since the song was shorter than the sequence length")
 
-    for i in range(len(embedded_numeric_events) - SEQUENCE_LENGTH):
+    for i in range(len(numeric_sixtuples) - SEQUENCE_LENGTH):
         input_seq = [
             (
-                event.type,
+                event.bar,
+                event.position,
                 event.pitch,
                 event.duration,
-                event.delta_offset,
                 event.velocity,
-                event.instrument
+                event.tempo
             )
-            for event in embedded_numeric_events[i:i + SEQUENCE_LENGTH]
+            for event in numeric_sixtuples[i:i + SEQUENCE_LENGTH]
         ]
-        output_event = embedded_numeric_events[i + SEQUENCE_LENGTH]
+        output_event = numeric_sixtuples[i + SEQUENCE_LENGTH]
         output_tuple = (
-            output_event.type,
+            output_event.bar,
+            output_event.position,
             output_event.pitch,
             output_event.duration,
-            output_event.delta_offset,
             output_event.velocity,
-            output_event.instrument
+            output_event.tempo
         )
 
         X.append(input_seq)
@@ -94,7 +125,7 @@ def reshape_X(X):
     return X
 
 
-def denumerize(embedded_numeric_events : list[EmbeddedNumericEvent], tokenizer : Tokenizer) -> list[EmbeddedTokenEvent]:
+def denumerize(numeric_sixtuples : list[NumericSixtuple], sixtuple_token_maps : SixtupleTokenMaps) -> list[Sixtuple]:
     #   Turns list of embedded numeric events into list of embedded token events, by using the maps provided by the given tokenizer instance
     #
     #
