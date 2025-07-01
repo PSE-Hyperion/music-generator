@@ -2,9 +2,11 @@ from keras.api.utils import Sequence
 import numpy as np
 
 class LazySequenceGenerator(Sequence):
+    """
+    Receives a list of .npz file paths, prepares internal indexing, optionally shuffles the order of samples, also prepares them for embedding
 
-    # Receives a list of .npz file paths, prepares internal indexing, optionally shuffles the order of samples, also prepares them for embedding
-    # Assumes, that all file paths are correct
+    Assumes, that all file paths are correct
+    """
     def __init__(self, file_paths, batch_size=32, shuffle=True):
         self.file_paths = file_paths
         self.batch_size = batch_size
@@ -13,11 +15,13 @@ class LazySequenceGenerator(Sequence):
         self._build_sample_index()
         self.on_epoch_end()
 
-        # Call super().__init__ to avoid the warning
+        # Call super().__init__ to avoid a warning
         super().__init__()
 
-    # Stores file path and sample count for each file, builds a list of sample indices
     def _build_sample_index(self):
+        """
+        Stores file path and sample count for each file, builds a list of sample indices
+        """
 
         self.data_info = []
         self.sample_map = []
@@ -31,12 +35,21 @@ class LazySequenceGenerator(Sequence):
 
         self.n_samples = len(self.sample_map)
 
-    # Returns how many batches exist per epoch
+
     def __len__(self):
+        """
+        Returns how many batches exist per epoch
+        """
+
+        # Check if floor division ignores remaining batches
         return self.n_samples // self.batch_size
 
-    # Returns a batch of samples, given the index
+
     def __getitem__(self, index):
+        """
+        Returns a batch of samples, given the index
+        """
+
         batch_indices = self.indexes[index * self.batch_size:(index + 1) * self.batch_size]
 
         x_batch, y_batch = [], []
@@ -64,8 +77,12 @@ class LazySequenceGenerator(Sequence):
 
         return x_dict, y_outputs
 
-    # Shuffles the sample indices randomly at the end of each epoch
+
     def on_epoch_end(self):
+        """
+        Shuffles the sample indices randomly at the end of each epoch
+        """
+
         self.indexes = np.arange(self.n_samples)
         if self.shuffle:
             np.random.shuffle(self.indexes)
