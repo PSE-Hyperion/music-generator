@@ -6,10 +6,15 @@ from music21.tempo import TempoIndication, MetronomeMark
 
 
 class Sixtuple():
-    #   Sixtuple note event featuring bar, position, pitch, duration, velocity, tempo
-    #   Doesn't include instruments or time signature
-    #   Bar could be limited to only 0-100 range (if dataset contains unreasonably long songs)
-    #   Duration could be quantized, but only if necessary for dataset
+    """
+    Sixtuple note event featuring bar, position, pitch, duration, velocity, tempo
+
+    Doesn't include instruments or time signature
+
+    Bar could be limited to only 0-100 range (if dataset contains unreasonably long songs)
+
+    Duration could be quantized, but only if necessary for dataset
+    """
 
     def __init__(self, bar : str, position : str, pitch : str, duration : str, velocity : str, tempo : str):
         self._bar = bar
@@ -45,8 +50,10 @@ class Sixtuple():
 
 
 def detokenize(sixtuples : list[Sixtuple]) -> stream.Stream:
-    #   Reconstructs a Stream from a list of sixtuples
-    #   Rests are reconstructed implicitly from position gaps between note events
+    """
+    Reconstructs a Stream from a list of sixtuples
+    Rests are reconstructed implicitly from position gaps between note events
+    """
 
     print("Start detokenizing...")
 
@@ -130,6 +137,13 @@ def detokenize(sixtuples : list[Sixtuple]) -> stream.Stream:
 
 
 class SixtupleTokenMaps():
+    """
+    Internal token map container for tokenizer, to avoid sharing the tokenizer with other files, but just a container,
+    that savely returns the data by using copies.
+
+    The tokenizer can use this container to extend the token maps during processing of a dataset
+    """
+
     def __init__(self):
         self._bar_map = {}
         self._position_map = {}

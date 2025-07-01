@@ -17,9 +17,11 @@ TOTAL_UNIQUE_TOKENS : Final = "total_unique_tokens"
 
 
 def save_token_maps(processed_dataset_id : str, token_maps : SixtupleTokenMaps):
-    #   saves all the tokenmaps into a file
-    #   you can find the file in TOKEN_MAPS_DIR plus id
-    #
+    """
+    Saves all the token maps into a file (with metadata).
+
+    You can find the file in TOKEN_MAPS_DIR plus id
+    """
 
     print("Start saving maps...")
 
