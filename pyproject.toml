@@ -19,6 +19,7 @@ classifiers = [
 ]
 
 dependencies = [
+  "matplotlib>=3.10",
   "music21>=9.7",
   "prompt-toolkit>=3.0"
 ]
@@ -39,9 +40,10 @@ where = ["src"]
 [tool.ruff]
 src = ["src"]
 target-version = "py311"
-fixable = ["ALL"] # problems to fix automatically with --fix flag
+fixable = [] # problems to fix automatically with --fix flag
+#fixable = ["ALL"] # problems to fix automatically with --fix flag
 unfixable = []
-line-length = 80
+line-length = 120
 exclude = [
     "data",
     ".git",
@@ -59,7 +61,11 @@ select = [
     "I",    # isort (sort imports)
     "B",    # bugbear (possibly error-inducing patterns)
     "C4",   # flake8-comprehensions (Comprehension optimization)
+<<<<<<< HEAD
     "T20",  # flake8-print (restrict print/debug)
+=======
+#   "T20",  # flake8-print (restrict print/debug)
+>>>>>>> development-jan
     "UP",   # pyupgrade (renew old syntax)
     "SIM",  # flake8-simplify (too complicated code)
     "RET",  # flake8-return (check return values)
