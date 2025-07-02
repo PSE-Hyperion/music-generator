@@ -8,7 +8,7 @@
   "customizations": {
     "vscode": {
       "settings": {
-        "python.defaultInterpreterPath": "${containerWorkspaceFolder}/.devcontainer/venv/bin/python"
+        "python.defaultInterpreterPath": "/workspaces/music-generator/.venv/bin/python"
       },
       "extensions": [
         "ms-python.python",
@@ -19,10 +19,10 @@
   },
   "containerEnv": {
 
-    "RUFF_CACHE_DIR": "${containerWorkspaceFolder}/.devcontainer/ruff_cache",
+    "RUFF_CACHE_DIR": "/workspaces/music-generator/.cache/ruff",
     "TF_ENABLE_ONEDNN_OPTS": "0",
     "TF_CPP_MIN_LOG_LEVEL": "2"
   },
-  "postCreateCommand": "cd .devcontainer && python -m venv ./venv && ./venv/bin/pip install -U pip && ./venv/bin/pip install -r requirements.txt",
+  "postCreateCommand": "python -m venv .venv && .venv/bin/pip install -U pip && .venv/bin/pip install -r requirements.txt",
   "remoteUser": "vscode"
 }

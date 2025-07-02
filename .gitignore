@@ -57,6 +57,7 @@ pylint-report.txt
 
 # IDE files
 .vscode/
+!.vscode/launch.json
 .idea/
 
 # Virtual environments
