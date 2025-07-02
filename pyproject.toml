@@ -61,11 +61,7 @@ select = [
     "I",    # isort (sort imports)
     "B",    # bugbear (possibly error-inducing patterns)
     "C4",   # flake8-comprehensions (Comprehension optimization)
-<<<<<<< HEAD
-    "T20",  # flake8-print (restrict print/debug)
-=======
 #   "T20",  # flake8-print (restrict print/debug)
->>>>>>> development-jan
     "UP",   # pyupgrade (renew old syntax)
     "SIM",  # flake8-simplify (too complicated code)
     "RET",  # flake8-return (check return values)
