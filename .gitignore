@@ -1,0 +1,67 @@
+# runtime-environment/binaries
+__pycache__/
+*.py[cod]
+.python-version
+*$py.class
+env/
+.env/
+.ENV/
+venv/
+.venv/
+virtualenv/
+.virtualenv/
+
+# installation/build/debug
+build/
+cython_debug/
+develop-eggs/
+dist/
+*.egg
+eggs/
+.eggs/
+*.egg-info/
+.installed.cfg
+lib/
+lib64/
+parts/
+sdist/
+MANIFEST
+*.manifest
+*.spec
+*.whl
+
+# logs/var/temporary
+.cache
+downloads/
+*.log
+pip-log.txt
+pip-delete-this-directory.txt
+*.tmp
+var/
+
+# testing/quality-control
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+test-results/
+pylint-report.txt
+
+# IDE files
+.vscode/
+.idea/
+
+# Virtual environments
+# Keep folder structure in data/ with .gitkeep, ignore everything else
+data/**
+!data/**/.gitkeep
+
+# I've changed this like 10 times and it still doesn't work consistently
+# If you create a new folder and want to add it to the project structure, but obviously don#t want to upload all data inside
+# use the git add data/your_folder/.gitkeep
