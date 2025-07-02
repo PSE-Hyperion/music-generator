@@ -17,8 +17,9 @@
       ]
     }
   },
-  "containerEnv": {
-    "RUFF_CACHE_DIR": "${containerWorkspaceFolder}/ruff_cache",
+  "containerEnv": {:w
+
+    "RUFF_CACHE_DIR": "${containerWorkspaceFolder}/.devcontainer/ruff_cache",
     "TF_ENABLE_ONEDNN_OPTS": "0",
     "TF_CPP_MIN_LOG_LEVEL": "2"
   },
