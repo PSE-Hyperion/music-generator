@@ -37,4 +37,55 @@ where = ["src"]
 
 
 [tool.ruff]
-line-length = 120
+src = ["src"]
+target-version = "py311"
+fixable = ["ALL"] # problems to fix automatically with --fix flag
+unfixable = []
+line-length = 80
+exclude = [
+    "data",
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    ".venv",
+    ".mypy_cache",
+    ".ruff_cache"
+]
+
+select = [
+    "E",    # pycodestyle (Style errors)
+    "F",    # pyflakes (error recognition)
+    "I",    # isort (sort imports)
+    "B",    # bugbear (possibly error-inducing patterns)
+    "C4",   # flake8-comprehensions (Comprehension optimization)
+    "T20",  # flake8-print (restrict print/debug)
+    "UP",   # pyupgrade (renew old syntax)
+    "SIM",  # flake8-simplify (too complicated code)
+    "RET",  # flake8-return (check return values)
+    "ARG",  # flake8-unused-arguments
+    "N",    # pep8-naming (name conventions)
+    "RUF",  # Ruff-specific rules
+    "PLC",  # Pylint-conventions
+    "PLE",  # Pylint-errors
+    "PLR",  # Pylint-refactor
+    "PLW",  # Pylint-warnings
+]
+
+#ignore = [
+#    "B008",  # do not perform function calls in argument defaults – teilweise okay
+#    "PLR0913",  # zu viele Argumente in Funktion – erlaubt für z.B. APIs
+#    "RET504",  # unnötiges return None – Geschmackssache
+#    "C901",  # zu komplexe Funktionen – Warnung oft zu "laut"
+#]
+
+
+[tool.ruff.isort]
+combine-as-imports = true
+force-sort-within-sections = true
+known-first-party = ["music_generation_lstm"]
+lines-between-types = 1
+
+[tool.ruff.pep8-naming]
+classmethod-decorators = ["classmethod", "pydantic.validator"]
+staticmethod-decorators = ["staticmethod"]
