@@ -1,0 +1,27 @@
+{
+  "name": "Dev Container for LSTM music generator",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/jsburckhardt/devcontainer-features/ruff:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "${containerWorkspaceFolder}/.devcontainer/venv/bin/python"
+      },
+      "extensions": [
+        "ms-python.python",
+        "charliermarsh.ruff",
+        "EditorConfig.EditorConfig"
+      ]
+    }
+  },
+  "containerEnv": {
+    "RUFF_CACHE_DIR": "${containerWorkspaceFolder}/ruff_cache",
+    "TF_ENABLE_ONEDNN_OPTS": "0",
+    "TF_CPP_MIN_LOG_LEVEL": "2"
+  },
+  "postCreateCommand": "cd .devcontainer && python -m venv ./venv && ./venv/bin/pip install -U pip && ./venv/bin/pip install -r requirements.txt",
+  "remoteUser": "vscode"
+}

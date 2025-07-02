@@ -10,6 +10,7 @@ venv/
 .venv/
 virtualenv/
 .virtualenv/
+.devcontainer/venv
 
 # installation/build/debug
 build/
@@ -38,6 +39,7 @@ pip-log.txt
 pip-delete-this-directory.txt
 *.tmp
 var/
+ruff_cache/
 
 # testing/quality-control
 htmlcov/
