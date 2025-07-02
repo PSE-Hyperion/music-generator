@@ -1,8 +1,8 @@
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
 import os
 
-from keras.api.callbacks import History
-from config import PLOT_DIR, PLOT_TRAINING, SAVE_PLOT_TRAINING
+from tensorflow.keras.callbacks import History
+from ..config import PLOT_DIR, PLOT_TRAINING, SAVE_PLOT_TRAINING
 
 # The docker container is missing a backend to display plot results (plt.show wont work)
 # This means we can add this, to allow the plots to be displayed upon training completion, if enabled,
@@ -15,7 +15,7 @@ def plot_training(history : History, model_name : str):
         _plot_training_history(history, model_name, dir_path)
         _plot_training_metrics_separate(history, model_name, dir_path)
 
-def _plot_training_history(history : History, model_name : str, dir_path : str):
+def _plot_training_history(history, model_name : str, dir_path : str):
     """
     Plot training history showing loss and accuracy for all 6 feature outputs.
     """

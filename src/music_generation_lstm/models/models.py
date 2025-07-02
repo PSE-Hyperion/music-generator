@@ -1,6 +1,6 @@
 
-from keras.api.layers import LSTM, Embedding, Concatenate, Dense, Dropout, Input
-from keras.api.models import Model
+from tensorflow.keras.layers import LSTM, Embedding, Concatenate, Dense, Dropout, Input
+from tensorflow.keras.models import Model
 
 from ..config import SEQUENCE_LENGTH
 

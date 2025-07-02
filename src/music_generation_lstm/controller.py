@@ -1,4 +1,4 @@
-import models.models as models
+from .models import models
 from .midi import parser
 from .tokenization.tokenizer import Tokenizer
 from .tokenization import token_map_io

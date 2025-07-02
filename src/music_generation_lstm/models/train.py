@@ -2,11 +2,11 @@ import numpy as np
 
 from . import plot
 
-from keras.src.callbacks.history import History
+from tensorflow.keras.callbacks import History
 
-from models.models import BaseModel
+from .models import BaseModel
 from .lazy_sequence_generator import LazySequenceGenerator
-from config import TRAINING_EPOCHS, TRAINING_BATCH_SIZE
+from ..config import TRAINING_EPOCHS, TRAINING_BATCH_SIZE
 
 def temperature():
     pass
@@ -46,8 +46,8 @@ def train_model_without_lazy(model : BaseModel, X, y):
 
     except Exception as e:
         raise Exception(f"Training failed {model.model_id} {e}")
-    if isinstance(history, History):
-        plot.plot_training(history, model.model_id)
+#    if isinstance(history, History):
+#        plot.plot_training(history, model.model_id)
 
     return history
 

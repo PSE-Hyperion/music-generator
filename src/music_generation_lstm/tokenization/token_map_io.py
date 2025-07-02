@@ -2,8 +2,8 @@
 import os
 import json
 
-from config import TOKEN_MAPS_DIR
-from tokenization.tokenizer import SixtupleTokenMaps
+from ..config import TOKEN_MAPS_DIR
+from ..tokenization.tokenizer import SixtupleTokenMaps
 from typing import Final
 
 TOTAL_UNIQUE_BAR_TOKENS : Final = "total_unique_bar_tokens"

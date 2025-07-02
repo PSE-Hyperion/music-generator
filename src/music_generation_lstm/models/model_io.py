@@ -1,18 +1,15 @@
 
 import os
 import shutil
-from models.models import BaseModel
-from config import MODELS_DIR
-from keras.src.saving.saving_api import save_model as save
-#from keras.src.saving.saving_api import load_model as load
-#from keras.src.models import Model
+from .models import BaseModel
+from ..config import MODELS_DIR
 import json
 #from typing import cast, Optional      #not needed anymore
 
 
 
 def save_model(model : BaseModel):
-    return
+    """
     model_dir = os.path.join(MODELS_DIR, model.name)
     os.makedirs(model_dir, exist_ok=True)
 
@@ -30,7 +27,7 @@ def save_model(model : BaseModel):
     }
     with open(os.path.join(model_dir, "config.json"), "w") as f:
         json.dump(config, f)
-
+    """
 
 def load_model(name : str) -> BaseModel | None:
     model_dir = os.path.join(MODELS_DIR, name)
