@@ -17,7 +17,7 @@
       ]
     }
   },
-  "containerEnv": {:w
+  "containerEnv": {
 
     "RUFF_CACHE_DIR": "${containerWorkspaceFolder}/.devcontainer/ruff_cache",
     "TF_ENABLE_ONEDNN_OPTS": "0",
