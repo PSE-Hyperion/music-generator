@@ -23,6 +23,6 @@
     "TF_ENABLE_ONEDNN_OPTS": "0",
     "TF_CPP_MIN_LOG_LEVEL": "2"
   },
-  "postCreateCommand": "python -m venv .venv && .venv/bin/pip install -U pip && .venv/bin/pip install -r requirements.txt",
+  "postCreateCommand": "python -m venv .venv && .venv/bin/pip install -U pip && .venv/bin/pip install -r .devcontainer/requirements.txt",
   "remoteUser": "vscode"
 }
