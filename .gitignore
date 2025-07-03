@@ -32,14 +32,13 @@ MANIFEST
 *.whl
 
 # logs/var/temporary
-.cache
+.cache/
 downloads/
 *.log
 pip-log.txt
 pip-delete-this-directory.txt
 *.tmp
 var/
-ruff_cache/
 
 # testing/quality-control
 htmlcov/
@@ -56,8 +55,9 @@ test-results/
 pylint-report.txt
 
 # IDE files
-.vscode/
+.vscode/**
 !.vscode/launch.json
+!.vscode/settings.json
 .idea/
 
 # Virtual environments
