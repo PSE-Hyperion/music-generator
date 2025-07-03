@@ -9,6 +9,7 @@
   },
   "explorer.autoReveal": false,
   "editor.formatOnSave": true,
+  "files.eol": "\n",
   "git.enableSmartCommit": false,
   "git.confirmSync": true,
   "git.autofetch": true
