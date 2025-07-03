@@ -1,3 +1,4 @@
-matplotlib
-music21
-prompt-toolkit
+matplotlib==3.10.3
+music21==9.7.1
+tensorflow_cpu==2.19.0
+prompt-toolkit==3.0.51
