@@ -3,12 +3,12 @@
   "configurations": [
     {
       "name": "Run Our Project",
-      "type": "python",
+      "type": "debugpy",
       "request": "launch",
       "module": "music_generation_lstm.main",
       "console": "integratedTerminal",
       "env": {
-        "PYTHONPATH": "/workspaces/music-generator/src"
+        "PYTHONPATH": "${workspaceFolder}/src"
       }
     }
   ]
