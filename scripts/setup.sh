@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 PROJECTPATH="${HOME}/music-generator"
 
 # Install python system packages
-sudo dnf install python3.11 python3.11-venv python3.11-pip python3.11-devel
+sudo dnf install python3.11 python3.11-devel
 
 # Install virtual environment
 python3.11 -m venv ${PROJECTPATH}/.venv
