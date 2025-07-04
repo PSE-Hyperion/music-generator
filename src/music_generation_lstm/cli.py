@@ -1,7 +1,10 @@
-from . import controller
+from enum import Enum
+
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
-from enum import Enum
+
+from . import controller
+
 
 class Command(Enum):
     """
@@ -15,7 +18,8 @@ class Command(Enum):
     DELETE = "-delete"
     EXIT = "-exit"
 
-def handle_process(args : list[str]):
+
+def handle_process(args: list[str]):
     #   Handles the process command by calling corresponding controller function
     #   "-process dataset_id processed_id(new)"
     #
@@ -26,7 +30,7 @@ def handle_process(args : list[str]):
     controller.process(dataset_id, processed_dataset_id)
 
 
-def handle_train(args : list[str]):
+def handle_train(args: list[str]):
     #   Handles the train command by calling corresponding controller function
     #   "-train model_id(new) processed_id"
     #
@@ -37,18 +41,20 @@ def handle_train(args : list[str]):
     controller.train(model_id, processed_dataset_id)
 
 
-def handle_generate(args : list[str]):
+def handle_generate(args: list[str]):
     #   Handles the generate command by calling corresponding controller function
     #   "-generate model_id(new) input result_id(new) (not implemented yet)"
     #
 
     controller.generate()
 
-def handle_show(args : list[str]):
+
+def handle_show(args: list[str]):
     #   Handles the show command by calling corresponding controller function
     #   "-show models/raw_datasets/results/processed_datasets (not implemented yet)"
     #
     controller.show()
+
 
 def handle_exit():
     #   Handles the exit command
@@ -68,7 +74,8 @@ def parse_command(command: str):
     except ValueError:
         return None
 
-def process_input(input : str):
+
+def process_input(input: str):
     #   Split user input into parts and parse command part
     #   Search first part (command) in command map, that maps a command to a handler function
     #   Call handler with arguments, if it exists
@@ -98,12 +105,11 @@ def process_input(input : str):
 
 
 COMMAND_HANDLERS = {
-    Command.PROCESS: handle_process,          # -process dataset_id processed_id(new)
-    Command.TRAIN: handle_train,              # -train model_id(new) processed_id
-    Command.GENERATE: handle_generate,        # -generate model_id(new) input result_id(new) (not implemented yet)
-    Command.SHOW: handle_show                # -show models/raw_datasets/results/processed_datasets (not implemented yet)
+    Command.PROCESS: handle_process,  # -process dataset_id processed_id(new)
+    Command.TRAIN: handle_train,  # -train model_id(new) processed_id
+    Command.GENERATE: handle_generate,  # -generate model_id(new) input result_id(new) (not implemented yet)
+    Command.SHOW: handle_show,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
 }
-
 
 
 class CommandCompleter(Completer):
@@ -111,7 +117,6 @@ class CommandCompleter(Completer):
         #   Only provide completions for the command part
         #   It does this by only considering text before the first space character
         #   We could expand on this by also allowing prompt completion for existing ids, etc
-
 
         text = document.text_before_cursor
         parts = text.split(" ")
@@ -128,8 +133,6 @@ def start_session():
     #   Starts the cli loop: input is read, handled and then we repeat (except if exit cmd is called)
     #   Contains a PromptSession for prompt completion in the terminal
     #   Also catches errors from handling input and prints them
-
-
 
     session = PromptSession(completer=CommandCompleter())
     while True:

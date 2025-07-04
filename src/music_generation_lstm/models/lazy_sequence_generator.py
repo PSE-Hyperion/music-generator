@@ -1,5 +1,5 @@
 import numpy as np
-from tensorflow.keras.utils import Sequence
+from tensorflow.keras.utils import Sequence  # type: ignore
 
 
 class LazySequenceGenerator(Sequence):
@@ -8,6 +8,7 @@ class LazySequenceGenerator(Sequence):
 
     Assumes, that all file paths are correct
     """
+
     def __init__(self, file_paths, batch_size=32, shuffle=True):
         self.file_paths = file_paths
         self.batch_size = batch_size
@@ -29,13 +30,12 @@ class LazySequenceGenerator(Sequence):
 
         for file_idx, file_path in enumerate(self.file_paths):
             with np.load(file_path) as data:
-                n_samples = len(data['y'])
+                n_samples = len(data["y"])
                 self.data_info.append((file_path, n_samples))
                 for sample_idx in range(n_samples):
                     self.sample_map.append((file_idx, sample_idx))
 
         self.n_samples = len(self.sample_map)
-
 
     def __len__(self):
         """
@@ -45,13 +45,12 @@ class LazySequenceGenerator(Sequence):
         # Check if floor division ignores remaining batches
         return self.n_samples // self.batch_size
 
-
     def __getitem__(self, index):
         """
         Returns a batch of samples, given the index
         """
 
-        batch_indices = self.indexes[index * self.batch_size:(index + 1) * self.batch_size]
+        batch_indices = self.indexes[index * self.batch_size : (index + 1) * self.batch_size]
 
         x_batch, y_batch = [], []
 
@@ -60,8 +59,8 @@ class LazySequenceGenerator(Sequence):
             file_path, _ = self.data_info[file_idx]
 
             with np.load(file_path) as data:
-                x_batch.append(data['X'][sample_idx])
-                y_batch.append(data['y'][sample_idx])
+                x_batch.append(data["X"][sample_idx])
+                y_batch.append(data["y"][sample_idx])
 
         x_array = np.array(x_batch)
         y_array = np.array(y_batch)
@@ -91,7 +90,6 @@ class LazySequenceGenerator(Sequence):
         y_outputs = tuple(y_array[:, i] for i in range(6))
 
         return x_dict, y_outputs
-
 
     def on_epoch_end(self):
         """

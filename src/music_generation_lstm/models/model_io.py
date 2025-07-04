@@ -1,14 +1,11 @@
-
 import os
 import shutil
-from .models import BaseModel
+
 from ..config import MODELS_DIR
-import json
-#from typing import cast, Optional      #not needed anymore
+from .models import BaseModel
 
 
-
-def save_model(model : BaseModel):
+def save_model(model: BaseModel):
     """
     model_dir = os.path.join(MODELS_DIR, model.name)
     os.makedirs(model_dir, exist_ok=True)
@@ -29,7 +26,8 @@ def save_model(model : BaseModel):
         json.dump(config, f)
     """
 
-def load_model(name : str) -> BaseModel | None:
+
+def load_model(name: str) -> BaseModel | None:
     model_dir = os.path.join(MODELS_DIR, name)
     metadata_path = os.path.join(model_dir, "config.json")
     model_path = os.path.join(model_dir, "model.keras")
@@ -51,13 +49,14 @@ def load_model(name : str) -> BaseModel | None:
     return model
 
 
-def delete_model(name : str):
+def delete_model(name: str):
     model_dir = os.path.join(MODELS_DIR, name)
 
     if not os.path.exists(model_dir):
         raise FileNotFoundError(f"Failed deleting folder {name} at {model_dir}")
 
     shutil.rmtree(model_dir)
+
 
 def get_all_models_str_list() -> list[str]:
     models_str_list = []
