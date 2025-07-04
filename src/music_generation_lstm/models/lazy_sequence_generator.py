@@ -1,8 +1,8 @@
-#from keras.api.utils import Sequence
 import numpy as np
+from tensorflow.keras.utils import Sequence
 
-#class LazySequenceGenerator(Sequence):
-class LazySequenceGenerator():
+
+class LazySequenceGenerator(Sequence):
     """
     Receives a list of .npz file paths, prepares internal indexing, optionally shuffles the order of samples, also prepares them for embedding
 

@@ -40,8 +40,8 @@ where = ["src"]
 [tool.ruff]
 src = ["src"]
 target-version = "py311"
-fixable = [] # problems to fix automatically with --fix flag
-#fixable = ["ALL"] # problems to fix automatically with --fix flag
+#fixable = [] # problems to fix automatically with --fix flag
+fixable = ["ALL"] # problems to fix automatically with --fix flag
 unfixable = []
 line-length = 120
 exclude = [
