@@ -17,7 +17,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.11'
 
       - name: Install tools
         run: |
@@ -27,7 +27,7 @@ jobs:
 
       - name: Generate UML diagram
         run: |
-          pyreverse -o svg -p MeinProjektName .
+          pyreverse -o svg -p music-generator src/music_generation_lstm
           mkdir uml_output
           mv classes.svg uml_output/
           mv packages.svg uml_output/
