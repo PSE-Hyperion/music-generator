@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Our Project",
+      "type": "python",
+      "request": "launch",
+      "module": "music_generation_lstm.main",
+      "console": "integratedTerminal",
+      "env": {
+        "PYTHONPATH": "/workspaces/music-generator/src"
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "files.exclude": {
+    "**/.devcontainer": true,
+    "**/.docker": true,
+    "**/LICENSE": true,
+    "**/.editorconfig": true,
+    "**/project-assets": true:
+    "**/scripts": true
+  },
+  "explorer.autoReveal": false,
+  "editor.formatOnSave": true,
+  "files.eol": "\n",
+  "git.enableSmartCommit": false,
+  "git.confirmSync": true,
+  "git.autofetch": true
+}
+}
