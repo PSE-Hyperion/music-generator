@@ -13,8 +13,10 @@ WORKDIR /app
 
 COPY	./ ./
 
-RUN 	pip install -U --no-cache-dir pip \
-        && pip install --no-cache-dir ./
+RUN 	--mount=type=cache,target=/root/.cache/pip \
+        pip install -U pip && \
+        pip install -r requirements.txt && \
+        pip install ./
 
 # Staeg 2: Create clean image
 FROM 	base
