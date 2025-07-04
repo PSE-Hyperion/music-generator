@@ -27,9 +27,9 @@ jobs:
 
       - name: Generate UML diagram
         run: |
-          pyreverse -o svg -p music-generator src/music_generation_lstm
+          pyreverse -o svg src/music_generation_lstm
           mkdir uml_output
-          mv classes.svg uml_output/
+          mv classes_mus.svg uml_output/
           mv packages.svg uml_output/
 
       - name: Upload diagram as artifact
