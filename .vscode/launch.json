@@ -8,7 +8,9 @@
       "module": "music_generation_lstm.main",
       "console": "integratedTerminal",
       "env": {
-        "PYTHONPATH": "${workspaceFolder}/src"
+        "PYTHONPATH": "${workspaceFolder}/src",
+        "TF_ENABLE_ONEDNN_OPTS": "0",
+        "TF_CPP_MIN_LOG_LEVEL": "2"
       }
     }
   ]
