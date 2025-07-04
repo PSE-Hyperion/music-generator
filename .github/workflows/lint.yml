@@ -2,10 +2,12 @@ name: Lint with Ruff
 
 on:
   push:
+    branches: ['**']
     paths:
       - '**.py'
       - 'pyproject.toml'
   pull_request:
+    branches: ['**']
     paths:
       - '**.py'
       - 'pyproject.toml'
