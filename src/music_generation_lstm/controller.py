@@ -1,11 +1,9 @@
 import json
 import os
 
-from music_generation_lstm.midi import parser
 from music_generation_lstm.models import model_io, models, train as tr
-from music_generation_lstm.processing import process as proc, processed_io
+from music_generation_lstm.processing import parallel_processing, processed_io
 from music_generation_lstm.processing.tokenization import token_map_io
-from music_generation_lstm.processing.tokenization.tokenizer import Tokenizer
 
 
 def process(dataset_id: str, processed_dataset_id: str):

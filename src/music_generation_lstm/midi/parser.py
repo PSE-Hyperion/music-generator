@@ -34,7 +34,7 @@ def get_midi_paths_from_dataset(dataset_id: str) -> list[str]:
     return midi_paths
 
 
-def parse_midi(music_path: str) -> stream.Score:
+def parse_midi(midi_path: str) -> stream.Score:
     #   Parses music file to score using music21 converter
     #   Returns it, if the parsed result is a Score instance (not Opus or Part)
     #   Otherwise throws exceptions
