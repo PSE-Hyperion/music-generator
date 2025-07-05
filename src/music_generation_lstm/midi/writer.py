@@ -2,7 +2,7 @@ import os
 
 from music21.stream import Stream
 
-from ..config import RESULTS_MIDI_DIR
+from music_generation_lstm.config import RESULTS_MIDI_DIR
 
 
 def write_midi(result_id: str, stream: Stream):

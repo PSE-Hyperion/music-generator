@@ -3,7 +3,7 @@ from enum import Enum
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
 
-from . import controller
+from music_generation_lstm import controller
 
 
 class Command(Enum):

@@ -2,8 +2,8 @@ import json
 import os
 from typing import Final
 
-from ...config import TOKEN_MAPS_DIR
-from ..tokenization.tokenizer import SixtupleTokenMaps
+from music_generation_lstm.config import TOKEN_MAPS_DIR
+from music_generation_lstm.processing.tokenization.tokenizer import SixtupleTokenMaps
 
 TOTAL_UNIQUE_BAR_TOKENS: Final = "total_unique_bar_tokens"
 TOTAL_UNIQUE_POSITION_TOKENS: Final = "total_unique_position_tokens"

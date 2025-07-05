@@ -1,8 +1,8 @@
 import os
 import shutil
 
-from ..config import MODELS_DIR
-from .models import BaseModel
+from music_generation_lstm.config import MODELS_DIR
+from music_generation_lstm.models import BaseModel
 
 
 def save_model(model: BaseModel):

@@ -1,10 +1,9 @@
 import numpy as np
 from tensorflow.keras.callbacks import History  # type: ignore
 
-from ..config import TRAINING_BATCH_SIZE, TRAINING_EPOCHS
-from . import plot
-from .lazy_sequence_generator import LazySequenceGenerator
-from .models import BaseModel
+from music_generation_lstm.config import TRAINING_BATCH_SIZE, TRAINING_EPOCHS
+from music_generation_lstm.models import BaseModel, plot
+from music_generation_lstm.models.lazy_sequence_generator import LazySequenceGenerator
 
 
 def temperature():

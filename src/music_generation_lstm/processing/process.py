@@ -1,7 +1,7 @@
 import numpy as np
 
-from ..config import SEQUENCE_LENGTH
-from .tokenization.tokenizer import Sixtuple, SixtupleTokenMaps
+from music_generation_lstm.config import SEQUENCE_LENGTH
+from music_generation_lstm.processing.tokenization.tokenizer import Sixtuple, SixtupleTokenMaps
 
 
 class NumericSixtuple:
