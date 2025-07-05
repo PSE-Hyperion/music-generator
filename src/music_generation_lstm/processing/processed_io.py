@@ -1,22 +1,19 @@
 import json
 import os
 import shutil
+from typing import Final
 
 import numpy as np
 
 from ..config import PROCESSED_DIR
-from ..tokenization.tokenizer import Tokenizer
-
-from typing import Final
-
-
+from .tokenization.tokenizer import Tokenizer
 
 JSON_METADATA_SHAPE: Final = "input_shape"
 JSON_METADATA_MAP_ID: Final = "map_id"
 
-# Saves the tokenized dataset and metadata, X and y are numpy arrays, X is a sequence of integer inputs for the model
-def save_processed_data(processed_dataset_id : str, music_path : str, X, y, tokenizer : Tokenizer):
 
+# Saves the tokenized dataset and metadata, X and y are numpy arrays, X is a sequence of integer inputs for the model
+def save_processed_data(processed_dataset_id: str, music_path: str, X, y, tokenizer: Tokenizer):
     music_file_name = os.path.splitext(os.path.basename(music_path))[0]
     target_folder_path = os.path.join(PROCESSED_DIR, processed_dataset_id, music_file_name)
     os.makedirs(target_folder_path, exist_ok=False)
@@ -26,11 +23,7 @@ def save_processed_data(processed_dataset_id : str, music_path : str, X, y, toke
         # Save .npz file inside subfolder
         np.savez_compressed(os.path.join(target_folder_path, music_file_name), X=X, y=y)
 
-
-        metadata = {
-            JSON_METADATA_SHAPE: f"{X.shape}",
-            JSON_METADATA_MAP_ID: f"{tokenizer.processed_dataset_id}"
-        }
+        metadata = {JSON_METADATA_SHAPE: f"{X.shape}", JSON_METADATA_MAP_ID: f"{tokenizer.processed_dataset_id}"}
 
         metadata_path = os.path.join(target_folder_path, "metadata.json")
         with open(metadata_path, "w") as f:
@@ -48,11 +41,9 @@ def save_processed_data(processed_dataset_id : str, music_path : str, X, y, toke
 def load_tokenized_data(processed_dataset_id: str):
     print("Enter tokenized data getter")
 
-
     target_folder_path = os.path.join(PROCESSED_DIR, processed_dataset_id)
     target_data_path = os.path.join(target_folder_path, processed_dataset_id + ".npz")
     target_metadata_path = os.path.join(target_folder_path, "metadata.json")
-
 
     if not os.path.exists(target_data_path):
         raise Exception(f"File not found. Searched for {target_data_path}")
@@ -69,18 +60,19 @@ def load_tokenized_data(processed_dataset_id: str):
     data_input_shape = config[JSON_METADATA_SHAPE]
     data_map_id = config[JSON_METADATA_MAP_ID]
 
-
     print("Tokenized data loaded")
 
     return X, y, data_input_shape, data_map_id
 
+
 # Deletes the entire folder of a tokenized dataset.
-def delete_data(name : str):
+def delete_data(name: str):
     data_dir = os.path.join(PROCESSED_DIR, name)
     if not os.path.exists(data_dir):
         print(f"Deleting data {name} failed")
         return
     shutil.rmtree(data_dir)
+
 
 # Returns dataset IDs (folder names) inside PROCESSED_DIR excluding non-data-files: metadata, system files,...
 def get_all_data_str_list() -> list[str]:
@@ -94,9 +86,10 @@ def get_all_data_str_list() -> list[str]:
     return data_str_list
 
 
-def does_data_exist(name : str) -> bool:
+def does_data_exist(name: str) -> bool:
     data_folder_dir = os.path.join(PROCESSED_DIR, name)
     return os.path.exists(data_folder_dir)
+
 
 def get_processed_file_paths(processed_dataset_id: str) -> list[str]:
     """
@@ -118,13 +111,10 @@ def get_processed_file_paths(processed_dataset_id: str) -> list[str]:
     # Walk through all subdirectories to find .npz files
     for root, dirs, files in os.walk(processed_dir):
         for file in files:
-            if file.endswith('.npz'):
+            if file.endswith(".npz"):
                 file_paths.append(os.path.join(root, file))
 
     if not file_paths:
         raise FileNotFoundError(f"No .npz files found in processed dataset: {processed_dataset_id}")
 
     return sorted(file_paths)  # Sort for consistent ordering
-
-
-

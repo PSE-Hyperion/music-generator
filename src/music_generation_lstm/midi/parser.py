@@ -1,12 +1,12 @@
-# load midi file(s) from given path and return them converted to music21 score
-import os
 import glob
+import os
+
 from music21 import converter, stream
-from ..config import DATASETS_MIDI_DIR, ALLOWED_MUSIC_FILE_EXTENSIONS
+
+from ..config import ALLOWED_MUSIC_FILE_EXTENSIONS, DATASETS_MIDI_DIR
 
 
-
-def get_midi_paths_from_dataset(dataset_id : str) -> list[str]:
+def get_midi_paths_from_dataset(dataset_id: str) -> list[str]:
     #   Get all midi file paths in dataset
     #   This is used to avoid loading all files at same
     #   The returned files then can be used to process all songs of the dataset seperatly
@@ -33,7 +33,8 @@ def get_midi_paths_from_dataset(dataset_id : str) -> list[str]:
 
     return midi_paths
 
-def parse_midi(music_path : str) -> stream.Score:
+
+def parse_midi(music_path: str) -> stream.Score:
     #   Parses music file to score using music21 converter
     #   Returns it, if the parsed result is a Score instance (not Opus or Part)
     #   Otherwise throws exceptions
@@ -44,11 +45,12 @@ def parse_midi(music_path : str) -> stream.Score:
             if isinstance(parsed, stream.Score):
                 return parsed
             else:
-                raise Exception("Parsed music file isn't Score.")   # Instead of exception, maybe ignore file and print warning
+                raise Exception(
+                    "Parsed music file isn't Score."
+                )  # Instead of exception, maybe ignore file and print warning
         except Exception as e:
-            raise Exception(f"Parsing of {music_path} failed: {e}") # Instead of exception, maybe ignore file and print warning
+            raise Exception(
+                f"Parsing of {music_path} failed: {e}"
+            )  # Instead of exception, maybe ignore file and print warning
     else:
         raise Exception(f"Invalid path {music_path}")
-
-
-

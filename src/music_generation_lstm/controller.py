@@ -1,10 +1,9 @@
-from .models import models
 from .midi import parser
-from .tokenization.tokenizer import Tokenizer
-from .tokenization import token_map_io
+from .models import model_io, models, train as tr
 from .processing import process as proc, processed_io
-from .models import model_io
-from .models import train as tr
+from .processing.tokenization import token_map_io
+from .processing.tokenization.tokenizer import Tokenizer
+
 
 def process(dataset_id: str, processed_dataset_id: str):
     #   parses midi file(s) to music21.stream.Score
@@ -12,13 +11,14 @@ def process(dataset_id: str, processed_dataset_id: str):
     #   numerize tokens
     #   save processed data (ready for training data)
 
-
     midi_paths = parser.get_midi_paths_from_dataset(dataset_id)
     tokenizer = Tokenizer(processed_dataset_id)
 
     total = len(midi_paths)
 
-    for index, midi_path in enumerate(midi_paths, start=1):    # seperate load and processing, share vocab data in shared tokenizer object
+    for index, midi_path in enumerate(
+        midi_paths, start=1
+    ):  # seperate load and processing, share vocab data in shared tokenizer object
         print(f"[PROGRESS] Processing ({index}/{total})")
         score = parser.parse_midi(midi_path)
 
@@ -30,8 +30,6 @@ def process(dataset_id: str, processed_dataset_id: str):
 
         processed_io.save_processed_data(processed_dataset_id, midi_path, X, y, tokenizer)
     token_map_io.save_token_maps(processed_dataset_id, tokenizer.sixtuple_token_maps)
-
-
 
 
 def train(model_id: str, processed_dataset_id: str):
@@ -52,6 +50,7 @@ def train(model_id: str, processed_dataset_id: str):
     # bad shouldn't be in here
     import os
     import json
+
     token_maps_dir = os.path.join("data/token_maps", processed_dataset_id)
     with open(os.path.join(token_maps_dir, "metadata.json"), "r") as f:
         metadata = json.load(f)
@@ -66,10 +65,10 @@ def train(model_id: str, processed_dataset_id: str):
     }
 
     import numpy as np  # bad, this shouldn't be in here
+
     # Get input shape from first file
     with np.load(file_paths[0]) as data:
-        input_shape = data['X'].shape[1:]  # Remove batch dimension
-
+        input_shape = data["X"].shape[1:]  # Remove batch dimension
 
     model = models.LSTMModel(model_id, input_shape)
     model.build(vocab_sizes=vocab_sizes)
@@ -79,14 +78,12 @@ def train(model_id: str, processed_dataset_id: str):
     model_io.save_model(model)
 
 
-
 def generate():
     #   get model via label
     #   get midi
     #   get start sequence from midi
     #   generate with model using start sequence
     #   write result in folder
-
 
     print("generate")
 

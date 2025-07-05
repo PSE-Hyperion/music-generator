@@ -1,16 +1,15 @@
-
-from tensorflow.keras.layers import LSTM, Embedding, Concatenate, Dense, Dropout, Input
-from tensorflow.keras.models import Model
+from tensorflow.keras.layers import LSTM, Concatenate, Dense, Dropout, Embedding, Input  # type: ignore
+from tensorflow.keras.models import Model  # type: ignore
 
 from ..config import SEQUENCE_LENGTH
 
-class BaseModel():
+
+class BaseModel:
     #   Base model class, that defines an abstract implementation of a model class
     #
     #
 
-
-    def __init__(self, model_id : str, input_shape : tuple[int, int]):
+    def __init__(self, model_id: str, input_shape: tuple[int, int]):
         self.model_id = model_id
         self.input_shape = input_shape
         self.model: Model
@@ -23,28 +22,21 @@ class BaseModel():
         raise NotImplementedError
 
 
-
 class LSTMModel(BaseModel):
     #   LSTM model class, that implements the architecture of an lstm model
     #
     #
 
-
-    def __init__(self, model_id : str, input_shape : tuple[int, int]):
+    def __init__(self, model_id: str, input_shape: tuple[int, int]):
         super().__init__(model_id=model_id, input_shape=input_shape)
-
 
     def build(self, vocab_sizes, embedding_dims=32, lstm_units=128):
         #   Builds the architecture of the lstm model
         #
         #
 
-
         # Inputs for each of the 6 features
-        input_layers = {
-            name: Input(shape=(SEQUENCE_LENGTH,), name=f"{name}")
-            for name in vocab_sizes
-        }
+        input_layers = {name: Input(shape=(SEQUENCE_LENGTH,), name=f"{name}") for name in vocab_sizes}
 
         # Embeddings for each feature
         embedding_layers = {
@@ -69,15 +61,12 @@ class LSTMModel(BaseModel):
         self.model.compile(
             loss="sparse_categorical_crossentropy",
             optimizer="adam",
-                metrics={
-                    "bar_output": "accuracy",
-                    "position_output": "accuracy",
-                    "pitch_output": "accuracy",
-                    "duration_output": "accuracy",
-                    "velocity_output": "accuracy",
-                    "tempo_output": "accuracy"
-                }
-            )
-
-
-
+            metrics={
+                "bar_output": "accuracy",
+                "position_output": "accuracy",
+                "pitch_output": "accuracy",
+                "duration_output": "accuracy",
+                "velocity_output": "accuracy",
+                "tempo_output": "accuracy",
+            },
+        )

@@ -1,11 +1,10 @@
 from fractions import Fraction
-from typing import List, Dict
 
-from music21 import stream, note, chord
-from music21.tempo import TempoIndication, MetronomeMark
+from music21 import chord, note, stream
+from music21.tempo import MetronomeMark, TempoIndication
 
 
-class Sixtuple():
+class Sixtuple:
     """
     Sixtuple note event featuring bar, position, pitch, duration, velocity, tempo
 
@@ -16,7 +15,7 @@ class Sixtuple():
     Duration could be quantized, but only if necessary for dataset
     """
 
-    def __init__(self, bar : str, position : str, pitch : str, duration : str, velocity : str, tempo : str):
+    def __init__(self, bar: str, position: str, pitch: str, duration: str, velocity: str, tempo: str):
         self._bar = bar
         self._position = position
         self._pitch = pitch
@@ -49,7 +48,7 @@ class Sixtuple():
         return self._tempo
 
 
-def detokenize(sixtuples : list[Sixtuple]) -> stream.Stream:
+def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
     """
     Reconstructs a Stream from a list of sixtuples
     Rests are reconstructed implicitly from position gaps between note events
@@ -58,15 +57,15 @@ def detokenize(sixtuples : list[Sixtuple]) -> stream.Stream:
     print("Start detokenizing...")
 
     s = stream.Stream()
-    current_offset = 0.0 # absolute
+    current_offset = 0.0  # absolute
     current_tempo = None
 
     # Group events by position for chord reconstruction
-    pending_notes: Dict[float, List[Sixtuple]] = {}
+    pending_notes: dict[float, list[Sixtuple]] = {}
 
     for event in sixtuples:
-        bar_num = int(event.bar.split('_')[1])
-        position_16th = int(event.position.split('_')[1])
+        bar_num = int(event.bar.split("_")[1])
+        position_16th = int(event.position.split("_")[1])
 
         # Convert to absolute offset, assuming 4/4
         # Das ist so schön
@@ -86,7 +85,7 @@ def detokenize(sixtuples : list[Sixtuple]) -> stream.Stream:
 
         # Check if tempo has changed at this position
         if events_at_position:
-            tempo_value = int(events_at_position[0].tempo.split('_')[1])
+            tempo_value = int(events_at_position[0].tempo.split("_")[1])
             if current_tempo != tempo_value:
                 current_tempo = tempo_value
                 s.insert(abs_offset, TempoIndication(number=current_tempo))
@@ -101,11 +100,10 @@ def detokenize(sixtuples : list[Sixtuple]) -> stream.Stream:
         # Big if single note or chord, consisting of multiple notes
         # Single note:
         if len(events_at_position) == 1:
-
             event = events_at_position[0]
-            pitch_midi = int(event.pitch.split('_')[1])
-            duration = float(Fraction(event.duration.split('_')[1]))
-            velocity = int(event.velocity.split('_')[1])
+            pitch_midi = int(event.pitch.split("_")[1])
+            duration = float(Fraction(event.duration.split("_")[1]))
+            velocity = int(event.velocity.split("_")[1])
 
             n = note.Note(midi=pitch_midi, quarterLength=duration)
             n.volume.velocity = velocity
@@ -118,25 +116,25 @@ def detokenize(sixtuples : list[Sixtuple]) -> stream.Stream:
             velocity = None
 
             for event in events_at_position:
-                pitch_midi = int(event.pitch.split('_')[1])
+                pitch_midi = int(event.pitch.split("_")[1])
                 pitches.append(pitch_midi)
                 if duration is None:
-                    duration = float(Fraction(event.duration.split('_')[1]))
-                    velocity = int(event.velocity.split('_')[1])
+                    duration = float(Fraction(event.duration.split("_")[1]))
+                    velocity = int(event.velocity.split("_")[1])
 
             c = chord.Chord(pitches, quarterLength=duration)
             c.volume.velocity = velocity
             s.insert(abs_offset, c)
 
         # Update current offset to the end of this event
-        event_duration = float(Fraction(events_at_position[0].duration.split('_')[1]))
+        event_duration = float(Fraction(events_at_position[0].duration.split("_")[1]))
         current_offset = abs_offset + event_duration
 
     print("Finished detokenizing.")
     return s
 
 
-class SixtupleTokenMaps():
+class SixtupleTokenMaps:
     """
     Internal token map container for tokenizer, to avoid sharing the tokenizer with other files, but just a container,
     that savely returns the data by using copies.
@@ -202,7 +200,14 @@ class SixtupleTokenMaps():
 
     @property
     def total_size(self) -> int:
-        return len(self._bar_map) + len(self._position_map) + len(self._pitch_map) + len(self._duration_map) + len(self._velocity_map) + len(self._tempo_map)
+        return (
+            len(self._bar_map)
+            + len(self._position_map)
+            + len(self._pitch_map)
+            + len(self._duration_map)
+            + len(self._velocity_map)
+            + len(self._tempo_map)
+        )
 
     @property
     def bar_map_size(self) -> int:
@@ -228,7 +233,7 @@ class SixtupleTokenMaps():
     def tempo_map_size(self) -> int:
         return len(self._tempo_map)
 
-    def extend(self, sixtuples : list[Sixtuple]):
+    def extend(self, sixtuples: list[Sixtuple]):
         """
         Since the tokenizer tokenizes in batches, this method is used to extend the maps of features of a sixtuple after every new tokenization. That way, the tokenizer
         keeps track of all unique sixtuple features across all tokenized scores. After having tokenized all scores, the maps can be saved with token_maps_io.py
@@ -251,16 +256,13 @@ class SixtupleTokenMaps():
         print("Finished extending maps of tokens.")
 
 
-class Tokenizer():
-
-    def __init__(self, processed_dataset_id : str):
+class Tokenizer:
+    def __init__(self, processed_dataset_id: str):
         self.processed_dataset_id = processed_dataset_id
 
         self.sixtuple_token_maps = SixtupleTokenMaps()
 
-
-
-    def tokenize(self, score : stream.Score) -> list[Sixtuple]:
+    def tokenize(self, score: stream.Score) -> list[Sixtuple]:
         """
         Tokenizes music21 score object to a list of sixtuples
 
@@ -272,29 +274,27 @@ class Tokenizer():
         print("Start encoding to tokens...")
 
         flat = score.flatten()
-        sixtuples : List[Sixtuple] = []
+        sixtuples: list[Sixtuple] = []
 
         # Get tempo from score (default to 120 if not found)
         # Two classes could contain this data, so we have to check both
-        tempo_indications = flat.getElementsByClass('TempoIndication')
-        metronome_marks = flat.getElementsByClass('MetronomeMark')
+        tempo_indications = flat.getElementsByClass("TempoIndication")
+        metronome_marks = flat.getElementsByClass("MetronomeMark")
         current_tempo = 120
 
         # Set first tempo
         if tempo_indications:
             current_tempo = int(tempo_indications[0].number)
-            #print(f"TempoIndication found: {current_tempo}")
+            # print(f"TempoIndication found: {current_tempo}")
         elif metronome_marks:
             current_tempo = int(metronome_marks[0].number)
-            #print(f"MetronomeMark found: {current_tempo}")
+            # print(f"MetronomeMark found: {current_tempo}")
         else:
             pass
-            #print(f"No tempo found, using default: {current_tempo}")
-
+            # print(f"No tempo found, using default: {current_tempo}")
 
         # Time signature is always 4/4 in our dataset
         beats_per_bar = 4
-
 
         note_counter = 0
         rest_counter = 0
@@ -332,7 +332,7 @@ class Tokenizer():
                         pitch=f"PITCH_{event.pitch.midi}",
                         duration=f"DURATION_{event.quarterLength}",
                         velocity=f"VELOCITY_{event.volume.velocity}",
-                        tempo=f"TEMPO_{current_tempo}"
+                        tempo=f"TEMPO_{current_tempo}",
                     )
                 )
                 note_counter += 1
@@ -348,7 +348,7 @@ class Tokenizer():
                             pitch=f"PITCH_{chord_note.pitch.midi}",
                             duration=f"DURATION_{event.quarterLength}",
                             velocity=f"VELOCITY_{event.volume.velocity}",
-                            tempo=f"TEMPO_{current_tempo}"
+                            tempo=f"TEMPO_{current_tempo}",
                         )
                     )
                     note_in_chord_counter += 1
@@ -367,4 +367,3 @@ class Tokenizer():
 
         self.sixtuple_token_maps.extend(sixtuples)
         return sixtuples
-

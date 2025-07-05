@@ -1,13 +1,11 @@
-# functionality to preprocess score objects and postprocess int lists
-# functionality for turning integer lists into sequences and reshaping them to ndarray
-
 import numpy as np
 
 from ..config import SEQUENCE_LENGTH
-from ..tokenization.tokenizer import SixtupleTokenMaps, Sixtuple
+from .tokenization.tokenizer import Sixtuple, SixtupleTokenMaps
 
-class NumericSixtuple():
-    def __init__(self, bar : int, position : int, pitch : int, duration : int, velocity : int, tempo : int):
+
+class NumericSixtuple:
+    def __init__(self, bar: int, position: int, pitch: int, duration: int, velocity: int, tempo: int):
         self._bar = bar
         self._position = position
         self._pitch = pitch
@@ -39,7 +37,8 @@ class NumericSixtuple():
     def tempo(self):
         return self._tempo
 
-def numerize(sixtuples : list[Sixtuple], sixtuple_token_maps : SixtupleTokenMaps) -> list[NumericSixtuple]:
+
+def numerize(sixtuples: list[Sixtuple], sixtuple_token_maps: SixtupleTokenMaps) -> list[NumericSixtuple]:
     #   Turns a list of embedded token events into it's numeric equivalent
     #   Uses maps of the given tokenizer
     #
@@ -69,6 +68,7 @@ def numerize(sixtuples : list[Sixtuple], sixtuple_token_maps : SixtupleTokenMaps
 
     return numeric_sixtuples
 
+
 def sequenize(numeric_sixtuples: list[NumericSixtuple]):
     #   creates sequences of feature tuples (extracts feature num val from embeddednumericevent class) and corresponding next event feature tuples
     #   uses sliding window of size of SEQUENCE_LENGTH
@@ -80,21 +80,13 @@ def sequenize(numeric_sixtuples: list[NumericSixtuple]):
 
     X, y = [], []
 
-
     if len(numeric_sixtuples) < SEQUENCE_LENGTH + 1:
         raise Exception("Skipped a score, since the song was shorter than the sequence length")
 
     for i in range(len(numeric_sixtuples) - SEQUENCE_LENGTH):
         input_seq = [
-            (
-                event.bar,
-                event.position,
-                event.pitch,
-                event.duration,
-                event.velocity,
-                event.tempo
-            )
-            for event in numeric_sixtuples[i:i + SEQUENCE_LENGTH]
+            (event.bar, event.position, event.pitch, event.duration, event.velocity, event.tempo)
+            for event in numeric_sixtuples[i : i + SEQUENCE_LENGTH]
         ]
         output_event = numeric_sixtuples[i + SEQUENCE_LENGTH]
         output_tuple = (
@@ -103,7 +95,7 @@ def sequenize(numeric_sixtuples: list[NumericSixtuple]):
             output_event.pitch,
             output_event.duration,
             output_event.velocity,
-            output_event.tempo
+            output_event.tempo,
         )
 
         X.append(input_seq)
@@ -111,6 +103,7 @@ def sequenize(numeric_sixtuples: list[NumericSixtuple]):
 
     print("Finished sequenizing")
     return X, y
+
 
 def reshape_X(X):
     #   reshapes X training data to numpy array (matrix) of shape (num_sequences, SEQUENCE_LENGTH, 6)
@@ -125,7 +118,7 @@ def reshape_X(X):
     return X
 
 
-def denumerize(numeric_sixtuples : list[NumericSixtuple], sixtuple_token_maps : SixtupleTokenMaps) -> list[Sixtuple]:
+def denumerize(numeric_sixtuples: list[NumericSixtuple], sixtuple_token_maps: SixtupleTokenMaps) -> list[Sixtuple]:
     #   Turns list of embedded numeric events into list of embedded token events, by using the maps provided by the given tokenizer instance
     #
     #

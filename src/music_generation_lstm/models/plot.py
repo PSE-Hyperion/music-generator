@@ -1,21 +1,24 @@
-from matplotlib import pyplot as plt
 import os
 
-from tensorflow.keras.callbacks import History
+from matplotlib import pyplot as plt
+from tensorflow.keras.callbacks import History  # type: ignore
+
 from ..config import PLOT_DIR, PLOT_TRAINING, SAVE_PLOT_TRAINING
 
 # The docker container is missing a backend to display plot results (plt.show wont work)
 # This means we can add this, to allow the plots to be displayed upon training completion, if enabled,
 # or we keep this as is (should suffice)
 
-def plot_training(history : History, model_name : str):
+
+def plot_training(history: History, model_name: str):
     if PLOT_TRAINING:
         dir_path = os.path.join(PLOT_DIR, f"training_{model_name}")
         os.makedirs(dir_path, exist_ok=False)
         _plot_training_history(history, model_name, dir_path)
         _plot_training_metrics_separate(history, model_name, dir_path)
 
-def _plot_training_history(history, model_name : str, dir_path : str):
+
+def _plot_training_history(history, model_name: str, dir_path: str):
     """
     Plot training history showing loss and accuracy for all 6 feature outputs.
     """
@@ -75,9 +78,10 @@ def _plot_training_history(history, model_name : str, dir_path : str):
         plt.savefig(file_path, dpi=300, bbox_inches="tight")
         print(f"Training history plot saved to: {file_path}")
 
-    #plt.show()
+    # plt.show()
 
-def _plot_training_metrics_separate(history : History, model_name: str, dir_path : str):
+
+def _plot_training_metrics_separate(history: History, model_name: str, dir_path: str):
     """
     Alternative version: Plot loss and accuracy in separate figures for better readability.
     """
@@ -113,7 +117,7 @@ def _plot_training_metrics_separate(history : History, model_name: str, dir_path
         plt.savefig(file_path, dpi=300, bbox_inches="tight")
         print(f"Loss plot saved to: {file_path}")
 
-    #plt.show()
+    # plt.show()
 
     # Seperate accuracy plot
     has_accuracy = any(f"{feature}_output_accuracy" in history.history for feature in feature_names)
@@ -141,11 +145,10 @@ def _plot_training_metrics_separate(history : History, model_name: str, dir_path
         plt.suptitle(f"Training Accuracy History - {model_name}", fontsize=16, fontweight="bold")
         plt.tight_layout()
 
-
     # Optional save
     if SAVE_PLOT_TRAINING:
         file_path = os.path.join(dir_path, f"accuracy_{model_name}.png")
         plt.savefig(file_path, dpi=300, bbox_inches="tight")
         print(f"Accuracy plot saved to: {file_path}")
 
-    #plt.show()
+    # plt.show()

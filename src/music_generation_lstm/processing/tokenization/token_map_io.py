@@ -1,22 +1,20 @@
-
-import os
 import json
-
-from ..config import TOKEN_MAPS_DIR
-from ..tokenization.tokenizer import SixtupleTokenMaps
+import os
 from typing import Final
 
-TOTAL_UNIQUE_BAR_TOKENS : Final = "total_unique_bar_tokens"
-TOTAL_UNIQUE_POSITION_TOKENS : Final = "total_unique_position_tokens"
-TOTAL_UNIQUE_PITCH_TOKENS : Final = "total_unique_pitch_tokens"
-TOTAL_UNIQUE_DURATION_TOKENS : Final = "total_unique_duration_tokens"
-TOTAL_UNIQUE_VELOCITY_TOKENS : Final = "total_unique_velocity_tokens"
-TOTAL_UNIQUE_TEMPO_TOKENS : Final = "total_unique_tempo_tokens"
-TOTAL_UNIQUE_TOKENS : Final = "total_unique_tokens"
+from ...config import TOKEN_MAPS_DIR
+from ..tokenization.tokenizer import SixtupleTokenMaps
+
+TOTAL_UNIQUE_BAR_TOKENS: Final = "total_unique_bar_tokens"
+TOTAL_UNIQUE_POSITION_TOKENS: Final = "total_unique_position_tokens"
+TOTAL_UNIQUE_PITCH_TOKENS: Final = "total_unique_pitch_tokens"
+TOTAL_UNIQUE_DURATION_TOKENS: Final = "total_unique_duration_tokens"
+TOTAL_UNIQUE_VELOCITY_TOKENS: Final = "total_unique_velocity_tokens"
+TOTAL_UNIQUE_TEMPO_TOKENS: Final = "total_unique_tempo_tokens"
+TOTAL_UNIQUE_TOKENS: Final = "total_unique_tokens"
 
 
-
-def save_token_maps(processed_dataset_id : str, token_maps : SixtupleTokenMaps):
+def save_token_maps(processed_dataset_id: str, token_maps: SixtupleTokenMaps):
     """
     Saves all the token maps into a file (with metadata).
 
@@ -40,7 +38,7 @@ def save_token_maps(processed_dataset_id : str, token_maps : SixtupleTokenMaps):
         TOTAL_UNIQUE_DURATION_TOKENS: token_maps.duration_map_size,
         TOTAL_UNIQUE_VELOCITY_TOKENS: token_maps.velocity_map_size,
         TOTAL_UNIQUE_TEMPO_TOKENS: token_maps.tempo_map_size,
-        TOTAL_UNIQUE_TOKENS: total_unique_tokens
+        TOTAL_UNIQUE_TOKENS: total_unique_tokens,
     }
 
     # Saves metadata of all maps
@@ -62,6 +60,7 @@ def save_token_maps(processed_dataset_id : str, token_maps : SixtupleTokenMaps):
         json.dump(token_maps.tempo_map, f, indent=4)
 
     print("Finished saving maps")
+
 
 def load_token_maps():
     pass
