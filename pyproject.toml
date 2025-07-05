@@ -74,12 +74,12 @@ select = [
     "PLW",  # Pylint-warnings
 ]
 
-#ignore = [
-#    "B008",  # do not perform function calls in argument defaults – teilweise okay
-#    "PLR0913",  # zu viele Argumente in Funktion – erlaubt für z.B. APIs
-#    "RET504",  # unnötiges return None – Geschmackssache
-#    "C901",  # zu komplexe Funktionen – Warnung oft zu "laut"
-#]
+ignore = [
+  "PLR0913"  # too many function arguments
+]
+#  "B008",  # do not perform function calls in argument defaults
+#  "RET504",  # no 'return none'
+#  "C901",  # too complex functions
 
 
 [tool.ruff.isort]
