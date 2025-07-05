@@ -3,7 +3,7 @@ import os
 
 from music21 import converter, stream
 
-from ..config import ALLOWED_MUSIC_FILE_EXTENSIONS, DATASETS_MIDI_DIR
+from music_generation_lstm.config import ALLOWED_MUSIC_FILE_EXTENSIONS, DATASETS_MIDI_DIR
 
 
 def get_midi_paths_from_dataset(dataset_id: str) -> list[str]:

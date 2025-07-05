@@ -5,8 +5,8 @@ from typing import Final
 
 import numpy as np
 
-from ..config import PROCESSED_DIR
-from .tokenization.tokenizer import Tokenizer
+from music_generation_lstm.config import PROCESSED_DIR
+from music_generation_lstm.processing.tokenization.tokenizer import Tokenizer
 
 JSON_METADATA_SHAPE: Final = "input_shape"
 JSON_METADATA_MAP_ID: Final = "map_id"

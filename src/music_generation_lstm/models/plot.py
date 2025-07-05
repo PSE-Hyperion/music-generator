@@ -3,7 +3,7 @@ import os
 from matplotlib import pyplot as plt
 from tensorflow.keras.callbacks import History  # type: ignore
 
-from ..config import PLOT_DIR, PLOT_TRAINING, SAVE_PLOT_TRAINING
+from music_generation_lstm.config import PLOT_DIR, PLOT_TRAINING, SAVE_PLOT_TRAINING
 
 # The docker container is missing a backend to display plot results (plt.show wont work)
 # This means we can add this, to allow the plots to be displayed upon training completion, if enabled,

@@ -1,8 +1,11 @@
-from .midi import parser
-from .models import model_io, models, train as tr
-from .processing import process as proc, processed_io
-from .processing.tokenization import token_map_io
-from .processing.tokenization.tokenizer import Tokenizer
+import json
+import os
+
+from music_generation_lstm.midi import parser
+from music_generation_lstm.models import model_io, models, train as tr
+from music_generation_lstm.processing import process as proc, processed_io
+from music_generation_lstm.processing.tokenization import token_map_io
+from music_generation_lstm.processing.tokenization.tokenizer import Tokenizer
 
 
 def process(dataset_id: str, processed_dataset_id: str):
@@ -48,8 +51,6 @@ def train(model_id: str, processed_dataset_id: str):
 
     # Load metadata for vocab sizes
     # bad shouldn't be in here
-    import os
-    import json
 
     token_maps_dir = os.path.join("data/token_maps", processed_dataset_id)
     with open(os.path.join(token_maps_dir, "metadata.json"), "r") as f:
