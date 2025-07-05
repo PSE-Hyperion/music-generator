@@ -15,13 +15,20 @@ class Sixtuple:
     Duration could be quantized, but only if necessary for dataset
     """
 
+    BAR_PREFIX = "BAR_"
+    POSITION_PREFIX = "POSITION_"
+    PITCH_PREFIX = "PITCH_"
+    DURATION_PREFIX = "DURATION_"
+    VELOCITY_PREFIX = "VELOCITY_"
+    TEMPO_PREFIX = "TEMPO_"
+
     def __init__(self, bar: str, position: str, pitch: str, duration: str, velocity: str, tempo: str):
-        self._bar = bar
-        self._position = position
-        self._pitch = pitch
-        self._duration = duration
-        self._velocity = velocity
-        self._tempo = tempo
+        self._bar = Sixtuple.BAR_PREFIX + bar
+        self._position = Sixtuple.POSITION_PREFIX + position
+        self._pitch = Sixtuple.PITCH_PREFIX + pitch
+        self._duration = Sixtuple.DURATION_PREFIX + duration
+        self._velocity = Sixtuple.VELOCITY_PREFIX + velocity
+        self._tempo = Sixtuple.TEMPO_PREFIX + tempo
 
     @property
     def bar(self):
@@ -255,6 +262,16 @@ class SixtupleTokenMaps:
                 self._tempo_map[sixtuple.tempo] = len(self._tempo_map)
         print("Finished extending maps of tokens.")
 
+    def create_from_sets(
+        self, bar_set: set, position_set: set, pitch_set: set, duration_set: set, velocity_set: set, tempo_set: set
+    ):
+        self._bar_map = {token: idx for idx, token in enumerate(bar_set)}
+        self._position_map = {token: idx for idx, token in enumerate(position_set)}
+        self._pitch_map = {token: idx for idx, token in enumerate(pitch_set)}
+        self._duration_map = {token: idx for idx, token in enumerate(duration_set)}
+        self._velocity_map = {token: idx for idx, token in enumerate(velocity_set)}
+        self._tempo_map = {token: idx for idx, token in enumerate(tempo_set)}
+
 
 class Tokenizer:
     def __init__(self, processed_dataset_id: str):
@@ -296,6 +313,14 @@ class Tokenizer:
         # Time signature is always 4/4 in our dataset
         beats_per_bar = 4
 
+        tempo_changes = sorted(
+            [(ti.offset, int(ti.number)) for ti in tempo_indications]
+            + [(mm.offset, int(mm.number)) for mm in metronome_marks]
+        )
+
+        # Use an index to track which tempo is active
+        tempo_idx = 0
+
         note_counter = 0
         rest_counter = 0
         chord_counter = 0
@@ -306,16 +331,9 @@ class Tokenizer:
         for event in flat:
             abs_offset = float(event.offset)
 
-            # Again two checks for tempo in tempo indication and metronome marks
-            # The loops find tempo indications, that are at the current event's offset (or very close),
-            # since we encode tempo in sixtuples (note events)
-            for tempo_indication in tempo_indications:
-                if abs(tempo_indication.offset - abs_offset) < 0.01:  # Small tolerance
-                    current_tempo = int(tempo_indication.number)
-
-            for metronome_mark in metronome_marks:
-                if abs(metronome_mark.offset - abs_offset) < 0.01:  # Small tolerance
-                    current_tempo = int(metronome_mark.number)
+            while tempo_idx < len(tempo_changes) and abs(tempo_changes[tempo_idx][0] - abs_offset) < 0.01:
+                current_tempo = tempo_changes[tempo_idx][1]
+                tempo_idx += 1
 
             # Calculate bar and position
             bar_number = int(abs_offset // beats_per_bar)
@@ -327,12 +345,12 @@ class Tokenizer:
             if isinstance(event, note.Note):
                 sixtuples.append(
                     Sixtuple(
-                        bar=f"BAR_{bar_number}",
-                        position=f"POSITION_{position_16th}",
-                        pitch=f"PITCH_{event.pitch.midi}",
-                        duration=f"DURATION_{event.quarterLength}",
-                        velocity=f"VELOCITY_{event.volume.velocity}",
-                        tempo=f"TEMPO_{current_tempo}",
+                        bar=str(bar_number),
+                        position=str(position_16th),
+                        pitch=str(event.pitch.midi),
+                        duration=str(event.quarterLength),
+                        velocity=str(event.volume.velocity),
+                        tempo=str(current_tempo),
                     )
                 )
                 note_counter += 1
@@ -343,12 +361,12 @@ class Tokenizer:
                 for chord_note in event.notes:
                     sixtuples.append(
                         Sixtuple(
-                            bar=f"BAR_{bar_number}",
-                            position=f"POSITION_{position_16th}",
-                            pitch=f"PITCH_{chord_note.pitch.midi}",
-                            duration=f"DURATION_{event.quarterLength}",
-                            velocity=f"VELOCITY_{event.volume.velocity}",
-                            tempo=f"TEMPO_{current_tempo}",
+                            bar=str(bar_number),
+                            position=str(position_16th),
+                            pitch=str(chord_note.pitch.midi),
+                            duration=str(event.quarterLength),
+                            velocity=str(event.volume.velocity),
+                            tempo=str(current_tempo),
                         )
                     )
                     note_in_chord_counter += 1
@@ -358,12 +376,6 @@ class Tokenizer:
                 # Rests are encoded implicitly from position gaps
                 rest_counter += 1
 
-        if False:
-            print(f"Events in sixtuples: {len(sixtuples)}")
-            print(f"Notes in sixtuples: {note_counter}")
-            print(f"Chords in sixtuples: {chord_counter}")
-            print(f"Note in chords in sixtuples: {note_in_chord_counter}")
-            print(f"Rests skipped (implicit): {rest_counter}")
-
-        self.sixtuple_token_maps.extend(sixtuples)
+        # Delete for parallel processing
+        # self.sixtuple_token_maps.extend(sixtuples)
         return sixtuples

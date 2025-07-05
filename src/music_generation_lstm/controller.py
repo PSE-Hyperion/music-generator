@@ -1,11 +1,9 @@
 import json
 import os
 
-from music_generation_lstm.midi import parser
 from music_generation_lstm.models import model_io, models, train as tr
-from music_generation_lstm.processing import process as proc, processed_io
+from music_generation_lstm.processing import parallel_processing, processed_io
 from music_generation_lstm.processing.tokenization import token_map_io
-from music_generation_lstm.processing.tokenization.tokenizer import Tokenizer
 
 
 def process(dataset_id: str, processed_dataset_id: str):
@@ -14,25 +12,7 @@ def process(dataset_id: str, processed_dataset_id: str):
     #   numerize tokens
     #   save processed data (ready for training data)
 
-    midi_paths = parser.get_midi_paths_from_dataset(dataset_id)
-    tokenizer = Tokenizer(processed_dataset_id)
-
-    total = len(midi_paths)
-
-    for index, midi_path in enumerate(
-        midi_paths, start=1
-    ):  # seperate load and processing, share vocab data in shared tokenizer object
-        print(f"[PROGRESS] Processing ({index}/{total})")
-        score = parser.parse_midi(midi_path)
-
-        sixtuples = tokenizer.tokenize(score)
-
-        numeric_sixtuples = proc.numerize(sixtuples, tokenizer.sixtuple_token_maps)
-        X, y = proc.sequenize(numeric_sixtuples)
-        X = proc.reshape_X(X)
-
-        processed_io.save_processed_data(processed_dataset_id, midi_path, X, y, tokenizer)
-    token_map_io.save_token_maps(processed_dataset_id, tokenizer.sixtuple_token_maps)
+    parallel_processing.parallel_process(dataset_id, processed_dataset_id)
 
 
 def train(model_id: str, processed_dataset_id: str):
