@@ -255,6 +255,16 @@ class SixtupleTokenMaps:
                 self._tempo_map[sixtuple.tempo] = len(self._tempo_map)
         print("Finished extending maps of tokens.")
 
+    def create_from_sets(
+        self, bar_set: set, position_set: set, pitch_set: set, duration_set: set, velocity_set: set, tempo_set: set
+    ):
+        self._bar_map = {token: idx for idx, token in enumerate(bar_set)}
+        self._position_map = {token: idx for idx, token in enumerate(position_set)}
+        self._pitch_map = {token: idx for idx, token in enumerate(pitch_set)}
+        self._duration_map = {token: idx for idx, token in enumerate(duration_set)}
+        self._velocity_map = {token: idx for idx, token in enumerate(velocity_set)}
+        self._tempo_map = {token: idx for idx, token in enumerate(tempo_set)}
+
 
 class Tokenizer:
     def __init__(self, processed_dataset_id: str):
@@ -365,5 +375,6 @@ class Tokenizer:
             print(f"Note in chords in sixtuples: {note_in_chord_counter}")
             print(f"Rests skipped (implicit): {rest_counter}")
 
-        self.sixtuple_token_maps.extend(sixtuples)
+        # Delete for parallel processing
+        # self.sixtuple_token_maps.extend(sixtuples)
         return sixtuples

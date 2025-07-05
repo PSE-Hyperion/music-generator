@@ -34,23 +34,21 @@ def get_midi_paths_from_dataset(dataset_id: str) -> list[str]:
     return midi_paths
 
 
-def parse_midi(music_path: str) -> stream.Score:
+def parse_midi(midi_path: str) -> stream.Score:
     #   Parses music file to score using music21 converter
     #   Returns it, if the parsed result is a Score instance (not Opus or Part)
     #   Otherwise throws exceptions
 
-    if os.path.isfile(music_path):
+    if os.path.isfile(midi_path):
         try:
-            parsed = converter.parse(music_path)
+            parsed = converter.parse(midi_path)
             if isinstance(parsed, stream.Score):
                 return parsed
-            else:
-                raise Exception(
-                    "Parsed music file isn't Score."
-                )  # Instead of exception, maybe ignore file and print warning
-        except Exception as e:
             raise Exception(
-                f"Parsing of {music_path} failed: {e}"
+                "Parsed music file isn't Score."
             )  # Instead of exception, maybe ignore file and print warning
+        except Exception as e:
+            # Instead of exception, maybe ignore file and print warning
+            raise Exception(f"Parsing of {midi_path} failed: {e}") from e
     else:
-        raise Exception(f"Invalid path {music_path}")
+        raise Exception(f"Invalid path {midi_path}")

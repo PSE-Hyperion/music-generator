@@ -6,14 +6,13 @@ from typing import Final
 import numpy as np
 
 from ..config import PROCESSED_DIR
-from .tokenization.tokenizer import Tokenizer
 
 JSON_METADATA_SHAPE: Final = "input_shape"
 JSON_METADATA_MAP_ID: Final = "map_id"
 
 
 # Saves the tokenized dataset and metadata, X and y are numpy arrays, X is a sequence of integer inputs for the model
-def save_processed_data(processed_dataset_id: str, music_path: str, X, y, tokenizer: Tokenizer):
+def save_processed_data(processed_dataset_id: str, music_path: str, X, y):
     music_file_name = os.path.splitext(os.path.basename(music_path))[0]
     target_folder_path = os.path.join(PROCESSED_DIR, processed_dataset_id, music_file_name)
     os.makedirs(target_folder_path, exist_ok=False)
@@ -23,7 +22,7 @@ def save_processed_data(processed_dataset_id: str, music_path: str, X, y, tokeni
         # Save .npz file inside subfolder
         np.savez_compressed(os.path.join(target_folder_path, music_file_name), X=X, y=y)
 
-        metadata = {JSON_METADATA_SHAPE: f"{X.shape}", JSON_METADATA_MAP_ID: f"{tokenizer.processed_dataset_id}"}
+        metadata = {JSON_METADATA_SHAPE: f"{X.shape}", JSON_METADATA_MAP_ID: f"{processed_dataset_id}"}
 
         metadata_path = os.path.join(target_folder_path, "metadata.json")
         with open(metadata_path, "w") as f:
@@ -31,7 +30,7 @@ def save_processed_data(processed_dataset_id: str, music_path: str, X, y, tokeni
 
     except Exception as e:
         shutil.rmtree(target_folder_path)
-        raise Exception(f"Failed to save tokenized data: {e}")
+        raise Exception(f"Failed to save tokenized data: {e}") from e
 
     print(f"Finished saving processed dataset as {processed_dataset_id}.")
     print(f"Input Shape: {X.shape}")
