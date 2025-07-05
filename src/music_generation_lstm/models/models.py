@@ -1,7 +1,7 @@
 from tensorflow.keras.layers import LSTM, Concatenate, Dense, Dropout, Embedding, Input  # type: ignore
 from tensorflow.keras.models import Model  # type: ignore
 
-from ..config import SEQUENCE_LENGTH
+from music_generation_lstm.config import SEQUENCE_LENGTH
 
 
 class BaseModel:

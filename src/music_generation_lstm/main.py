@@ -1,4 +1,5 @@
-from . import cli
+from music_generation_lstm import cli
+
 
 
 def main():
