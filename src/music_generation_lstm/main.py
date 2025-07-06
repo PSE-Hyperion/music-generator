@@ -1,7 +1,6 @@
 from music_generation_lstm import cli
 
 
-
 def main():
     """
     Starts the program by starting a cli session

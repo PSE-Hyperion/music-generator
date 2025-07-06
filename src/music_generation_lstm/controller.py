@@ -1,6 +1,8 @@
 import json
 import os
 
+import numpy as np
+
 from music_generation_lstm.models import model_io, models, train as tr
 from music_generation_lstm.processing import parallel_processing, processed_io
 from music_generation_lstm.processing.tokenization import token_map_io
@@ -44,8 +46,6 @@ def train(model_id: str, processed_dataset_id: str):
         "velocity": metadata[token_map_io.TOTAL_UNIQUE_VELOCITY_TOKENS],
         "tempo": metadata[token_map_io.TOTAL_UNIQUE_TEMPO_TOKENS],
     }
-
-    import numpy as np  # bad, this shouldn't be in here
 
     # Get input shape from first file
     with np.load(file_paths[0]) as data:

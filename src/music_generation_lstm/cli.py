@@ -43,8 +43,11 @@ def handle_train(args: list[str]):
 
 def handle_generate(args: list[str]):
     #   Handles the generate command by calling corresponding controller function
-    #   "-generate model_id(new) input result_id(new) (not implemented yet)"
+    #   "-generate model_name input_name result_name(new)"
     #
+    if len(args) != 3:
+        print("Incorrect use of the generate command.")
+        print("Please use the correct format: -generate [model name] [input name] [desired output name]")
 
     controller.generate()
 
