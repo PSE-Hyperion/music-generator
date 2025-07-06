@@ -1,7 +1,10 @@
 import json
 import os
 
-from music_generation_lstm.models import model_io, models, train as tr
+import numpy as np
+
+from music_generation_lstm.models import models, train as tr
+from music_generation_lstm.models.model_io import save_model
 from music_generation_lstm.processing import parallel_processing, processed_io
 from music_generation_lstm.processing.tokenization import token_map_io
 
@@ -45,8 +48,6 @@ def train(model_id: str, processed_dataset_id: str):
         "tempo": metadata[token_map_io.TOTAL_UNIQUE_TEMPO_TOKENS],
     }
 
-    import numpy as np  # bad, this shouldn't be in here
-
     # Get input shape from first file
     with np.load(file_paths[0]) as data:
         input_shape = data["X"].shape[1:]  # Remove batch dimension
@@ -56,15 +57,16 @@ def train(model_id: str, processed_dataset_id: str):
 
     tr.train_model(model, file_paths)
 
-    model_io.save_model(model)
+    save_model(model)
 
 
 def generate():
-    #   get model via label
-    #   get midi
-    #   get start sequence from midi
-    #   generate with model using start sequence
-    #   write result in folder
+    #   Get model
+
+    #   Get input MIDI
+    #   Retrieve start sequence from given MIDI
+    #   Generate a new sequence from the start sequence
+    #   Write the generation in a folder
 
     print("generate")
 
