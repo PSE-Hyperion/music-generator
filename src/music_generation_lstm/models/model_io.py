@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 
@@ -6,25 +7,29 @@ from music_generation_lstm.models.models import BaseModel
 
 
 def save_model(model: BaseModel):
-    """
-    model_dir = os.path.join(MODELS_DIR, model.name)
-    os.makedirs(model_dir, exist_ok=True)
+    model_directory = model.model_id + ".keras"
+    model_path = os.path.join(MODELS_DIR, model_directory)
 
-    model_path = os.path.join(model_dir, "model.keras")
-    save(model.model, model_path)
+    # Make sure directory exists and if not, create it
+    os.makedirs(MODELS_DIR, exist_ok=True)
 
+    print(f"Saving model {model_directory} to {model_path}")
+
+    model.model.save(model_path)  # Using model.model since the "Model" type provides a save function
+
+    # Create configuration .json
     config = {
-        "name": model.name,
-        "type": model.TYPE
-        #"history": model_instance.history,
-        #"input_shape": model_instance.input_shape,
-        #"timesteps": model_instance.input_shape[0],
-        #"features": model_instance.input_shape[1],
-        #"note_to_int": model_instance.note_to_int
+        "name": model.model_id,
+        # Further data will be saved here in future updates, such as model history,
+        # input shape, time steps, features etc.
     }
-    with open(os.path.join(model_dir, "config.json"), "w") as f:
-        json.dump(config, f)
-    """
+
+    # Save configuration .json
+    config_filepath = os.path.join(MODELS_DIR, "config.json")
+    with open(config_filepath, "w") as fp:
+        json.dump(config, fp)
+
+    print("Model saved successfully, let the AI takeover BEGIN!!! >:D")
 
 
 def load_model(name: str) -> BaseModel | None:
