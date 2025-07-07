@@ -21,6 +21,12 @@ class BaseModel:
 
         raise NotImplementedError
 
+    def set_model(self, model: Model):
+        self.model = model
+
+    def get_input_shape(self) -> tuple[int, int]:
+        return self.input_shape
+
 
 class LSTMModel(BaseModel):
     #   LSTM model class, that implements the architecture of an lstm model
