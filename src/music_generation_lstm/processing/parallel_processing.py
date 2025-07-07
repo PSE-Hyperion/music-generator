@@ -55,13 +55,11 @@ def _parallel_tokenize_worker(midi_path: str, processed_dataset_id: str) -> tupl
 def _parallel_process_worker(
     sixtuples: list[Sixtuple], sixtuple_token_maps: SixtupleTokenMaps, midi_path: str, processed_dataset_id: str
 ):
-    """
-    A worker (per cpu core) processing
+    """ A worker (per cpu core) processing
         1. numerize
         2. reshape
         3. save as .npz
-    a single sixtuple list using the given (complete) sixtuple token maps
-    """
+        a single sixtuple list using the given (complete) sixtuple token maps """
 
     # Numerize
     numeric_sixtuples = process.numerize(sixtuples, sixtuple_token_maps)

@@ -36,7 +36,7 @@ def train(model_id: str, processed_dataset_id: str):
     # bad shouldn't be in here
 
     token_maps_dir = os.path.join("data/token_maps", processed_dataset_id)
-    with open(os.path.join(token_maps_dir, "metadata.json"), "r") as f:
+    with open(os.path.join(token_maps_dir, "metadata.json")) as f:
         metadata = json.load(f)
 
     vocab_sizes = {

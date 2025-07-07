@@ -70,11 +70,13 @@ def numerize(sixtuples: list[Sixtuple], sixtuple_token_maps: SixtupleTokenMaps) 
 
 
 def sequenize(numeric_sixtuples: list[NumericSixtuple]):
-    #   creates sequences of feature tuples (extracts feature num val from embeddednumericevent class) and corresponding next event feature tuples
-    #   uses sliding window of size of SEQUENCE_LENGTH
-    #   X contains sequences of features of an event, y contains the next features of an event
-    #   X = [[1, 2], [2, 3], [3, 4]], y = [3, 4, 5]
-    #   sequence X[i] is followed by y[i]
+    """ creates sequences of feature tuples (extracts feature num val from embeddednumericevent class)
+        and corresponding next event feature tuples
+        uses sliding window of size of SEQUENCE_LENGTH
+        X contains sequences of features of an event, y contains the next features of an event
+        X = [[1, 2], [2, 3], [3, 4]], y = [3, 4, 5]
+        sequence X[i] is followed by y[i]
+    """
 
     print("Start sequenizing...")
 
@@ -117,10 +119,9 @@ def reshape_X(X):
     print("Finished reshaping")
     return X
 
-
-def denumerize(numeric_sixtuples: list[NumericSixtuple], sixtuple_token_maps: SixtupleTokenMaps) -> list[Sixtuple]:
-    #   Turns list of embedded numeric events into list of embedded token events, by using the maps provided by the given tokenizer instance
-    #
-    #
-
-    return []
+#TODO
+#def denumerize(numeric_sixtuples: list[NumericSixtuple], sixtuple_token_maps: SixtupleTokenMaps) -> list[Sixtuple]:
+#    """ Turns list of embedded numeric events into list of embedded token events, by using the maps provided
+#        by the given tokenizer instance """
+#
+#    return []

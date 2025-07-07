@@ -91,3 +91,6 @@ lines-between-types = 1
 [tool.ruff.pep8-naming]
 classmethod-decorators = ["classmethod", "pydantic.validator"]
 staticmethod-decorators = ["staticmethod"]
+
+[tool.ruff.lint.pep8-naming]
+ignore-names = ["X", "*_X*"]
