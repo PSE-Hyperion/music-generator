@@ -60,6 +60,33 @@ def train(model_id: str, processed_dataset_id: str):
     save_model(model)
 
 
+def delete_dataset(processed_dataset_id: str):
+    """
+    Deletes all processed .npz files for the given dataset ID,
+    then removes the empty dataset folder.
+    """
+
+    file_paths = processed_io.get_processed_file_paths(processed_dataset_id)
+    for fp in file_paths:
+        try:
+            os.remove(fp)
+            print(f"Deleted file {fp}")
+        except FileNotFoundError:
+            print(f"File not found, skipping: {fp}")
+        except Exception as e:
+            print(f"Error deleting {fp}: {e}")
+
+    # delete empty folder
+
+
+def delete_file(file_path: str):
+    # Get file paths for all processed data files
+    """
+    Deletes all processed .npz files for the given dataset ID,
+    then removes the empty dataset folder.
+    """
+
+
 def generate():
     #   Get model
 

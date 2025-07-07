@@ -19,6 +19,9 @@ class Command(Enum):
     EXIT = "-exit"
 
 
+ARGUMENTLENGTH_GENERATE = 3
+
+
 def handle_process(args: list[str]):
     #   Handles the process command by calling corresponding controller function
     #   "-process dataset_id processed_id(new)"
@@ -45,7 +48,7 @@ def handle_generate(args: list[str]):
     #   Handles the generate command by calling corresponding controller function
     #   "-generate model_name input_name result_name(new)"
     #
-    if len(args) != 3:
+    if len(args) != ARGUMENTLENGTH_GENERATE:
         print("Incorrect use of the generate command.")
         print("Please use the correct format: -generate [model name] [input name] [desired output name]")
 
@@ -57,6 +60,14 @@ def handle_show(args: list[str]):
     #   "-show models/raw_datasets/results/processed_datasets (not implemented yet)"
     #
     controller.show()
+
+
+def handle_delete(args: list[str]):
+    #   Handles the delete command for a processed dataset
+    #   "-delete"
+
+    processed_dataset_id = args[0]
+    controller.delete(processed_dataset_id)
 
 
 def handle_exit():
@@ -98,7 +109,7 @@ def process_input(input: str):
         print("Invalid command.")
         return
 
-    handler = COMMAND_HANDLERS.get(command, None)
+    handler = COMMAND_HANDLERS.get(command)
 
     if handler is None:
         print("Command has no handler assigned.")
