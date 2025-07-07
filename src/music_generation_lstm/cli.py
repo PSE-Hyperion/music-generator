@@ -7,7 +7,9 @@ from music_generation_lstm import controller
 
 
 class Command(Enum):
-    """ All available commands """
+    """
+    All available commands
+    """
 
     PROCESS = "-process"
     TRAIN = "-train"
@@ -18,9 +20,9 @@ class Command(Enum):
 
 
 def handle_process(args: list[str]):
-    """ Handles the process command by calling corresponding controller function
-        "-process dataset_id processed_id(new)" """
-
+    #   Handles the process command by calling corresponding controller function
+    #   "-process dataset_id processed_id(new)"
+    #
 
     dataset_id = args[0]
     processed_dataset_id = args[1]
@@ -29,9 +31,9 @@ def handle_process(args: list[str]):
 
 
 def handle_train(args: list[str]):
-    """ Handles the train command by calling corresponding controller function
-        "-train model_id(new) processed_id" """
-
+    #   Handles the train command by calling corresponding controller function
+    #   "-train model_id(new) processed_id"
+    #
 
     model_id = args[0]
     processed_dataset_id = args[1]
@@ -40,38 +42,32 @@ def handle_train(args: list[str]):
 
 
 def handle_generate(args: list[str]):
-    """" Handles the generate command by calling corresponding controller function
-         "-generate model_name input_name result_name(new)" """
-
-    arglen = 3
-    if len(args) != arglen:
-        print("Incorrect use of the generate command.")
-        print("Please use the correct format: -generate [model name] [input name] [desired output name]")
+    #   Handles the generate command by calling corresponding controller function
+    #   "-generate model_id(new) input result_id(new) (not implemented yet)"
+    #
 
     controller.generate()
 
 
 def handle_show(args: list[str]):
-    """ Handles the show command by calling corresponding controller function
-       "-show models/raw_datasets/results/processed_datasets (not implemented yet)" """
-
-    #TODO
-    arglen = 0
-    if len(args) != arglen:
-        controller.show()
+    #   Handles the show command by calling corresponding controller function
+    #   "-show models/raw_datasets/results/processed_datasets (not implemented yet)"
+    #
+    controller.show()
 
 
 def handle_exit():
-    """ Handles the exit command
-    #   "-exit" """
+    #   Handles the exit command
+    #   "-exit"
+    #
 
     controller.exit()
 
 
 def parse_command(command: str):
-    """ Parses string command to command from Command Enum
-        Prints Warning, if command doesn't exist """
-
+    #   Parses string command to command from Command Enum
+    #   Prints Warning, if command doesn't exist
+    #
 
     try:
         return Command(command)
@@ -80,14 +76,13 @@ def parse_command(command: str):
 
 
 def process_input(input: str):
-    """ Split user input into parts and parse command part
-        Search first part (command) in command map, that maps a command to a handler function
-        Call handler with arguments, if it exists """
+    #   Split user input into parts and parse command part
+    #   Search first part (command) in command map, that maps a command to a handler function
+    #   Call handler with arguments, if it exists
 
-    min_arg_len = 2
     parts = input.split(" ")
 
-    if len(parts) < min_arg_len:
+    if len(parts) < 2:
         print("Invalid input.")
         return
 
@@ -100,7 +95,7 @@ def process_input(input: str):
         print("Invalid command.")
         return
 
-    handler = COMMAND_HANDLERS.get(command)
+    handler = COMMAND_HANDLERS.get(command, None)
 
     if handler is None:
         print("Command has no handler assigned.")
@@ -118,10 +113,10 @@ COMMAND_HANDLERS = {
 
 
 class CommandCompleter(Completer):
-    def get_completions(self, document):
-        """ Only provide completions for the command part
-            It does this by only considering text before the first space character
-            We could expand on this by also allowing prompt completion for existing ids, etc """
+    def get_completions(self, document, complete_event):
+        #   Only provide completions for the command part
+        #   It does this by only considering text before the first space character
+        #   We could expand on this by also allowing prompt completion for existing ids, etc
 
         text = document.text_before_cursor
         parts = text.split(" ")
@@ -135,9 +130,9 @@ class CommandCompleter(Completer):
 
 
 def start_session():
-    """ Starts the cli loop: input is read, handled and then we repeat (except if exit cmd is called)
-        Contains a PromptSession for prompt completion in the terminal
-        Also catches errors from handling input and prints them """
+    #   Starts the cli loop: input is read, handled and then we repeat (except if exit cmd is called)
+    #   Contains a PromptSession for prompt completion in the terminal
+    #   Also catches errors from handling input and prints them
 
     session = PromptSession(completer=CommandCompleter())
     while True:
