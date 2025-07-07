@@ -56,30 +56,6 @@ def load_model(name: str) -> BaseModel | None:
 
     model.set_model(keras_model)
 
-    """
-    model_dir = os.path.join(MODELS_DIR, name)
-    metadata_path = os.path.join(model_dir, "config.json")
-    model_path = os.path.join(model_dir, "model.keras")
-
-    if not os.path.exists(metadata_path):
-        raise FileNotFoundError(f"No config found for model {name}")
-    if not os.path.exists(model_path):
-        raise FileNotFoundError(f"No model file found for model {name}")
-
-    model = keras.load_model(model_path)
-
-
-    # load configs for model
-    with open(metadata_path) as f:
-        config = json.load(f)
-
-
-    # rebuild model
-    # model = None
-    print("model loaded successfully")
-
-    return model
-    """
     return model, config
 
 
