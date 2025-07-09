@@ -15,8 +15,10 @@ def process(dataset_id: str, processed_dataset_id: str):
     #   numerize tokens
     #   save processed data (ready for training data)
 
-    parallel_processing.parallel_process(dataset_id, processed_dataset_id)
+    #pipeline = ProcessingPipeline(dataset_id, processed_dataset_id)
+    #pipeline.run()
 
+    parallel_processing.parallel_process(dataset_id, processed_dataset_id)
 
 def train(model_id: str, processed_dataset_id: str):
     """

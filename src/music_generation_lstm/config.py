@@ -1,3 +1,4 @@
+import re
 from typing import Final
 
 # Hyperparameters
@@ -12,6 +13,7 @@ TRAINING_BATCH_SIZE: Final = 12
 
 ALLOWED_MUSIC_FILE_EXTENSIONS: Final = [".mid", ".midi"]
 
+MIDI_FILE_PATTERN: Final = re.compile(r".*\.(mid|midi)$")
 
 # Paths
 

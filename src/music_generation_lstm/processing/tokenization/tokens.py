@@ -14,16 +14,19 @@ class BaseToken(ABC):
     def FEATURE_NAMES(self):  # noqa: N802
         pass
 
-    @abstractmethod
-    @property
-    def FEATURE_REPRS(self):  # noqa: N802
-        pass
+    #TODO
+    #@abstractmethod
+    #@property
+    #def FEATURE_REPRS(self):
+    #    pass
 
     def __init__(self, features):
         self._features = np.array(features)
 
     def __getattr__(self, name):
         if name in self.FEATURE_NAMES:
+
+
             idx = self.FEATURE_NAMES.index(name)
             return self._features[idx]
         raise AttributeError(f"'{self.__class__.__name__}' has no attribute '{name}'")
@@ -46,8 +49,3 @@ class REMI6(BaseToken):
             'velocity',
             'tempo'
         ]
-
-    @property
-    def FEATURE_REPRS(self): return [
-
-    ]
