@@ -7,6 +7,7 @@ from music21 import chord, note, stream
 from music21.tempo import MetronomeMark, TempoIndication
 
 logger = logging.getLogger(__name__)
+TEMPO_CHANGE_ERROR = 0.01
 
 class Sixtuple:
     """
@@ -348,7 +349,7 @@ class Tokenizer:
         for event in flat:
             abs_offset = float(event.offset)
 
-            while tempo_idx < len(tempo_changes) and abs(tempo_changes[tempo_idx][0] - abs_offset) < 0.01:
+            while tempo_idx < len(tempo_changes) and abs(tempo_changes[tempo_idx][0] - abs_offset) < TEMPO_CHANGE_ERROR:
                 current_tempo = tempo_changes[tempo_idx][1]
                 tempo_idx += 1
 
