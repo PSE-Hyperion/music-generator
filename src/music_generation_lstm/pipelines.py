@@ -10,15 +10,14 @@ def compose(*functions):
 
 class ProcessingPipeline:
     def __init__(self, source: str, target: str):
+        self.source = source
+        self.target = target
         self.pipeline = compose(
-            strats.loader('lazy-midi-paths', source),
+            strats.loader('lazy-midi-paths'),
             strats.parser('m21'),
             strats.tokenizer('sixtuple'),
-            strats.encoder('index-sixtupe'),
-            strats.trainig_preparation('none'),
-            strats.saver('training-sequences', target)
             )
 
     def run(self):
-        self.pipeline(None)
+        return self.pipeline(self.source)
 
