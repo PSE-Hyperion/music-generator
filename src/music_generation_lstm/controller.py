@@ -62,7 +62,7 @@ def train(model_id: str, processed_dataset_id: str):
 
 def delete_dataset(processed_dataset_id: str):
     """
-    Deletes all processed .npz files for the given dataset ID,
+    Deletes all processed .npz files for the given dataset id
     then removes the empty dataset folder.
     """
 
@@ -76,7 +76,14 @@ def delete_dataset(processed_dataset_id: str):
         except Exception as e:
             print(f"Error deleting {fp}: {e}")
 
-    # delete empty folder
+    # delete empty folder fro dataset
+    dataset_directory = os.path.dirname(file_paths[0])
+
+    try:
+        os.rmdir(dataset_directory)
+        print(f"Removed empty directory: {dataset_directory}")
+    except OSError:
+        print(f"Could not remove directory): {dataset_directory}")
 
 
 def delete_file(file_path: str):

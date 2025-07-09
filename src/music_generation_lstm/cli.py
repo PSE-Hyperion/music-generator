@@ -5,12 +5,15 @@ from prompt_toolkit.completion import Completer, Completion
 
 from music_generation_lstm import controller
 
+HELP_INSTRUCTIONS = "the following commands exists:"
+
 
 class Command(Enum):
     """
     All available commands
     """
 
+    HELP = "-help"
     PROCESS = "-process"
     TRAIN = "-train"
     GENERATE = "-generate"
@@ -20,6 +23,15 @@ class Command(Enum):
 
 
 ARGUMENTLENGTH_GENERATE = 3
+
+
+def handle_help(args: list[str]):
+    #   Handles the help command
+    #   "-help"
+    #
+    print(HELP_INSTRUCTIONS)
+    for command in Command:
+        print(command.name)
 
 
 def handle_process(args: list[str]):
@@ -62,7 +74,7 @@ def handle_show(args: list[str]):
     controller.show()
 
 
-def handle_delete(args: list[str]):
+def handle_delete_dataset(args: list[str]):
     #   Handles the delete command for a processed dataset
     #   "-delete"
 
@@ -95,18 +107,29 @@ def process_input(input: str):
     #   Call handler with arguments, if it exists
 
     parts = input.split(" ")
+    # print("l"+ parts+"p"+len(parts))
 
-    if len(parts) < 2:
-        print("Invalid input.")
+    if len(parts) < 0:
+        print("Invalid input.Yayyy")
         return
 
     command = parts[0]
-    args = parts[1:]
+    args = parts[0:]
 
     command = parse_command(command)
 
     if command is None:
         print("Invalid command.")
+        return
+
+    length = COMMAND_LENGTH.get(command)
+
+    if length is None:
+        print("Command has no length assigned.")
+        return
+
+    if length != (len(parts) - 1):
+        print(f"Command should get {length} arguments, but got {len(parts) - 1}")
         return
 
     handler = COMMAND_HANDLERS.get(command)
@@ -121,8 +144,18 @@ def process_input(input: str):
 COMMAND_HANDLERS = {
     Command.PROCESS: handle_process,  # -process dataset_id processed_id(new)
     Command.TRAIN: handle_train,  # -train model_id(new) processed_id
+    Command.HELP: handle_help,
+    Command.DELETE_DATASET: handle_delete_dataset,
     Command.GENERATE: handle_generate,  # -generate model_id(new) input result_id(new) (not implemented yet)
     Command.SHOW: handle_show,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
+}
+COMMAND_LENGTH = {
+    Command.PROCESS: 2,  # -process dataset_id processed_id(new)
+    Command.TRAIN: 2,  # -train model_id(new) processed_id
+    Command.HELP: 0,
+    Command.DELETE_DATASET: 1,  # processed_id
+    Command.GENERATE: 2,  # -generate model_id(new) input result_id(new) (not implemented yet)
+    Command.SHOW: 0,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
 }
 
 
@@ -152,9 +185,11 @@ def start_session():
     while True:
         try:
             u_input = session.prompt("Music_Generation_LSTM> ")
+
             if parse_command(u_input.strip()) == Command.EXIT:
                 handle_exit()
                 break
+
             process_input(u_input)
         except Exception as e:
             print(f"[ERROR] {e}")
