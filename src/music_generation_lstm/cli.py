@@ -45,6 +45,9 @@ def handle_generate(args: list[str]):
     #   Handles the generate command by calling corresponding controller function
     #   Usage: "-generate [model name] [input name] [desired output name]"
     #
+    if len(args) != 3:
+        print("Incorrect use of the generate command.")
+        print("Please use the correct format: -generate [model name] [input name] [desired output name]")
 
     model_name = args[0]
     input_name = args[1]
@@ -99,7 +102,7 @@ def process_input(input: str):
         print("Invalid command.")
         return
 
-    handler = COMMAND_HANDLERS.get(command, None)
+    handler = COMMAND_HANDLERS.get(command)
 
     if handler is None:
         print("Command has no handler assigned.")
