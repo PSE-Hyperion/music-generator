@@ -246,8 +246,10 @@ class SixtupleTokenMaps:
 
     def extend(self, sixtuples: list[Sixtuple]):
         """
-        Since the tokenizer tokenizes in batches, this method is used to extend the maps of features of a sixtuple after every new tokenization. That way, the tokenizer
-        keeps track of all unique sixtuple features across all tokenized scores. After having tokenized all scores, the maps can be saved with token_maps_io.py
+        Since the tokenizer tokenizes in batches,
+        this method is used to extend the maps of features of a sixtuple after every new tokenization.
+        That way, the tokenizer keeps track of all unique sixtuple features across all tokenized scores.
+        After having tokenized all scores, the maps can be saved with token_maps_io.py
         """
 
         print("Start extending maps of tokens...")
