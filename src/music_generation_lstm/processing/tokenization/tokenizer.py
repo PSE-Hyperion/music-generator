@@ -1,8 +1,12 @@
+from collections.abc import Iterable
+from dataclasses import dataclass
 from fractions import Fraction
+import logging
 
 from music21 import chord, note, stream
 from music21.tempo import MetronomeMark, TempoIndication
 
+logger = logging.getLogger(__name__)
 
 class Sixtuple:
     """
@@ -273,11 +277,24 @@ class SixtupleTokenMaps:
         self._tempo_map = {token: idx for idx, token in enumerate(tempo_set)}
 
 
+@dataclass
 class Tokenizer:
     def __init__(self, processed_dataset_id: str):
         self.processed_dataset_id = processed_dataset_id
 
         self.sixtuple_token_maps = SixtupleTokenMaps()
+
+    def __call__(self, scores: Iterable[stream.Score]):
+        tokens = []
+        idx = -1
+
+        for idx, s in enumerate(scores):
+            logger.debug("Tokenizing item %s", idx + 1)
+            t = self.tokenize(s)
+            if t is not None:
+                tokens.append(t)
+
+        return tokens
 
     def tokenize(self, score: stream.Score) -> list[Sixtuple]:
         """
@@ -287,8 +304,6 @@ class Tokenizer:
 
         Rests are encoded implicitly
         """
-
-        print("Start encoding to tokens...")
 
         flat = score.flatten()
         sixtuples: list[Sixtuple] = []
