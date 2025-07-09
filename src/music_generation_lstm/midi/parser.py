@@ -1,54 +1,47 @@
-import glob
-import os
+from collections.abc import Iterable
+import logging
+from pathlib import Path
 
 from music21 import converter, stream
 
-from music_generation_lstm.config import ALLOWED_MUSIC_FILE_EXTENSIONS, DATASETS_MIDI_DIR
+logger = logging.getLogger(__name__)
+
+def m21_parse_midi_batch(midi_paths: Iterable[Path]) -> list[stream.Score]:
+    scores = []
+    idx = -1
+
+    for idx, p in enumerate(midi_paths):
+        logger.debug("Parsing item %s: %s", idx + 1, p.name)
+        s = m21_parse_midi_item(p)
+        if s is not None:
+            scores.append(s)
+
+    return scores
 
 
-def get_midi_paths_from_dataset(dataset_id: str) -> list[str]:
-    #   Get all midi file paths in dataset
-    #   This is used to avoid loading all files at same
-    #   The returned files then can be used to process all songs of the dataset seperatly
+def m21_parse_midi_item(midi_path: Path) -> stream:
+    try:
+        parsed = converter.parseFile(midi_path, format="midi")
+        return _normalize_to_score(parsed)
+    except:
+        logger.warning("Parsing of file %s failed, skipping", midi_path)
 
-    print(f"Started parsing {dataset_id}...")
 
-    path = os.path.join(DATASETS_MIDI_DIR, dataset_id)
-
-    midi_paths = []
-
-    if os.path.isdir(path):
-        for extension in ALLOWED_MUSIC_FILE_EXTENSIONS:
-            midi_paths.extend(glob.glob(os.path.join(path, f"*{extension}")))
-        total = len(midi_paths)
-        print(f"Folder found with {total} accepted midi files.")
-    elif os.path.isfile(path):
-        if path.lower().endswith(tuple(ALLOWED_MUSIC_FILE_EXTENSIONS)):
-            midi_paths.append(path)
-            print("File found")
-        else:
-            raise Exception("File found, but doesn't have allowed extension.")
+def _normalize_to_score(stream_object: stream):
+    if isinstance(stream_object, stream.Score):
+        score = stream_object
+        logger.debug("Parsed directly to score")
+    elif isinstance(stream_object, stream.Part):
+        score = stream.Score()
+        score.insert(0, stream_object)
+        if stream_object.metadata:
+            score.metadata = stream_object.metadata
+        logger.debug("Parsed to part, built score with it")
+    elif isinstance(stream_object, stream.Opus):
+        score = stream_object.scores.first()
+        logger.debug("Parsed to opus, took only first score of it")
     else:
-        raise Exception("Invalid path.")
+        score = None
 
-    return midi_paths
+    return score
 
-
-def parse_midi(midi_path: str) -> stream.Score:
-    #   Parses music file to score using music21 converter
-    #   Returns it, if the parsed result is a Score instance (not Opus or Part)
-    #   Otherwise throws exceptions
-
-    if os.path.isfile(midi_path):
-        try:
-            parsed = converter.parse(midi_path)
-            if isinstance(parsed, stream.Score):
-                return parsed
-            raise Exception(
-                "Parsed music file isn't Score."
-            )  # Instead of exception, maybe ignore file and print warning
-        except Exception as e:
-            # Instead of exception, maybe ignore file and print warning
-            raise Exception(f"Parsing of {midi_path} failed: {e}") from e
-    else:
-        raise Exception(f"Invalid path {midi_path}")
