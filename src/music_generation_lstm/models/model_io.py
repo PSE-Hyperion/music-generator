@@ -2,30 +2,34 @@ import json
 import os
 import shutil
 
+from tensorflow.keras.models import load_model as load_keras_model
+
 from music_generation_lstm.config import MODELS_DIR
 from music_generation_lstm.models.models import BaseModel
 
 
 def save_model(model: BaseModel):
-    model_directory = model.model_id + ".keras"
-    model_path = os.path.join(MODELS_DIR, model_directory)
+    model_directory = os.path.join(MODELS_DIR, model.model_id)
 
     # Make sure directory exists and if not, create it
-    os.makedirs(MODELS_DIR, exist_ok=True)
+    os.makedirs(model_directory, exist_ok=True)
 
-    print(f"Saving model {model_directory} to {model_path}")
+    model_path = os.path.join(model_directory, "model.keras")
+
+    print(f"Saving model {model.model_id} to {model_directory}")
 
     model.model.save(model_path)  # Using model.model since the "Model" type provides a save function
 
     # Create configuration .json
     config = {
         "name": model.model_id,
+        "input shape": model.get_input_shape(),
         # Further data will be saved here in future updates, such as model history,
         # input shape, time steps, features etc.
     }
 
     # Save configuration .json
-    config_filepath = os.path.join(MODELS_DIR, "config.json")
+    config_filepath = os.path.join(model_directory, "config.json")
     with open(config_filepath, "w") as fp:
         json.dump(config, fp)
 
@@ -42,16 +46,17 @@ def load_model(name: str) -> BaseModel | None:
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"No model file found for model {name}")
 
-    """
-    # load configs for model
-    with open(metadata_path) as f:
-        config = json.load(f)
-    """
+    with open(metadata_path) as fp:
+        config = json.load(fp)
 
-    # rebuild model
-    model = None
+    input_shape = config["input shape"]
+    model = BaseModel(name, input_shape)
 
-    return model
+    keras_model = load_keras_model(model_path)
+
+    model.set_model(keras_model)
+
+    return model, config
 
 
 def delete_model(name: str):

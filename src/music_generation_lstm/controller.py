@@ -4,7 +4,7 @@ import os
 import numpy as np
 
 from music_generation_lstm.models import models, train as tr
-from music_generation_lstm.models.model_io import save_model
+from music_generation_lstm.models.model_io import load_model, save_model
 from music_generation_lstm.processing import parallel_processing, processed_io
 from music_generation_lstm.processing.tokenization import token_map_io
 
@@ -62,15 +62,17 @@ def train(model_id: str, processed_dataset_id: str):
     save_model(model)
 
 
-def generate():
+def generate(model_name: str, input_name: str, output_name: str):
     #   Get model
+    model, config = load_model(model_name)
 
     #   Get input MIDI
+
     #   Retrieve start sequence from given MIDI
     #   Generate a new sequence from the start sequence
     #   Write the generation in a folder
 
-    print("generate")
+    print("Generating music with AI...")
 
 
 def show():
