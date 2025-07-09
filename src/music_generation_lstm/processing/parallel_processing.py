@@ -1,10 +1,12 @@
 from dataclasses import dataclass
 from multiprocessing import Pool, cpu_count
 
-from ..midi import parser
-from . import process, processed_io
-from .tokenization import token_map_io
-from .tokenization.tokenizer import Sixtuple, SixtupleTokenMaps, Tokenizer
+from music_generation_lstm.config import DATASETS_MIDI_DIR, MIDI_FILE_PATTERN
+from music_generation_lstm.data_management.load import load_file_paths
+from music_generation_lstm.midi import parser
+from music_generation_lstm.processing import process, processed_io
+from music_generation_lstm.processing.tokenization import token_map_io
+from music_generation_lstm.processing.tokenization.tokenizer import Sixtuple, SixtupleTokenMaps, Tokenizer
 
 
 @dataclass
@@ -28,7 +30,7 @@ def _parallel_tokenize_worker(midi_path: str, processed_dataset_id: str) -> tupl
     tokenizer = Tokenizer(processed_dataset_id)
 
     # Parse
-    score = parser.parse_midi(midi_path)
+    score = parser.m21_parse_midi_item(midi_path)
 
     # Tokenize
     sixtuples = tokenizer.tokenize(score)
@@ -82,7 +84,7 @@ def parallel_process(dataset_id: str, processed_dataset_id: str):
     Each worker does processing and saving the processed result of a single sixtuple list
     """
 
-    midi_paths = parser.get_midi_paths_from_dataset(dataset_id)
+    midi_paths = load_file_paths(dataset_id, DATASETS_MIDI_DIR, MIDI_FILE_PATTERN)
 
     with Pool(cpu_count()) as pool:
         results: list[tuple[str, list[Sixtuple], SixtupleSets]] = pool.starmap(
