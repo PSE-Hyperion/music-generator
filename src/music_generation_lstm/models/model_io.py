@@ -36,7 +36,7 @@ def save_model(model: BaseModel):
     print("Model saved successfully, let the AI takeover BEGIN!!! >:D")
 
 
-def load_model(name: str) -> BaseModel | None:
+def load_model(name: str) -> tuple[BaseModel | None, any]:
     model_dir = os.path.join(MODELS_DIR, name)
     metadata_path = os.path.join(model_dir, "config.json")
     model_path = os.path.join(model_dir, "model.keras")
@@ -72,7 +72,7 @@ def get_all_models_str_list() -> list[str]:
     models_str_list = []
     os.makedirs(MODELS_DIR, exist_ok=True)
     for entry in os.listdir(MODELS_DIR):
-        if not (entry == "metadata.json" or entry == ".gitkeep"):
+        if entry not in {"metadata.json", ".gitkeep"}:
             models_str_list.append(entry)
 
     return models_str_list

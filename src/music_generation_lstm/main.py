@@ -8,7 +8,7 @@ def main():
     """
     Starts the program by starting a cli session
     """
-    setup_logger(logging.INFO)
+    setup_logger(logging.DEBUG)
     cli.start_session()
 
 

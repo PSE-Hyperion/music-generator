@@ -41,8 +41,8 @@ def m21_parse_midi(midi_path: Path) -> stream:
     try:
         parsed = converter.parseFile(midi_path, format="midi")
         return _normalize_to_score(parsed)
-    except:
-        logger.warning("Parsing of file %s failed, skipping", midi_path)
+    except Exception as e:
+        logger.warning("Parsing of file %s failed (%s), skipping", midi_path, e)
 
 
 def _normalize_to_score(stream_object: stream):

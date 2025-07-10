@@ -46,7 +46,7 @@ def train_model_without_lazy(model: BaseModel, X, y):
         )
 
     except Exception as e:
-        raise Exception(f"Training failed {model.model_id} {e}")
+        raise Exception(f"Training failed {model.model_id} {e}") from train_model_without_lazy
     #    if isinstance(history, History):
     #        plot.plot_training(history, model.model_id)
 
@@ -82,7 +82,7 @@ def train_model(model: BaseModel, file_paths: list):
         )
 
     except Exception as e:
-        raise Exception(f"Training failed: {e}")
+        raise Exception(f"Training failed: {e}") from train_model
 
     print(f"Finished training {model.model_id}")
 

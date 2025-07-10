@@ -94,4 +94,4 @@ classmethod-decorators = ["classmethod", "pydantic.validator"]
 staticmethod-decorators = ["staticmethod"]
 
 [tool.ruff.lint.pep8-naming]
-ignore-names = ["X", "*_X*"]
+ignore-names = ["X", "*_X*", "*x_*"]

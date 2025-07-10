@@ -1,7 +1,6 @@
 from collections.abc import Iterable
 
 import numpy as np
-import tensorflow as tf
 
 from music_generation_lstm.processing.tokenization import tokens
 

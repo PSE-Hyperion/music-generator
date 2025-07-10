@@ -30,7 +30,7 @@ def _parallel_tokenize_worker(midi_path: str, processed_dataset_id: str) -> tupl
     tokenizer = Tokenizer(processed_dataset_id)
 
     # Parse
-    score = parser.m21_parse_midi_item(midi_path)
+    score = parser.m21_parse_midi(midi_path)
 
     # Tokenize
     sixtuples = tokenizer.tokenize(score)

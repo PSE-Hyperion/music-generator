@@ -78,7 +78,7 @@ def get_all_data_str_list() -> list[str]:
     data_str_list = []
     os.makedirs(PROCESSED_DIR, exist_ok=True)
     for entry in os.listdir(PROCESSED_DIR):
-        if not (entry == "metadata.json" or entry == ".gitkeep"):
+        if entry not in {"metadata.json", ".gitkeep"}:
             print("This will never happen")
             data_str_list.append(entry)
 
@@ -108,7 +108,7 @@ def get_processed_file_paths(processed_dataset_id: str) -> list[str]:
     file_paths = []
 
     # Walk through all subdirectories to find .npz files
-    for root, dirs, files in os.walk(processed_dir):
+    for root, files in os.walk(processed_dir):
         for file in files:
             if file.endswith(".npz"):
                 file_paths.append(os.path.join(root, file))

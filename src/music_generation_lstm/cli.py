@@ -5,6 +5,7 @@ from prompt_toolkit.completion import Completer, Completion
 
 from music_generation_lstm import controller
 
+MIN_ARG_LENGTH = 1
 
 class Command(Enum):
     """
@@ -45,7 +46,8 @@ def handle_generate(args: list[str]):
     #   Handles the generate command by calling corresponding controller function
     #   Usage: "-generate [model name] [input name] [desired output name]"
     #
-    if len(args) != 3:
+    expected_arg_length = 3
+    if len(args) != expected_arg_length:
         print("Incorrect use of the generate command.")
         print("Please use the correct format: -generate [model name] [input name] [desired output name]")
 
@@ -89,7 +91,7 @@ def process_input(input: str):
 
     parts = input.split(" ")
 
-    if len(parts) < 2:
+    if len(parts) < MIN_ARG_LENGTH:
         print("Invalid input.")
         return
 
@@ -124,7 +126,6 @@ class CommandCompleter(Completer):
         #   Only provide completions for the command part
         #   It does this by only considering text before the first space character
         #   We could expand on this by also allowing prompt completion for existing ids, etc
-
         text = document.text_before_cursor
         parts = text.split(" ")
 

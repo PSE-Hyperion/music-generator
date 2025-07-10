@@ -3,7 +3,7 @@ from collections.abc import Callable
 from functools import partial, reduce
 from typing import ClassVar
 
-from music_generation_lstm.data_management.load import load_file_paths
+from music_generation_lstm.data_management.load import load_midi_file_paths
 from music_generation_lstm.midi.parser import m21_parse_midi_batch
 from music_generation_lstm.processing.tokenization.tokenizer import tokenize_batch
 from music_generation_lstm.step import Context
@@ -29,7 +29,7 @@ class BasePipeline(ABC):
 
 class Processing(BasePipeline):
     STEPS: ClassVar = [
-        load_file_paths,
+        load_midi_file_paths,
         m21_parse_midi_batch,
         tokenize_batch
     ]

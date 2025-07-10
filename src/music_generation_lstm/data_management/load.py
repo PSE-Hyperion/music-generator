@@ -23,7 +23,7 @@ def load_midi_file_paths(dir_name: str) -> Iterable[Path]:
     # 1. Loads all files and dirs in the dir and all sub dirs recursively
     # 2. Filters the ones that are files and match the pattern of midi files '*.mid' or '*.midi'
     return filter(
-        lambda x: x.is_file and config.MIDI_FILE_PATTERN.fullmatch(x.name),
+        lambda x: x.is_file and file_pattern.fullmatch(x.name),
         parent_path_of_files.rglob('*')
     )
 

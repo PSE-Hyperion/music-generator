@@ -3,9 +3,10 @@ import os
 
 import numpy as np
 
+from music_generation_lstm import pipelines
 from music_generation_lstm.models import models, train as tr
 from music_generation_lstm.models.model_io import load_model, save_model
-from music_generation_lstm.processing import parallel_processing, processed_io
+from music_generation_lstm.processing import processed_io
 from music_generation_lstm.processing.tokenization import token_map_io
 
 
@@ -15,10 +16,10 @@ def process(dataset_id: str, processed_dataset_id: str):
     #   numerize tokens
     #   save processed data (ready for training data)
 
-    #pipeline = ProcessingPipeline(dataset_id, processed_dataset_id)
-    #pipeline.run()
+    processing_pipeline = pipelines.Processing(dataset_id, processed_dataset_id)
+    processing_pipeline.run()
 
-    parallel_processing.parallel_process(dataset_id, processed_dataset_id)
+    #parallel_processing.parallel_process(dataset_id, processed_dataset_id)
 
 def train(model_id: str, processed_dataset_id: str):
     """
