@@ -16,8 +16,20 @@ class ProcessingPipeline:
             strats.loader('lazy-midi-paths'),
             strats.parser('m21'),
             strats.tokenizer('sixtuple'),
+            strats.encoder('index-sixtuple')
             )
 
     def run(self):
         return self.pipeline(self.source)
+
+
+
+#class IterableMonitor(Iterable):
+#    def __init__(self, iterable):
+#        self.iterable = iterable
+#        self.logger = logging.getLogger()
+#
+#    def __iter__(self):
+#        return not self.iterable.__iter__()
+
 

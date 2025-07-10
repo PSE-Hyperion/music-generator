@@ -5,6 +5,9 @@ import logging
 
 from music21 import chord, note, stream
 from music21.tempo import MetronomeMark, TempoIndication
+import numpy as np
+
+from music_generation_lstm.processing.tokenization import tokens
 
 logger = logging.getLogger(__name__)
 TEMPO_CHANGE_ERROR = 0.01
@@ -287,19 +290,19 @@ class Tokenizer:
 
         self.sixtuple_token_maps = SixtupleTokenMaps()
 
-    def __call__(self, scores: Iterable[stream.Score]):
-        tokens = []
+    def __call__(self, scores: Iterable[stream.Score]) -> list[tokens.HexTuple]:
+        token_sequences = []
         idx = -1
 
         for idx, s in enumerate(scores):
             logger.debug("Tokenizing item %s", idx + 1)
-            t = self.tokenize(s)
-            if t is not None:
-                tokens.append(t)
+            token_sequence = self.tokenize(s)
+            if token_sequence is not None:
+                token_sequences.append(token_sequence)
 
-        return tokens
+        return token_sequences
 
-    def tokenize(self, score: stream.Score) -> list[Sixtuple]:
+    def tokenize(self, score: stream.Score) -> list[tokens.HexTuple]:
         """
         Tokenizes music21 score object to a list of sixtuples
 
@@ -309,7 +312,7 @@ class Tokenizer:
         """
 
         flat = score.flatten()
-        sixtuples: list[Sixtuple] = []
+        hextuples: list[tokens.HexTuple] = []
 
         # Get tempo from score (default to 120 if not found)
         # Two classes could contain this data, so we have to check both
@@ -356,19 +359,20 @@ class Tokenizer:
             # Calculate bar and position
             bar_number = int(abs_offset // beats_per_bar)
             position_in_bar = abs_offset % beats_per_bar
+            print(bar_number, position_in_bar)
 
             # Quantize position to 16th notes, since all songs from dataset are 4/4
             position_16th = int(position_in_bar * 4)
 
             if isinstance(event, note.Note):
-                sixtuples.append(
-                    Sixtuple(
-                        bar=str(bar_number),
-                        position=str(position_16th),
-                        pitch=str(event.pitch.midi),
-                        duration=str(event.quarterLength),
-                        velocity=str(event.volume.velocity),
-                        tempo=str(current_tempo),
+                hextuples.append(
+                    tokens.HexTuple(
+                        pitch=np.uint8(event.pitch.midi),
+                        bar=np.uint8(bar_number),
+                        position=np.uint8(position_16th),
+                        duration=np.uint8(event.quarterLength * 8),
+                        velocity=np.uint8(event.volume.velocity),
+                        tempo=np.uint8(current_tempo),
                     )
                 )
                 note_counter += 1
@@ -377,14 +381,14 @@ class Tokenizer:
                 # Each note in the chord becomes a separate Sixtuple
                 # They all share the same bar and position
                 for chord_note in event.notes:
-                    sixtuples.append(
-                        Sixtuple(
-                            bar=str(bar_number),
-                            position=str(position_16th),
-                            pitch=str(chord_note.pitch.midi),
-                            duration=str(event.quarterLength),
-                            velocity=str(event.volume.velocity),
-                            tempo=str(current_tempo),
+                    hextuples.append(
+                        tokens.HexTuple(
+                            pitch=np.uint8(chord_note.pitch.midi),
+                            bar=np.uint8(bar_number),
+                            position=np.uint8(position_16th),
+                            duration=np.uint8(event.quarterLength * 8),
+                            velocity=np.uint8(event.volume.velocity),
+                            tempo=np.uint8(current_tempo),
                         )
                     )
                     note_in_chord_counter += 1
@@ -395,5 +399,4 @@ class Tokenizer:
                 rest_counter += 1
 
         # Delete for parallel processing
-        # self.sixtuple_token_maps.extend(sixtuples)
-        return sixtuples
+        return hextuples

@@ -4,7 +4,8 @@ from typing import Literal
 from music_generation_lstm.config import DATASETS_MIDI_DIR, MIDI_FILE_PATTERN
 from music_generation_lstm.data_management.load import load_file_paths
 from music_generation_lstm.midi.parser import m21_parse_midi_batch
-from music_generation_lstm.processing.process import numerize, sequenize
+from music_generation_lstm.processing.encoder import tokens_to_arrays
+from music_generation_lstm.processing.process import sequenize
 from music_generation_lstm.processing.processed_io import save_processed_data
 from music_generation_lstm.processing.tokenization import tokenizer as sixtuple_tokenizer
 
@@ -33,7 +34,7 @@ def tokenizer(strat: Literal['sixtuple']):
 
 def encoder(strat: Literal['index-sixtupe']):
     strategies = {
-        'index-sixtuple': numerize
+        'index-sixtuple': tokens_to_arrays
     }
     return strategies.get(strat)
 
