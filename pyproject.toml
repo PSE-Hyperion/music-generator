@@ -41,9 +41,6 @@ where = ["src"]
 [tool.ruff]
 src = ["src"]
 target-version = "py311"
-#fixable = [] # problems to fix automatically with --fix flag
-fixable = ["ALL"] # problems to fix automatically with --fix flag
-unfixable = []
 line-length = 120
 exclude = [
     "data",
@@ -56,6 +53,19 @@ exclude = [
     ".ruff_cache"
 ]
 
+
+
+
+#  "B008",  # do not perform function calls in argument defaults
+#  "RET504",  # no 'return none'
+#  "C901",  # too complex functions
+
+[tool.ruff.lint]
+fixable = ["ALL"] # problems to fix automatically with --fix flag
+unfixable = []
+ignore = [
+  "PLR0913"  # too many function arguments
+]
 select = [
     "E",    # pycodestyle (Style errors)
     "F",    # pyflakes (error recognition)
@@ -75,23 +85,13 @@ select = [
     "PLW",  # Pylint-warnings
 ]
 
-ignore = [
-  "PLR0913"  # too many function arguments
-]
-#  "B008",  # do not perform function calls in argument defaults
-#  "RET504",  # no 'return none'
-#  "C901",  # too complex functions
-
-
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 combine-as-imports = true
 force-sort-within-sections = true
 known-first-party = ["music_generation_lstm"]
 lines-between-types = 1
 
-[tool.ruff.pep8-naming]
+[tool.ruff.lint.pep8-naming]
 classmethod-decorators = ["classmethod", "pydantic.validator"]
 staticmethod-decorators = ["staticmethod"]
-
-[tool.ruff.lint.pep8-naming]
 ignore-names = ["X", "*_X*", "*x_*"]
