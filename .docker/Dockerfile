@@ -15,7 +15,6 @@ COPY	./ ./
 
 RUN 	--mount=type=cache,target=/root/.cache/pip \
         pip install -U pip && \
-        pip install -r requirements.txt && \
         pip install ./
 
 # Staeg 2: Create clean image

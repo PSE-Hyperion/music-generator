@@ -67,7 +67,7 @@ class Vocabulary:
         for s in self.__slots__:
             self.__setattr__(s, collections.Counter(s))
 
-    def fit(self, token: BaseToken):
+    def update(self, token: BaseToken):
         if not isinstance(token, self.token_type):
             raise TypeError(f"Expected {self.token_type} but got {type(token)}")
         for s in self.__slots__:

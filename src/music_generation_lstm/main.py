@@ -1,14 +1,14 @@
 import logging
 
 from music_generation_lstm import cli
+from music_generation_lstm.logging_config import setup_logger
 
 
 def main():
     """
-       logger.
- Starts the program by starting a cli session
+    Starts the program by starting a cli session
     """
-    logging.basicConfig(level=logging.DEBUG)
+    setup_logger(logging.INFO)
     cli.start_session()
 
 

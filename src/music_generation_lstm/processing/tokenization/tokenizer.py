@@ -1,5 +1,4 @@
 from collections.abc import Iterable
-from dataclasses import dataclass
 from fractions import Fraction
 import logging
 
@@ -8,6 +7,7 @@ from music21.tempo import MetronomeMark, TempoIndication
 import numpy as np
 
 from music_generation_lstm.processing.tokenization import tokens
+from music_generation_lstm.step import pipeline_step
 
 logger = logging.getLogger(__name__)
 TEMPO_CHANGE_ERROR = 0.01
@@ -282,92 +282,100 @@ class SixtupleTokenMaps:
         self._velocity_map = {token: idx for idx, token in enumerate(velocity_set)}
         self._tempo_map = {token: idx for idx, token in enumerate(tempo_set)}
 
+@pipeline_step(kind='tokenizer')
+def tokenize_batch(scores: Iterable[stream.Score]) -> list[tokens.HexTuple]:
+    token_sequences = []
+    idx = -1
 
-@dataclass
-class Tokenizer:
-    def __init__(self, processed_dataset_id: str):
-        self.processed_dataset_id = processed_dataset_id
+    for idx, s in enumerate(scores):
+        logger.debug("Tokenizing item %s", idx + 1)
+        token_sequence = tokenize(s)
+        if token_sequence is not None:
+            token_sequences.append(token_sequence)
 
-        self.sixtuple_token_maps = SixtupleTokenMaps()
+    return token_sequences
 
-    def __call__(self, scores: Iterable[stream.Score]) -> list[tokens.HexTuple]:
-        token_sequences = []
-        idx = -1
+def tokenize(score: stream.Score) -> list[tokens.HexTuple]:
+    """
+    Tokenizes music21 score object to a list of sixtuples
 
-        for idx, s in enumerate(scores):
-            logger.debug("Tokenizing item %s", idx + 1)
-            token_sequence = self.tokenize(s)
-            if token_sequence is not None:
-                token_sequences.append(token_sequence)
+    The score is flattened and all valuable data is extracted and saved in sixtuples, which represent a note event
 
-        return token_sequences
+    Rests are encoded implicitly
+    """
 
-    def tokenize(self, score: stream.Score) -> list[tokens.HexTuple]:
-        """
-        Tokenizes music21 score object to a list of sixtuples
+    flat = score.flatten()
+    hextuples: list[tokens.HexTuple] = []
 
-        The score is flattened and all valuable data is extracted and saved in sixtuples, which represent a note event
+    # Get tempo from score (default to 120 if not found)
+    # Two classes could contain this data, so we have to check both
+    tempo_indications = flat.getElementsByClass("TempoIndication")
+    metronome_marks = flat.getElementsByClass("MetronomeMark")
+    current_tempo = 120
 
-        Rests are encoded implicitly
-        """
+    # Set first tempo
+    if tempo_indications:
+        current_tempo = int(tempo_indications[0].number)
+        # print(f"TempoIndication found: {current_tempo}")
+    elif metronome_marks:
+        current_tempo = int(metronome_marks[0].number)
+        # print(f"MetronomeMark found: {current_tempo}")
+    else:
+        pass
+        # print(f"No tempo found, using default: {current_tempo}")
 
-        flat = score.flatten()
-        hextuples: list[tokens.HexTuple] = []
+    # Time signature is always 4/4 in our dataset
+    beats_per_bar = 4
 
-        # Get tempo from score (default to 120 if not found)
-        # Two classes could contain this data, so we have to check both
-        tempo_indications = flat.getElementsByClass("TempoIndication")
-        metronome_marks = flat.getElementsByClass("MetronomeMark")
-        current_tempo = 120
+    tempo_changes = sorted(
+        [(ti.offset, int(ti.number)) for ti in tempo_indications]
+        + [(mm.offset, int(mm.number)) for mm in metronome_marks]
+    )
 
-        # Set first tempo
-        if tempo_indications:
-            current_tempo = int(tempo_indications[0].number)
-            # print(f"TempoIndication found: {current_tempo}")
-        elif metronome_marks:
-            current_tempo = int(metronome_marks[0].number)
-            # print(f"MetronomeMark found: {current_tempo}")
-        else:
-            pass
-            # print(f"No tempo found, using default: {current_tempo}")
+    # Use an index to track which tempo is active
+    tempo_idx = 0
 
-        # Time signature is always 4/4 in our dataset
-        beats_per_bar = 4
+    note_counter = 0
+    rest_counter = 0
+    chord_counter = 0
+    note_in_chord_counter = 0
 
-        tempo_changes = sorted(
-            [(ti.offset, int(ti.number)) for ti in tempo_indications]
-            + [(mm.offset, int(mm.number)) for mm in metronome_marks]
-        )
+    # Big loop, that goes through all events and finds tempo changes, bar,
+    # position and the notes itself (and the note's information)
+    for event in flat:
+        abs_offset = float(event.offset)
 
-        # Use an index to track which tempo is active
-        tempo_idx = 0
+        while tempo_idx < len(tempo_changes) and abs(tempo_changes[tempo_idx][0] - abs_offset) < TEMPO_CHANGE_ERROR:
+            current_tempo = tempo_changes[tempo_idx][1]
+            tempo_idx += 1
 
-        note_counter = 0
-        rest_counter = 0
-        chord_counter = 0
-        note_in_chord_counter = 0
+        # Calculate bar and position
+        bar_number = int(abs_offset // beats_per_bar)
+        position_in_bar = abs_offset % beats_per_bar
 
-        # Big loop, that goes through all events and finds tempo changes, bar,
-        # position and the notes itself (and the note's information)
-        for event in flat:
-            abs_offset = float(event.offset)
+        # Quantize position to 16th notes, since all songs from dataset are 4/4
+        position_16th = int(position_in_bar * 4)
 
-            while tempo_idx < len(tempo_changes) and abs(tempo_changes[tempo_idx][0] - abs_offset) < TEMPO_CHANGE_ERROR:
-                current_tempo = tempo_changes[tempo_idx][1]
-                tempo_idx += 1
+        if isinstance(event, note.Note):
+            hextuples.append(
+                tokens.HexTuple(
+                    pitch=np.uint8(event.pitch.midi),
+                    bar=np.uint8(bar_number),
+                    position=np.uint8(position_16th),
+                    duration=np.uint8(event.quarterLength * 8),
+                    velocity=np.uint8(event.volume.velocity),
+                    tempo=np.uint8(current_tempo),
+                )
+            )
+            note_counter += 1
 
-            # Calculate bar and position
-            bar_number = int(abs_offset // beats_per_bar)
-            position_in_bar = abs_offset % beats_per_bar
-            print(bar_number, position_in_bar)
-
-            # Quantize position to 16th notes, since all songs from dataset are 4/4
-            position_16th = int(position_in_bar * 4)
-
-            if isinstance(event, note.Note):
+        elif isinstance(event, chord.Chord):
+            # Each note in the chord becomes a separate Sixtuple
+            # They all share the same bar and position
+            for chord_note in event.notes:
                 hextuples.append(
                     tokens.HexTuple(
-                        pitch=np.uint8(event.pitch.midi),
+                        pitch=np.uint8(chord_note.pitch.midi),
                         bar=np.uint8(bar_number),
                         position=np.uint8(position_16th),
                         duration=np.uint8(event.quarterLength * 8),
@@ -375,28 +383,12 @@ class Tokenizer:
                         tempo=np.uint8(current_tempo),
                     )
                 )
-                note_counter += 1
+                note_in_chord_counter += 1
+            chord_counter += 1
 
-            elif isinstance(event, chord.Chord):
-                # Each note in the chord becomes a separate Sixtuple
-                # They all share the same bar and position
-                for chord_note in event.notes:
-                    hextuples.append(
-                        tokens.HexTuple(
-                            pitch=np.uint8(chord_note.pitch.midi),
-                            bar=np.uint8(bar_number),
-                            position=np.uint8(position_16th),
-                            duration=np.uint8(event.quarterLength * 8),
-                            velocity=np.uint8(event.volume.velocity),
-                            tempo=np.uint8(current_tempo),
-                        )
-                    )
-                    note_in_chord_counter += 1
-                chord_counter += 1
+        elif isinstance(event, note.Rest):
+            # Rests are encoded implicitly from position gaps
+            rest_counter += 1
 
-            elif isinstance(event, note.Rest):
-                # Rests are encoded implicitly from position gaps
-                rest_counter += 1
-
-        # Delete for parallel processing
-        return hextuples
+    # Delete for parallel processing
+    return hextuples

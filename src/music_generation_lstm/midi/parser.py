@@ -4,8 +4,11 @@ from pathlib import Path
 
 from music21 import converter, stream
 
+from music_generation_lstm.step import pipeline_step
+
 logger = logging.getLogger(__name__)
 
+@pipeline_step(kind='parser')
 def m21_parse_midi_batch(midi_paths: Iterable[Path]) -> list[stream.Score]:
     scores = []
     idx = -1
