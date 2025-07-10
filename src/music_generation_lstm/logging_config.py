@@ -1,6 +1,12 @@
 import logging
 import sys
 
+"""
+Config for cool looking logs.
+Feel free to play around with it, it's just a template i used.
+Maybe move this with other config file(s) into a config package? #REVIEW
+"""
+
 try:
     from colorama import Fore, Style, init as colorama_init
     colorama_init(autoreset=True)
