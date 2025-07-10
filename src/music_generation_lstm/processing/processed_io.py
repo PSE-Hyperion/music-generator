@@ -94,8 +94,7 @@ def get_processed_file_paths(processed_dataset_id: str) -> list[str]:
     """
     Get all .npz file paths for a processed dataset.
 
-    Args:
-        processed_dataset_id: ID of the processed dataset
+    Args: processed_dataset_id: ID of the processed dataset
 
     Returns:
         List of absolute paths to .npz files

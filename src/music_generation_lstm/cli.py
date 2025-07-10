@@ -74,12 +74,16 @@ def handle_show(args: list[str]):
     controller.show()
 
 
-def handle_delete_dataset(args: list[str]):
+def handle_delete(args: list[str]):
     #   Handles the delete command for a processed dataset
     #   "-delete"
-
-    processed_dataset_id = args[0]
-    controller.delete(processed_dataset_id)
+    id = args[1]
+    if args[0] == "dataset":
+        controller.delete_dataset(id)
+    if args[0] == "file":
+        controller.delete_file(id)
+    else:
+        print("only files or dataset can be deleted")
 
 
 def handle_exit():
@@ -145,7 +149,7 @@ COMMAND_HANDLERS = {
     Command.PROCESS: handle_process,  # -process dataset_id processed_id(new)
     Command.TRAIN: handle_train,  # -train model_id(new) processed_id
     Command.HELP: handle_help,
-    Command.DELETE_DATASET: handle_delete_dataset,
+    Command.DELETE: handle_delete,
     Command.GENERATE: handle_generate,  # -generate model_id(new) input result_id(new) (not implemented yet)
     Command.SHOW: handle_show,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
 }
@@ -153,7 +157,7 @@ COMMAND_LENGTH = {
     Command.PROCESS: 2,  # -process dataset_id processed_id(new)
     Command.TRAIN: 2,  # -train model_id(new) processed_id
     Command.HELP: 0,
-    Command.DELETE_DATASET: 1,  # processed_id
+    Command.DELETE: 2,  # dataset/file, processed_id
     Command.GENERATE: 2,  # -generate model_id(new) input result_id(new) (not implemented yet)
     Command.SHOW: 0,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
 }
