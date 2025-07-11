@@ -89,7 +89,7 @@ def delete_file(file_path: str):
     try:
         os.remove(file_path)
     except Exception as e:
-        raise RuntimeError(f"Failed to delete file '{file_path}': {e}"
+        raise RuntimeError(f"Failed to delete file '{file_path}': {e}")
 
 
 
