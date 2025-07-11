@@ -1,10 +1,13 @@
+from collections.abc import Iterable
+
 import numpy as np
 
 from music_generation_lstm.config import SEQUENCE_LENGTH
-from music_generation_lstm.processing.tokenization.tokenizer import Sixtuple, SixtupleTokenMaps
+from music_generation_lstm.processing.tokenization.tokenizer import HexTupleTokenMap
+from music_generation_lstm.processing.tokenization.tokens import HexTuple
 
 
-class NumericSixtuple:
+class NumericHexTuple:
     def __init__(self, bar: int, position: int, pitch: int, duration: int, velocity: int, tempo: int):
         self._bar = bar
         self._position = position
@@ -38,38 +41,38 @@ class NumericSixtuple:
         return self._tempo
 
 
-def numerize(sixtuples: list[Sixtuple], sixtuple_token_maps: SixtupleTokenMaps) -> list[NumericSixtuple]:
+def numerize(hex_tuples: Iterable[HexTuple], hex_tuple_token_maps: HexTupleTokenMap) -> list[NumericHexTuple]:
     #   Turns a list of embedded token events into it's numeric equivalent
     #   Uses maps of the given tokenizer
     #
 
     print("Start numerize...")
 
-    bar_map = sixtuple_token_maps.bar_map
-    position_map = sixtuple_token_maps.position_map
-    pitch_map = sixtuple_token_maps.pitch_map
-    duration_map = sixtuple_token_maps.duration_map
-    velocity_map = sixtuple_token_maps.velocity_map
-    tempo_map = sixtuple_token_maps.tempo_map
+    bar_map = hex_tuple_token_maps.bar_map
+    position_map = hex_tuple_token_maps.position_map
+    pitch_map = hex_tuple_token_maps.pitch_map
+    duration_map = hex_tuple_token_maps.duration_map
+    velocity_map = hex_tuple_token_maps.velocity_map
+    tempo_map = hex_tuple_token_maps.tempo_map
 
-    numeric_sixtuples = []
-    for sixtuple in sixtuples:
-        numeric_sixtuple = NumericSixtuple(
-            bar_map[sixtuple.bar],
-            position_map[sixtuple.position],
-            pitch_map[sixtuple.pitch],
-            duration_map[sixtuple.duration],
-            velocity_map[sixtuple.velocity],
-            tempo_map[sixtuple.tempo],
+    numeric_hex_tuples = []
+    for hex_tuple in hex_tuples:
+        numeric_hex_tuple = NumericHexTuple(
+            bar_map[hex_tuple.bar],
+            position_map[hex_tuple.position],
+            pitch_map[hex_tuple.pitch],
+            duration_map[hex_tuple.duration],
+            velocity_map[hex_tuple.velocity],
+            tempo_map[hex_tuple.tempo],
         )
-        numeric_sixtuples.append(numeric_sixtuple)
+        numeric_hex_tuples.append(numeric_hex_tuple)
 
     print("Finished numerize.")
 
-    return numeric_sixtuples
+    return numeric_hex_tuples
 
 
-def sequenize(numeric_sixtuples: list[NumericSixtuple]):
+def sequenize(numeric_hex_tuples: list[NumericHexTuple]):
     """ creates sequences of feature tuples (extracts feature num val from embeddednumericevent class)
         and corresponding next event feature tuples
         uses sliding window of size of SEQUENCE_LENGTH
@@ -82,15 +85,15 @@ def sequenize(numeric_sixtuples: list[NumericSixtuple]):
 
     X, y = [], []
 
-    if len(numeric_sixtuples) < SEQUENCE_LENGTH + 1:
+    if len(numeric_hex_tuples) < SEQUENCE_LENGTH + 1:
         raise Exception("Skipped a score, since the song was shorter than the sequence length")
 
-    for i in range(len(numeric_sixtuples) - SEQUENCE_LENGTH):
+    for i in range(len(numeric_hex_tuples) - SEQUENCE_LENGTH):
         input_seq = [
             (event.bar, event.position, event.pitch, event.duration, event.velocity, event.tempo)
-            for event in numeric_sixtuples[i : i + SEQUENCE_LENGTH]
+            for event in numeric_hex_tuples[i : i + SEQUENCE_LENGTH]
         ]
-        output_event = numeric_sixtuples[i + SEQUENCE_LENGTH]
+        output_event = numeric_hex_tuples[i + SEQUENCE_LENGTH]
         output_tuple = (
             output_event.bar,
             output_event.position,

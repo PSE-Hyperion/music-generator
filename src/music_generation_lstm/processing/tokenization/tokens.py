@@ -14,8 +14,11 @@ class BaseToken(ABC):  # noqa: B024
     Token class should have the decorator @dataclass(slots=true) and should be a list of used features.
     This will generate constructors and make them accessible with <token>.<feature> .
     """
-    def __array__(self):
-        return array([self.__getattribute__(s) for s in self.__slots__])
+    def to_array(self) -> array(uint8):
+        return array([self.__getattribute__(s) for s in self.__slots__], dtype=uint8)
+    
+    def __array__(self) -> array(uint8):
+        return self.to_array()
 
     def __len__(self):
         return len(self.__slots__)

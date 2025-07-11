@@ -3,7 +3,7 @@ import os
 
 import numpy as np
 
-from music_generation_lstm import pipelines
+import music_generation_lstm.data_management.load
 from music_generation_lstm.models import models, train as tr
 from music_generation_lstm.models.model_io import load_model, save_model
 from music_generation_lstm.processing import processed_io
@@ -15,9 +15,9 @@ def process(dataset_id: str, processed_dataset_id: str):
     #   tokenize score(s)
     #   numerize tokens
     #   save processed data (ready for training data)
-
-    processing_pipeline = pipelines.Processing(dataset_id, processed_dataset_id)
-    processing_pipeline.run()
+    music_generation_lstm.data_management.load.load_dataset(_=None, source='Test')
+    #processing_pipeline = pipelines.Processing(dataset_id, processed_dataset_id)
+    #processing_pipeline.run()
 
     #parallel_processing.parallel_process(dataset_id, processed_dataset_id)
 

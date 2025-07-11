@@ -5,67 +5,18 @@ import logging
 from music21 import chord, note, stream
 from music21.tempo import MetronomeMark, TempoIndication
 import numpy as np
+from numpy import uint8
 
 from music_generation_lstm.processing.tokenization import tokens
+from music_generation_lstm.processing.tokenization.tokens import HexTuple
 from music_generation_lstm.step import pipeline_step
 
 logger = logging.getLogger(__name__)
 TEMPO_CHANGE_ERROR = 0.01
 
-class Sixtuple:
+def detokenize(hex_tuples: list[HexTuple]) -> stream.Stream:
     """
-    Sixtuple note event featuring bar, position, pitch, duration, velocity, tempo
-
-    Doesn't include instruments or time signature
-
-    Bar could be limited to only 0-100 range (if dataset contains unreasonably long songs)
-
-    Duration could be quantized, but only if necessary for dataset
-    """
-
-    BAR_PREFIX = "BAR_"
-    POSITION_PREFIX = "POSITION_"
-    PITCH_PREFIX = "PITCH_"
-    DURATION_PREFIX = "DURATION_"
-    VELOCITY_PREFIX = "VELOCITY_"
-    TEMPO_PREFIX = "TEMPO_"
-
-    def __init__(self, bar: str, position: str, pitch: str, duration: str, velocity: str, tempo: str):
-        self._bar = Sixtuple.BAR_PREFIX + bar
-        self._position = Sixtuple.POSITION_PREFIX + position
-        self._pitch = Sixtuple.PITCH_PREFIX + pitch
-        self._duration = Sixtuple.DURATION_PREFIX + duration
-        self._velocity = Sixtuple.VELOCITY_PREFIX + velocity
-        self._tempo = Sixtuple.TEMPO_PREFIX + tempo
-
-    @property
-    def bar(self):
-        return self._bar
-
-    @property
-    def position(self):
-        return self._position
-
-    @property
-    def pitch(self):
-        return self._pitch
-
-    @property
-    def duration(self):
-        return self._duration
-
-    @property
-    def velocity(self):
-        return self._velocity
-
-    @property
-    def tempo(self):
-        return self._tempo
-
-
-def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
-    """
-    Reconstructs a Stream from a list of sixtuples
+    Reconstructs a Stream from a list of hextuples
     Rests are reconstructed implicitly from position gaps between note events
     """
 
@@ -76,11 +27,11 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
     current_tempo = None
 
     # Group events by position for chord reconstruction
-    pending_notes: dict[float, list[Sixtuple]] = {}
+    pending_notes: dict[float, list[HexTuple]] = {}
 
-    for event in sixtuples:
-        bar_num = int(event.bar.split("_")[1])
-        position_16th = int(event.position.split("_")[1])
+    for event in hex_tuples:
+        bar_num = int(event.bar)
+        position_16th = int(event.position)
 
         # Convert to absolute offset, assuming 4/4
         # Das ist so schön
@@ -100,7 +51,7 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
 
         # Check if tempo has changed at this position
         if events_at_position:
-            tempo_value = int(events_at_position[0].tempo.split("_")[1])
+            tempo_value = int(events_at_position[0].tempo)
             if current_tempo != tempo_value:
                 current_tempo = tempo_value
                 s.insert(abs_offset, TempoIndication(number=current_tempo))
@@ -116,14 +67,13 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
         # Single note:
         if len(events_at_position) == 1:
             event = events_at_position[0]
-            pitch_midi = int(event.pitch.split("_")[1])
-            duration = float(Fraction(event.duration.split("_")[1]))
-            velocity = int(event.velocity.split("_")[1])
+            pitch_midi = int(event.pitch)
+            duration = int(Fraction(event.duration)) #FIXME length is not necessarily in 1/4
+            velocity = int(event.velocity)
 
-            n = note.Note(midi=pitch_midi, quarterLength=duration)
+            n = note.Note(midi=pitch_midi, quarterLength=duration) #FIXME
             n.volume.velocity = velocity
             s.insert(abs_offset, n)
-
         else:
             # Chord:
             pitches = []
@@ -131,25 +81,25 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
             velocity = None
 
             for event in events_at_position:
-                pitch_midi = int(event.pitch.split("_")[1])
+                pitch_midi = int(event.pitch)
                 pitches.append(pitch_midi)
                 if duration is None:
-                    duration = float(Fraction(event.duration.split("_")[1]))
-                    velocity = int(event.velocity.split("_")[1])
+                    duration = int(event.duration) #FIXME
+                    velocity = int(event.velocity)
 
-            c = chord.Chord(pitches, quarterLength=duration)
+            c = chord.Chord(pitches, quarterLength=duration) #FIXME
             c.volume.velocity = velocity
             s.insert(abs_offset, c)
 
         # Update current offset to the end of this event
-        event_duration = float(Fraction(events_at_position[0].duration.split("_")[1]))
+        event_duration = int(events_at_position[0].duration) #FIXME
         current_offset = abs_offset + event_duration
 
     print("Finished detokenizing.")
     return s
 
 
-class SixtupleTokenMaps:
+class HexTupleTokenMap:
     """
     Internal token map container for tokenizer, to avoid sharing the tokenizer with other files, but just a container,
     that savely returns the data by using copies.
@@ -166,7 +116,7 @@ class SixtupleTokenMaps:
         self._tempo_map = {}
 
     @property
-    def bar_map(self) -> dict[str, int]:
+    def bar_map(self) -> dict[uint8, int]:
         """
         Returns a copy of the dictionary.
         """
@@ -174,7 +124,7 @@ class SixtupleTokenMaps:
         return self._bar_map.copy()
 
     @property
-    def position_map(self) -> dict[str, int]:
+    def position_map(self) -> dict[uint8, int]:
         """
         Returns a copy of the dictionary.
         """
@@ -182,7 +132,7 @@ class SixtupleTokenMaps:
         return self._position_map.copy()
 
     @property
-    def pitch_map(self) -> dict[str, int]:
+    def pitch_map(self) -> dict[uint8, int]:
         """
         Returns a copy of the dictionary.
         """
@@ -190,7 +140,7 @@ class SixtupleTokenMaps:
         return self._pitch_map.copy()
 
     @property
-    def duration_map(self) -> dict[str, int]:
+    def duration_map(self) -> dict[uint8, int]:
         """
         Returns a copy of the dictionary.
         """
@@ -198,7 +148,7 @@ class SixtupleTokenMaps:
         return self._duration_map.copy()
 
     @property
-    def velocity_map(self) -> dict[str, int]:
+    def velocity_map(self) -> dict[uint8, int]:
         """
         Returns a copy of the dictionary.
         """
@@ -206,7 +156,7 @@ class SixtupleTokenMaps:
         return self._velocity_map.copy()
 
     @property
-    def tempo_map(self) -> dict[str, int]:
+    def tempo_map(self) -> dict[uint8, int]:
         """
         Returns a copy of the dictionary.
         """
@@ -248,28 +198,28 @@ class SixtupleTokenMaps:
     def tempo_map_size(self) -> int:
         return len(self._tempo_map)
 
-    def extend(self, sixtuples: list[Sixtuple]):
+    def extend(self, hex_tuples: Iterable[HexTuple]):
         """
         Since the tokenizer tokenizes in batches,
-        this method is used to extend the maps of features of a sixtuple after every new tokenization.
-        That way, the tokenizer keeps track of all unique sixtuple features across all tokenized scores.
+        this method is used to extend the maps of features of a hextuple after every new tokenization.
+        That way, the tokenizer keeps track of all unique hextuples features across all tokenized scores.
         After having tokenized all scores, the maps can be saved with token_maps_io.py
         """
 
         print("Start extending maps of tokens...")
-        for sixtuple in sixtuples:
-            if sixtuple.bar not in self._bar_map:
-                self._bar_map[sixtuple.bar] = len(self._bar_map)
-            if sixtuple.position not in self._position_map:
-                self._position_map[sixtuple.position] = len(self._position_map)
-            if sixtuple.pitch not in self._pitch_map:
-                self._pitch_map[sixtuple.pitch] = len(self._pitch_map)
-            if sixtuple.duration not in self._duration_map:
-                self._duration_map[sixtuple.duration] = len(self._duration_map)
-            if sixtuple.velocity not in self._velocity_map:
-                self._velocity_map[sixtuple.velocity] = len(self._velocity_map)
-            if sixtuple.tempo not in self._tempo_map:
-                self._tempo_map[sixtuple.tempo] = len(self._tempo_map)
+        for hex_tuple in hex_tuples:
+            if hex_tuple.bar not in self._bar_map:
+                self._bar_map[hex_tuple.bar] = len(self._bar_map)
+            if hex_tuple.position not in self._position_map:
+                self._position_map[hex_tuple.position] = len(self._position_map)
+            if hex_tuple.pitch not in self._pitch_map:
+                self._pitch_map[hex_tuple.pitch] = len(self._pitch_map)
+            if hex_tuple.duration not in self._duration_map:
+                self._duration_map[hex_tuple.duration] = len(self._duration_map)
+            if hex_tuple.velocity not in self._velocity_map:
+                self._velocity_map[hex_tuple.velocity] = len(self._velocity_map)
+            if hex_tuple.tempo not in self._tempo_map:
+                self._tempo_map[hex_tuple.tempo] = len(self._tempo_map)
         print("Finished extending maps of tokens.")
 
     def create_from_sets(
@@ -297,9 +247,9 @@ def tokenize_batch(scores: Iterable[stream.Score]) -> list[tokens.HexTuple]:
 
 def tokenize(score: stream.Score) -> list[tokens.HexTuple]:
     """
-    Tokenizes music21 score object to a list of sixtuples
+    Tokenizes music21 score object to a list of hextuples
 
-    The score is flattened and all valuable data is extracted and saved in sixtuples, which represent a note event
+    The score is flattened and all valuable data is extracted and saved in hextuples, which represent a note event
 
     Rests are encoded implicitly
     """
@@ -370,7 +320,7 @@ def tokenize(score: stream.Score) -> list[tokens.HexTuple]:
             note_counter += 1
 
         elif isinstance(event, chord.Chord):
-            # Each note in the chord becomes a separate Sixtuple
+            # Each note in the chord becomes a separate hextuples
             # They all share the same bar and position
             for chord_note in event.notes:
                 hextuples.append(
