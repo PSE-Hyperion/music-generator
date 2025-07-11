@@ -12,6 +12,8 @@ TRAINING_BATCH_SIZE: Final = 12
 
 ALLOWED_MUSIC_FILE_EXTENSIONS: Final = [".mid", ".midi"]
 
+CREATE_SHEET_MUSIC: Final = False
+
 
 # Paths
 
@@ -22,6 +24,7 @@ MODELS_DIR: Final = "data/models"
 PROCESSED_DIR: Final = "data/processed"
 TOKEN_MAPS_DIR: Final = "data/token_maps"
 PLOT_DIR: Final = "data/plots"
+OUTPUT_SHEET_MUSIC_DIR: Final = "data/detokenized_sheet_music"
 
 # Debugging or diagnostics
 

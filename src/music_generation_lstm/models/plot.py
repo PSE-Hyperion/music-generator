@@ -1,9 +1,12 @@
 import os
+import logging
 
 from matplotlib import pyplot as plt
 from tensorflow.keras.callbacks import History  # type: ignore
 
 from music_generation_lstm.config import PLOT_DIR, PLOT_TRAINING, SAVE_PLOT_TRAINING
+
+logger = logging.getLogger(__name__)
 
 # The docker container is missing a backend to display plot results (plt.show wont work)
 # This means we can add this, to allow the plots to be displayed upon training completion, if enabled,
@@ -76,7 +79,7 @@ def _plot_training_history(history, model_name: str, dir_path: str):
     if SAVE_PLOT_TRAINING:
         file_path = os.path.join(dir_path, f"training_history_{model_name}.png")
         plt.savefig(file_path, dpi=300, bbox_inches="tight")
-        print(f"Training history plot saved to: {file_path}")
+        logger.info("Training history plot saved to: %s", file_path)
 
     # plt.show()
 
@@ -115,7 +118,7 @@ def _plot_training_metrics_separate(history: History, model_name: str, dir_path:
     if SAVE_PLOT_TRAINING:
         file_path = os.path.join(dir_path, f"loss_{model_name}.png")
         plt.savefig(file_path, dpi=300, bbox_inches="tight")
-        print(f"Loss plot saved to: {file_path}")
+        logger.info("Loss plot saved to: %s", file_path)
 
     # plt.show()
 
@@ -149,6 +152,6 @@ def _plot_training_metrics_separate(history: History, model_name: str, dir_path:
     if SAVE_PLOT_TRAINING:
         file_path = os.path.join(dir_path, f"accuracy_{model_name}.png")
         plt.savefig(file_path, dpi=300, bbox_inches="tight")
-        print(f"Accuracy plot saved to: {file_path}")
+        logger.info("Accuracy plot saved to: %s", file_path)
 
     # plt.show()

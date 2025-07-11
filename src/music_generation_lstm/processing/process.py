@@ -1,8 +1,10 @@
 import numpy as np
+import logging
 
 from music_generation_lstm.config import SEQUENCE_LENGTH
 from music_generation_lstm.processing.tokenization.tokenizer import Sixtuple, SixtupleTokenMaps
 
+logger = logging.getLogger(__name__)
 
 class NumericSixtuple:
     def __init__(self, bar: int, position: int, pitch: int, duration: int, velocity: int, tempo: int):
@@ -43,7 +45,7 @@ def numerize(sixtuples: list[Sixtuple], sixtuple_token_maps: SixtupleTokenMaps) 
     #   Uses maps of the given tokenizer
     #
 
-    print("Start numerize...")
+    logger.info("Start numerize...")
 
     bar_map = sixtuple_token_maps.bar_map
     position_map = sixtuple_token_maps.position_map
@@ -64,7 +66,7 @@ def numerize(sixtuples: list[Sixtuple], sixtuple_token_maps: SixtupleTokenMaps) 
         )
         numeric_sixtuples.append(numeric_sixtuple)
 
-    print("Finished numerize.")
+    logger.info("Finished numerize.")
 
     return numeric_sixtuples
 
@@ -76,7 +78,7 @@ def sequenize(numeric_sixtuples: list[NumericSixtuple]):
     #   X = [[1, 2], [2, 3], [3, 4]], y = [3, 4, 5]
     #   sequence X[i] is followed by y[i]
 
-    print("Start sequenizing...")
+    logger.info("Start sequenizing...")
 
     X, y = [], []
 
@@ -101,7 +103,7 @@ def sequenize(numeric_sixtuples: list[NumericSixtuple]):
         X.append(input_seq)
         y.append(output_tuple)
 
-    print("Finished sequenizing")
+    logger.info("Finished sequenizing")
     return X, y
 
 
@@ -110,11 +112,11 @@ def reshape_X(X):
     #   embedding layers expect integers, so we dont need to normalize
     #
 
-    print("Started reshaping...")
+    logger.info("Started reshaping...")
 
     X = np.array(X, dtype=np.int32)
 
-    print("Finished reshaping")
+    logger.info("Finished reshaping")
     return X
 
 

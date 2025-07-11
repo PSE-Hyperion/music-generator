@@ -1,5 +1,6 @@
 import json
 import os
+import logging
 
 import numpy as np
 
@@ -8,6 +9,7 @@ from music_generation_lstm.models.model_io import load_model, save_model
 from music_generation_lstm.processing import parallel_processing, processed_io
 from music_generation_lstm.processing.tokenization import token_map_io
 
+logger = logging.getLogger(__name__)
 
 def process(dataset_id: str, processed_dataset_id: str):
     #   parses midi file(s) to music21.stream.Score
@@ -70,7 +72,7 @@ def generate(model_name: str, input_name: str, output_name: str):
     #   Generate a new sequence from the start sequence
     #   Write the generation in a folder
 
-    print("Generating music with AI...")
+    logger.info("Generating music with AI...")
 
 
 def show():
@@ -80,8 +82,8 @@ def show():
     #   generate with model using start sequence
     #   write result in folder
 
-    print("show")
+    logger.info("show") 
 
 
 def exit():
-    print("You've exited the program.")
+    logger.info("You've exited the program.")

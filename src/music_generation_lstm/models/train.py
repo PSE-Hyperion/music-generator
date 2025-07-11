@@ -1,10 +1,13 @@
 import numpy as np
+import logging
 from tensorflow.keras.callbacks import History  # type: ignore
 
 from music_generation_lstm.config import TRAINING_BATCH_SIZE, TRAINING_EPOCHS
 from music_generation_lstm.models import plot
 from music_generation_lstm.models.lazy_sequence_generator import LazySequenceGenerator
 from music_generation_lstm.models.models import BaseModel
+
+logger = logging.getLogger(__name__)
 
 
 def temperature():
@@ -31,7 +34,7 @@ def train_model_without_lazy(model: BaseModel, X, y):
     #
     #
 
-    print(f"Start training {model.model_id}...")
+    logger.info("Start training %s...", model.model_id)
     try:
         X_dict, y_dict = split_X_y(X, y)
 
@@ -61,15 +64,15 @@ def train_model(model: BaseModel, file_paths: list):
     samples in batches (and random samples and shuffles)
     """
 
-    print(f"Start training {model.model_id} with lazy loading...")
+    logger.info("Start training with lazy loading...")
 
     try:
         train_generator = LazySequenceGenerator(file_paths=file_paths, batch_size=TRAINING_BATCH_SIZE, shuffle=True)
 
         steps_per_epoch = len(train_generator)
 
-        print(f"Training with {len(file_paths)} files, containing {train_generator.n_samples} total samples")
-        print(f"Steps per epoch: {steps_per_epoch}, Batch size: {TRAINING_BATCH_SIZE}")
+        logger.info("Training with %s files, containing %s total samples", len(file_paths), train_generator.n_samples)
+        logger.info("Steps per epoch: %s, Batch size: %s", steps_per_epoch, TRAINING_BATCH_SIZE)
 
         # fit() will automatically call on_epoch_end of lazy sequence generator, to get new samples
         history = model.model.fit(
@@ -84,7 +87,7 @@ def train_model(model: BaseModel, file_paths: list):
     except Exception as e:
         raise Exception(f"Training failed: {e}")
 
-    print(f"Finished training {model.model_id}")
+    logger.info("Finished training %s", model.model_id)
 
     if isinstance(history, History):
         plot.plot_training(history, model.model_id)

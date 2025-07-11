@@ -1,8 +1,13 @@
+import logging
+
 from fractions import Fraction
 
 from music21 import chord, note, stream
 from music21.tempo import MetronomeMark, TempoIndication
 
+from music_generation_lstm.config import CREATE_SHEET_MUSIC
+
+logger = logging.getLogger(__name__)
 
 class Sixtuple:
     """
@@ -61,7 +66,7 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
     Rests are reconstructed implicitly from position gaps between note events
     """
 
-    print("Start detokenizing...")
+    logger.info("Start detokenizing...")
 
     s = stream.Stream()
     current_offset = 0.0  # absolute
@@ -137,7 +142,9 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
         event_duration = float(Fraction(events_at_position[0].duration.split("_")[1]))
         current_offset = abs_offset + event_duration
 
-    print("Finished detokenizing.")
+    logger.info("Finished detokenizing.")
+    if CREATE_SHEET_MUSIC:
+        generate_sheet_music(s)
     return s
 
 
@@ -246,7 +253,7 @@ class SixtupleTokenMaps:
         keeps track of all unique sixtuple features across all tokenized scores. After having tokenized all scores, the maps can be saved with token_maps_io.py
         """
 
-        print("Start extending maps of tokens...")
+        logger.info("Start extending maps of tokens...")
         for sixtuple in sixtuples:
             if sixtuple.bar not in self._bar_map:
                 self._bar_map[sixtuple.bar] = len(self._bar_map)
@@ -260,7 +267,7 @@ class SixtupleTokenMaps:
                 self._velocity_map[sixtuple.velocity] = len(self._velocity_map)
             if sixtuple.tempo not in self._tempo_map:
                 self._tempo_map[sixtuple.tempo] = len(self._tempo_map)
-        print("Finished extending maps of tokens.")
+        logger.info("Finished extending maps of tokens.")
 
     def create_from_sets(
         self, bar_set: set, position_set: set, pitch_set: set, duration_set: set, velocity_set: set, tempo_set: set
@@ -288,7 +295,7 @@ class Tokenizer:
         Rests are encoded implicitly
         """
 
-        print("Start encoding to tokens...")
+        logger.info("Start encoding to tokens...")
 
         flat = score.flatten()
         sixtuples: list[Sixtuple] = []
@@ -302,13 +309,13 @@ class Tokenizer:
         # Set first tempo
         if tempo_indications:
             current_tempo = int(tempo_indications[0].number)
-            # print(f"TempoIndication found: {current_tempo}")
+            # logger.info("TempoIndication found: %s ", current_tempo)
         elif metronome_marks:
             current_tempo = int(metronome_marks[0].number)
-            # print(f"MetronomeMark found: {current_tempo}")
+            # logger.info("MetronomeMark found: %s",current_tempo)
         else:
             pass
-            # print(f"No tempo found, using default: {current_tempo}")
+            # logger.info("No tempo found, using default: %s", current_tempo)
 
         # Time signature is always 4/4 in our dataset
         beats_per_bar = 4

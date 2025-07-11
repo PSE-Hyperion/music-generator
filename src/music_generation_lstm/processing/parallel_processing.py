@@ -1,3 +1,5 @@
+import logging
+
 from dataclasses import dataclass
 from multiprocessing import Pool, cpu_count
 
@@ -6,6 +8,7 @@ from . import process, processed_io
 from .tokenization import token_map_io
 from .tokenization.tokenizer import Sixtuple, SixtupleTokenMaps, Tokenizer
 
+logger = logging.getLogger(__name__)
 
 @dataclass
 class SixtupleSets:
