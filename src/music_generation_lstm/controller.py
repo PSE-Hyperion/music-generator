@@ -2,13 +2,12 @@ import json
 import os
 
 import numpy as np
-import shutil #maybe not neccesary, but usefull for removing directories
 
 from music_generation_lstm.models import models, train as tr
 from music_generation_lstm.models.model_io import load_model, save_model
 from music_generation_lstm.processing import parallel_processing, processed_io
 from music_generation_lstm.processing.tokenization import token_map_io
-from music_generation_lstm.config import DATASETS_MIDI_DIR, RESULTS_MIDI_DIR
+from music_generation_lstm.data_managment import delete_dataset_data, delete_result_data
 
 
 def process(dataset_id: str, processed_dataset_id: str):
@@ -67,31 +66,14 @@ def delete_dataset(dataset_id: str):
     Deletes a dataset given trough its dataset_id, will delete in data-> midi-> datasets 
     deletes the empty dataset folder.
     """
-    dataset_path = os.path.join(DATASETS_MIDI_DIR, dataset_id)
-    if not os.path.isdir(dataset_path): #if folder does not exist
-        print("folder does not exist")
-        return
-
-    try:
-        shutil.rmtree(dataset_path)
-    except Exception as e:
-        raise RuntimeError(f"Failed to delete dataset folder {dataset_path}: {e}")
+    delete_dataset_data(dataset_id)
 
 
-def delete_file(file_id: str):
+def delete_result(result_id: str):
     """
-    Deletes a file given trough the file ID, will delete in data -> midi -> results
+    Deletes a file given trough the result_id, will delete in data -> midi -> results
     """
-
-    file_path = os.path.join(RESULTS_MIDI_DIR, file_id)
-     
-    if not os.path.exists(file_path):
-        print("file does not exist")
-        return
-    try:
-        os.remove(file_path)
-    except Exception as e:
-        raise RuntimeError(f"Failed to delete file '{file_path}': {e}")
+    delete_result_data(result_id)
 
 
 

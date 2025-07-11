@@ -85,7 +85,7 @@ def handle_delete(args: list[str]):
     delete_subject = args[1]
 
     if delete_subject == "file":
-        controller.delete_file(processed_dataset_file_id)
+        controller.delete_result(processed_dataset_file_id)
     elif delete_subject == "dataset":
         controller.delete_dataset(processed_dataset_file_id)
     else:
@@ -99,7 +99,36 @@ def handle_exit():
 
    controller.exit()
 
+"""
+def complete_delete(arg_index, word):
+    if arg_index == 0:  # suggest 'file' or 'dataset'
+        for option in ["file", "dataset"]:
+            if option.startswith(word):
+                yield Completion(option, start_position=-len(word))
+            elif arg_index == 1:
+                delete_type = parts[1]
+                if delete_type == "file":
+                    for fid in controller.get_existing_file_ids():
+                        if fid.startswith(word):
+                            yield Completion(fid, start_position=-len(word))
+                elif delete_type == "dataset":
+                    for did in controller.get_existing_dataset_ids():
+                        if did.startswith(word):
+                            yield Completion(did, start_position=-len(word))
 
+def complete_process():
+    print("handle")
+def complete_train():
+    print("handle")
+def complete_help():
+    print("handle")
+    # do nothing
+def complete_generate():
+    print("handle")
+def complete_show():
+    print("handle")
+
+"""
 def parse_command(command: str):
     #   Parses string command to command from Command Enum
     #   Prints Warning, if command doesn't exist
@@ -117,7 +146,7 @@ def process_input(input: str):
     #   Call handler with arguments, if it exists
 
     parts = input.split(" ")
-    # print("l"+ parts+"p"+len(parts))
+
 
     if len(parts) < 0:
         print("Invalid input.Yayyy")
@@ -129,7 +158,7 @@ def process_input(input: str):
     command = parse_command(command)
 
     if command is None:
-        print(f"Invalid command. {command} is not a command.")
+        print(f"Invalid command. {parts[0]} is not a command.")
         return
 
     length = COMMAND_LENGTH.get(command)
@@ -168,6 +197,15 @@ COMMAND_LENGTH = {
     Command.SHOW: 0,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
 }
 
+"""COMMAND_COMMPLETER = {
+    Command.PROCESS: complete_process,  # dataset_id processed_id(new)
+    Command.TRAIN: complete_train,  # model_id, processed_id
+    Command.DELETE: complete_delete, # file/ dataset, ids
+    Command.HELP: complete_help,  # needs no completion
+    Command.GENERATE: complete_generate,  # not implemented
+    Command.SHOW: complete_show #not implemented
+}"""
+
 
 class CommandCompleter(Completer):
     def get_completions(self, document, complete_event):
@@ -184,6 +222,15 @@ class CommandCompleter(Completer):
             for command in commands:
                 if command.startswith(word):
                     yield Completion(command, start_position=-len(word))
+
+    """  command_prefix = parts[0]
+        word = parts[-1]  # current word being typed
+        arg_index = len(parts) - 2 
+
+        parse_command(command).COMMAND_COMMPLETER
+        handle_delete()"""
+        
+        
 
 
 def start_session():
