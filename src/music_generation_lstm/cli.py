@@ -101,7 +101,7 @@ def handle_exit():
 
    controller.exit()
 
-
+"""
 def complete_delete(arg_index, word, parts):
     if arg_index == 0:
         for option in ["file", "dataset"]:
@@ -131,7 +131,7 @@ def complete_generate():
     print("handle")
 def complete_show():
     print("handle")
-
+"""
 
 def parse_command(command: str):
     #   Parses string command to command from Command Enum
@@ -201,14 +201,14 @@ COMMAND_LENGTH = {
     Command.SHOW: 0,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
 }
 
-COMMAND_COMMPLETER = {
+"""COMMAND_COMMPLETER = {
     Command.PROCESS: complete_process,  # dataset_id processed_id(new)
     Command.TRAIN: complete_train,  # model_id, processed_id
     Command.DELETE: complete_delete, # file/ dataset, ids
     Command.HELP: complete_help,  # needs no completion
     Command.GENERATE: complete_generate,  # not implemented
     Command.SHOW: complete_show #not implemented
-}
+}"""
 
 
 class CommandCompleter(Completer):
@@ -233,7 +233,7 @@ class CommandCompleter(Completer):
             return
 
         
-        if command_enum in COMMAND_COMMPLETER: # arguments (ids, file, ...)
+        """if command_enum in COMMAND_COMMPLETER: # arguments (ids, file, ...)
             if text.endswith(" "): # " " gedrückt zwischen argumenten
                 current_word = ""
                 arg_index = len(parts) - 1
@@ -245,7 +245,7 @@ class CommandCompleter(Completer):
             try:
                 yield from completer(arg_index, current_word, parts)
             except Exception as e:
-                print(f"[Completion Error] {e}")
+                print(f"[Completion Error] {e}")"""
 
 
 

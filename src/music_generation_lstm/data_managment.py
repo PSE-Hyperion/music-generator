@@ -1,5 +1,4 @@
 import os
-import shutil #maybe not neccesary, but usefull for removing directories
 from music_generation_lstm.config import DATASETS_MIDI_DIR, RESULTS_MIDI_DIR
 
 
@@ -12,15 +11,23 @@ def delete_dataset_data(dataset_id: str):
     deletes the empty dataset folder.
     """
     dataset_path = os.path.join(DATASETS_MIDI_DIR, dataset_id)
-    if not os.path.isdir(dataset_path): #if folder does not exist
-        print("folder does not exist")
+    if not os.path.exists(dataset_path):
+        print("Path does not exist.")
         return
+    
+    if not os.path.isdir(dataset_path):
+        raise ValueError(f"{dataset_path} is not a directory.")
 
-    try:
-        shutil.rmtree(dataset_path)
-    except Exception as e:
-        raise RuntimeError(f"Failed to delete dataset folder {dataset_path}: {e}")
-
+    
+    for file in os.listdir(dataset_path): # Delete all files
+        file_path = os.path.join(dataset_path, file)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+        else:
+            print(f"Could not remove: {file_path}")
+    
+    os.rmdir(dataset_path)# Delete empty folder
+    
 
 def delete_result_data(result_id: str):
     """
