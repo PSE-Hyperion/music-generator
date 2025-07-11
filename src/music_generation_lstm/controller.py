@@ -67,14 +67,14 @@ def delete_dataset(processed_dataset_id: str):
     """
 
     file_paths = processed_io.get_processed_file_paths(processed_dataset_id)
-    for filepath in file_paths:
+    for fp in file_paths:
         try:
-            os.remove(filepath)
-            print(f"Deleted file {filepath}")
+            os.remove(fp)
+            print(f"Deleted file {fp}")
         except FileNotFoundError:
-            print(f"File not found, skipping: {filepath}")
+            print(f"File not found, skipping: {fp}")
         except Exception as e:
-            print(f"Error deleting {filepath}: {e}")
+            print(f"Error deleting {fp}: {e}")
 
     # delete empty folder fro dataset
     dataset_directory = os.path.dirname(file_paths[0])
@@ -86,18 +86,12 @@ def delete_dataset(processed_dataset_id: str):
         print(f"Could not remove directory): {dataset_directory}")
 
 
-def delete_file(file_id: str):
+def delete_file(file_path: str):
     # Get file paths for all processed data files
     """
-    Deletes file for the given file-iD,
+    Deletes all processed .npz files for the given dataset ID,
+    then removes the empty dataset folder.
     """
-    filepath = ""
-    try:
-        os.remove(filepath)
-    except FileNotFoundError:
-        print(f"File not found, skipping: {filepath}")
-    except Exception as e:
-        print(f"Error deleting {filepath}: {e}")
 
 
 def generate():
