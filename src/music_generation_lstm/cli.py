@@ -83,8 +83,8 @@ def handle_show(args: list[str]):
 def handle_delete(args: list[str]):
     #   Handles the delete command for a processed dataset
     #   "-delete"
-    processed_dataset_file_id = args[2]
-    delete_subject = args[1]
+    processed_dataset_file_id = args[1]
+    delete_subject = args[0]
 
     if delete_subject == "file":
         controller.delete_result(processed_dataset_file_id)
@@ -157,7 +157,7 @@ def process_input(input: str):
         return
 
     command = parts[0]
-    args = parts[0:]
+    args = parts[1:]
 
     command = parse_command(command)
 
@@ -197,7 +197,7 @@ COMMAND_LENGTH = {
     Command.TRAIN: 2,  # -train model_id(new) processed_id
     Command.HELP: 0,
     Command.DELETE: 2,  # processed_id
-    Command.GENERATE: 2,  # -generate model_id(new) input result_id(new) (not implemented yet)
+    Command.GENERATE: 3,  # -generate model_id(new) input result_id(new) (not implemented yet)
     Command.SHOW: 0,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
 }
 
