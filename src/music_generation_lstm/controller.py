@@ -62,36 +62,35 @@ def train(model_id: str, processed_dataset_id: str):
 
 def delete_dataset(processed_dataset_id: str):
     """
-    Deletes all processed .npz files for the given dataset id
-    then removes the empty dataset folder.
+    Deletes a dataset given trough its dataset_id, will delete in data-> midi-> datasets 
+    deletes the empty dataset folder.
     """
-
-    file_paths = processed_io.get_processed_file_paths(processed_dataset_id)
-    for fp in file_paths:
-        try:
-            os.remove(fp)
-            print(f"Deleted file {fp}")
-        except FileNotFoundError:
-            print(f"File not found, skipping: {fp}")
-        except Exception as e:
-            print(f"Error deleting {fp}: {e}")
-
-    # delete empty folder fro dataset
-    dataset_directory = os.path.dirname(file_paths[0])
+    dataset_path = os.path.join(DATASETS_MIDI_DIR, dataset_id)
+    if not os.path.isdir(dataset_path): #if folder does not exist
+        print("folder does not exist")
+        return
 
     try:
-        os.rmdir(dataset_directory)
-        print(f"Removed empty directory: {dataset_directory}")
-    except OSError:
-        print(f"Could not remove directory): {dataset_directory}")
+        shutil.rmtree(dataset_path)
+    except Exception as e:
+        raise RuntimeError(f"Failed to delete dataset folder {dataset_path}: {e}")
 
 
 def delete_file(file_path: str):
-    # Get file paths for all processed data files
     """
-    Deletes all processed .npz files for the given dataset ID,
-    then removes the empty dataset folder.
+    Deletes a file given trough the file ID, will delete in data -> midi -> results
     """
+    file_path = os.path.join(RESULTS_MIDI_DIR, result_id)
+     
+    if not os.path.exists(file_path):
+        print("file does not exist")
+        return
+    
+    try:
+        os.remove(file_path)
+    except Exception as e:
+        raise RuntimeError(f"Failed to delete file '{file_path}': {e}"
+
 
 
 def generate():
