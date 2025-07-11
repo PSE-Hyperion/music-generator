@@ -4,6 +4,8 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
 
 from music_generation_lstm import controller
+from music_generation_lstm import data_managment
+
 
 HELP_INSTRUCTIONS = "the following commands exists:"
 
@@ -109,11 +111,11 @@ def complete_delete(arg_index, word, parts):
     if arg_index == 1:
         delete_type = parts[1]
         if delete_type == "file":
-            for fid in controller.get_existing_file_ids():
+            for fid in data_managment.get_existing_result_ids():
                 if fid.startswith(word):
                     yield Completion(fid, start_position=-len(word))
         elif delete_type == "dataset":
-            for did in controller.get_existing_dataset_ids():
+            for did in data_managment.get_existing_dataset_ids():
                 if did.startswith(word):
                     yield Completion(did, start_position=-len(word))
     
@@ -219,8 +221,8 @@ class CommandCompleter(Completer):
                 yield Completion(command.value, start_position=0)
             return
 
-        command_text = parts[0]
-        command_enum = parse_command(command_text)
+        command = parts[0]
+        command_enum = parse_command(command)
 
         
         if len(parts) == 1 and not text.endswith(" "):  # command name(-delete, -train, ...)
@@ -231,7 +233,7 @@ class CommandCompleter(Completer):
             return
 
         
-        if command_enum and command_enum in COMMAND_COMMPLETER: # arguments (ids, file, ...)
+        if command_enum in COMMAND_COMMPLETER: # arguments (ids, file, ...)
             if text.endswith(" "): # " " gedrückt zwischen argumenten
                 current_word = ""
                 arg_index = len(parts) - 1
