@@ -99,22 +99,24 @@ def handle_exit():
 
    controller.exit()
 
-"""
-def complete_delete(arg_index, word):
-    if arg_index == 0:  # suggest 'file' or 'dataset'
+
+def complete_delete(arg_index, word, parts):
+    if arg_index == 0:
         for option in ["file", "dataset"]:
             if option.startswith(word):
                 yield Completion(option, start_position=-len(word))
-            elif arg_index == 1:
-                delete_type = parts[1]
-                if delete_type == "file":
-                    for fid in controller.get_existing_file_ids():
-                        if fid.startswith(word):
-                            yield Completion(fid, start_position=-len(word))
-                elif delete_type == "dataset":
-                    for did in controller.get_existing_dataset_ids():
-                        if did.startswith(word):
-                            yield Completion(did, start_position=-len(word))
+                
+    if arg_index == 1:
+        delete_type = parts[1]
+        if delete_type == "file":
+            for fid in controller.get_existing_file_ids():
+                if fid.startswith(word):
+                    yield Completion(fid, start_position=-len(word))
+        elif delete_type == "dataset":
+            for did in controller.get_existing_dataset_ids():
+                if did.startswith(word):
+                    yield Completion(did, start_position=-len(word))
+    
 
 def complete_process():
     print("handle")
@@ -128,7 +130,7 @@ def complete_generate():
 def complete_show():
     print("handle")
 
-"""
+
 def parse_command(command: str):
     #   Parses string command to command from Command Enum
     #   Prints Warning, if command doesn't exist
@@ -197,38 +199,54 @@ COMMAND_LENGTH = {
     Command.SHOW: 0,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
 }
 
-"""COMMAND_COMMPLETER = {
+COMMAND_COMMPLETER = {
     Command.PROCESS: complete_process,  # dataset_id processed_id(new)
     Command.TRAIN: complete_train,  # model_id, processed_id
     Command.DELETE: complete_delete, # file/ dataset, ids
     Command.HELP: complete_help,  # needs no completion
     Command.GENERATE: complete_generate,  # not implemented
     Command.SHOW: complete_show #not implemented
-}"""
+}
 
 
 class CommandCompleter(Completer):
     def get_completions(self, document, complete_event):
-        #   Only provide completions for the command part
-        #   It does this by only considering text before the first space character
-        #   We could expand on this by also allowing prompt completion for existing ids, etc
-
         text = document.text_before_cursor
-        parts = text.split(" ")
+        parts = text.split()
 
-        if len(parts) <= 1:
-            word = parts[0] if parts else ""
-            commands = [member.value for member in Command]
-            for command in commands:
-                if command.startswith(word):
-                    yield Completion(command, start_position=-len(word))
+        if not parts:
+            for command in Command:
+                yield Completion(command.value, start_position=0)
+            return
 
-    """  command_prefix = parts[0]
-        word = parts[-1]  # current word being typed
-        arg_index = len(parts) - 2 
+        command_text = parts[0]
+        command_enum = parse_command(command_text)
 
-        parse_command(command).COMMAND_COMMPLETER
-        handle_delete()"""
+        
+        if len(parts) == 1 and not text.endswith(" "):  # command name(-delete, -train, ...)
+            current_word = parts[0]
+            for command in Command:
+                if command.value.startswith(current_word):
+                    yield Completion(command.value, start_position = -len(current_word))
+            return
+
+        
+        if command_enum and command_enum in COMMAND_COMMPLETER: # arguments (ids, file, ...)
+            if text.endswith(" "): # " " gedrückt zwischen argumenten
+                current_word = ""
+                arg_index = len(parts) - 1
+            else:
+                current_word = parts[-1]
+                arg_index = len(parts) - 2
+
+            completer = COMMAND_COMMPLETER[command_enum]
+            try:
+                yield from completer(arg_index, current_word, parts)
+            except Exception as e:
+                print(f"[Completion Error] {e}")
+
+
+
         
         
 
