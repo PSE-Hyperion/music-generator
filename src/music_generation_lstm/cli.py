@@ -77,20 +77,23 @@ def handle_show(args: list[str]):
 def handle_delete(args: list[str]):
     #   Handles the delete command for a processed dataset
     #   "-delete"
-    processed_dataset_file_id = args[1]
-    delete_subject = args[0]
+    processed_dataset_file_id = args[2]
+    delete_subject = args[1]
 
-    if(delete_subject== "file"):
+    if delete_subject == "file":
         controller.delete_file(processed_dataset_file_id)
-    if(delete_subject == "dataset"):
+    elif delete_subject == "dataset":
         controller.delete_dataset(processed_dataset_file_id)
+    else:
+        print(f"Invalid delete subject: {delete_subject}")
     
-def handle_exit():
-    #   Handles the exit command
-    #   "-exit"
-    #
 
-    controller.exit()
+def handle_exit():
+   #   Handles the exit command
+   #   "-exit"
+   #
+
+   controller.exit()
 
 
 def parse_command(command: str):

@@ -2,11 +2,13 @@ import json
 import os
 
 import numpy as np
+import shutil #maybe not neccesary, but usefull for removing directories
 
 from music_generation_lstm.models import models, train as tr
 from music_generation_lstm.models.model_io import save_model
 from music_generation_lstm.processing import parallel_processing, processed_io
 from music_generation_lstm.processing.tokenization import token_map_io
+from music_generation_lstm.config import DATASETS_MIDI_DIR, RESULTS_MIDI_DIR
 
 
 def process(dataset_id: str, processed_dataset_id: str):
@@ -60,7 +62,7 @@ def train(model_id: str, processed_dataset_id: str):
     save_model(model)
 
 
-def delete_dataset(processed_dataset_id: str):
+def delete_dataset(dataset_id: str):
     """
     Deletes a dataset given trough its dataset_id, will delete in data-> midi-> datasets 
     deletes the empty dataset folder.
@@ -76,16 +78,16 @@ def delete_dataset(processed_dataset_id: str):
         raise RuntimeError(f"Failed to delete dataset folder {dataset_path}: {e}")
 
 
-def delete_file(file_path: str):
+def delete_file(file_id: str):
     """
     Deletes a file given trough the file ID, will delete in data -> midi -> results
     """
-    file_path = os.path.join(RESULTS_MIDI_DIR, result_id)
+
+    file_path = os.path.join(RESULTS_MIDI_DIR, file_id)
      
     if not os.path.exists(file_path):
         print("file does not exist")
         return
-    
     try:
         os.remove(file_path)
     except Exception as e:
