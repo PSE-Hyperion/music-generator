@@ -50,6 +50,9 @@ def add_result_id(result_id: str):
         existing_result_ids.add(result_id)
 
 def get_existing_result_ids():
+    for result in os.listdir(RESULTS_MIDI_DIR): # look at all the files in results, needed in case the programm got closed
+        existing_result_ids.add(result)
+        
     return sorted(existing_result_ids)
 
 def add_dataset_id(dataset_id: str):
@@ -57,4 +60,7 @@ def add_dataset_id(dataset_id: str):
         existing_dataset_ids.add(dataset_id)
 
 def get_existing_dataset_ids():
+    for result in os.listdir(DATASETS_MIDI_DIR): # neede in case the programm got closed
+        existing_dataset_ids.add(result)
+        
     return sorted(existing_dataset_ids)
