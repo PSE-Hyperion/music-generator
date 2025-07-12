@@ -104,11 +104,14 @@ def handle_exit():
    #   Handles the exit command
    #   "-exit"
    #
-
    controller.exit()
 
 
 def complete_delete(arg_index, word, parts):
+    #   commpletes delete command
+    #   first suggestion is what you want to delete(file or dataset)
+    #   second is the corresponding id 
+
     if arg_index == 0:
         for option in ["file", "dataset"]:
             if option.startswith(word):
@@ -127,6 +130,10 @@ def complete_delete(arg_index, word, parts):
     
 
 def complete_process(arg_index,word, parts):
+    # completes process command 
+    # first the all possible dataset-id 
+    # second the new processed id
+
     if arg_index == 0:
         for dataset_id in data_managment.get_existing_dataset_ids():
             if dataset_id.startswith(word):
@@ -137,6 +144,10 @@ def complete_process(arg_index,word, parts):
         
         
 def complete_train(arg_index, word, parts):
+    # completes train command 
+    # first  the new model id
+    # second the all possible processed-id
+
     if arg_index == 0:
         yield Completion("[(new) model id]", start_position = -len(word))
     if arg_index == 1:
@@ -144,11 +155,13 @@ def complete_train(arg_index, word, parts):
             if processed_id.startswith(word):
                 yield Completion(processed_id, start_position = -len(word))
    
-
+#TODO
 def complete_generate():
     print("handle not implemented")
+#TODO
 def complete_show():
     print("handle not implemented")
+#TODO
 def complete_help():
     print("handle not implemented")
     # should do nothing
