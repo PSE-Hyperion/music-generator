@@ -223,8 +223,6 @@ class CommandCompleter(Completer):
 
         command = parts[0]
         command_enum = parse_command(command)
-        print("data")
-        print(", ".join(map(str, data_managment.get_existing_dataset_ids())))
 
         
         if len(parts) == 1 and not text.endswith(" "):  # command name(-delete, -train, ...)
