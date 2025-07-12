@@ -4,14 +4,17 @@ from typing import Final
 
 SEQUENCE_LENGTH: Final = 8
 
-GENERATION_LENGTH: Final = 50
+DEFAULT_GENERATION_LENGTH: Final = 50
 
-TRAINING_EPOCHS: Final = 2
+TRAINING_EPOCHS: Final = 1
 
 TRAINING_BATCH_SIZE: Final = 12
 
 ALLOWED_MUSIC_FILE_EXTENSIONS: Final = [".mid", ".midi"]
 
+FEATURE_NAMES = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
+
+NUMBER_OF_FEATURES = 6
 
 # Paths
 

@@ -274,7 +274,7 @@ class SixtupleTokenMaps:
 
 
 class Tokenizer:
-    def __init__(self, processed_dataset_id: str):
+    def __init__(self, processed_dataset_id: str = "EMPTY"):
         self.processed_dataset_id = processed_dataset_id
 
         self.sixtuple_token_maps = SixtupleTokenMaps()
