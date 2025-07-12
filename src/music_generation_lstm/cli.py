@@ -107,7 +107,7 @@ def handle_exit():
 
    controller.exit()
 
-"""
+
 def complete_delete(arg_index, word, parts):
     if arg_index == 0:
         for option in ["file", "dataset"]:
@@ -117,27 +117,42 @@ def complete_delete(arg_index, word, parts):
     if arg_index == 1:
         delete_type = parts[1]
         if delete_type == "file":
-            for fid in data_managment.get_existing_result_ids():
-                if fid.startswith(word):
-                    yield Completion(fid, start_position=-len(word))
+            for result_id in data_managment.get_existing_result_ids():
+                if result_id.startswith(word):
+                    yield Completion(result_id, start_position=-len(word))
         elif delete_type == "dataset":
-            for did in data_managment.get_existing_dataset_ids():
-                if did.startswith(word):
-                    yield Completion(did, start_position=-len(word))
+            for dataset_id in data_managment.get_existing_dataset_ids():
+                if dataset_id.startswith(word):
+                    yield Completion(dataset_id, start_position=-len(word))
     
 
-def complete_process():
-    print("handle")
-def complete_train():
-    print("handle")
-def complete_help():
-    print("handle")
-    # do nothing
+def complete_process(arg_index,word, parts):
+    if arg_index == 0:
+        for dataset_id in data_managment.get_existing_dataset_ids():
+            if dataset_id.startswith(word):
+                yield Completion(dataset_id, start_position = -len(word))
+    if arg_index == 1:
+        yield Completion("[(new) processed id]", start_position = -len(word))
+    
+        
+        
+def complete_train(arg_index, word, parts):
+    if arg_index == 0:
+        yield Completion("[(new) model id]", start_position = -len(word))
+    if arg_index == 1:
+        for processed_id in data_managment.get_existing_processed_ids():
+            if processed_id.startswith(word):
+                yield Completion(processed_id, start_position = -len(word))
+   
+
 def complete_generate():
-    print("handle")
+    print("handle not implemented")
 def complete_show():
-    print("handle")
-"""
+    print("handle not implemented")
+def complete_help():
+    print("handle not implemented")
+    # should do nothing
+
 
 def parse_command(command: str):
     #   Parses string command to command from Command Enum
@@ -201,19 +216,19 @@ COMMAND_LENGTH = {
     Command.PROCESS: 2,  # -process dataset_id processed_id(new)
     Command.TRAIN: 2,  # -train model_id(new) processed_id
     Command.HELP: 0,
-    Command.DELETE: 2,  # processed_id
+    Command.DELETE: 2,  # file/dataset ids
     Command.GENERATE: 3,  # -generate model_id(new) input result_id(new) (not implemented yet)
     Command.SHOW: 0,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
 }
 
-"""COMMAND_COMMPLETER = {
+COMMAND_COMMPLETER = {
     Command.PROCESS: complete_process,  # dataset_id processed_id(new)
     Command.TRAIN: complete_train,  # model_id, processed_id
     Command.DELETE: complete_delete, # file/ dataset, ids
     Command.HELP: complete_help,  # needs no completion
     Command.GENERATE: complete_generate,  # not implemented
     Command.SHOW: complete_show #not implemented
-}"""
+}
 
 
 class CommandCompleter(Completer):
@@ -238,7 +253,7 @@ class CommandCompleter(Completer):
             return
 
         
-        """if command_enum in COMMAND_COMMPLETER: # arguments (ids, file, ...)
+        if command_enum in COMMAND_COMMPLETER: # arguments (ids, file, ...)
             if text.endswith(" "): # " " gedrückt zwischen argumenten
                 current_word = ""
                 arg_index = len(parts) - 1
@@ -250,7 +265,7 @@ class CommandCompleter(Completer):
             try:
                 yield from completer(arg_index, current_word, parts)
             except Exception as e:
-                print(f"[Completion Error] {e}")"""
+                print(f"[Completion Error] {e}")
 
 
 
