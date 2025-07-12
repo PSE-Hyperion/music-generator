@@ -2,12 +2,15 @@ import logging
 
 from fractions import Fraction
 
-from music21 import chord, note, stream
+from music21 import chord, note, stream, key, interval, pitch
 from music21.tempo import MetronomeMark, TempoIndication
 
 from music_generation_lstm.config import CREATE_SHEET_MUSIC
+from music_generation_lstm.sheet_music_generator.sheet_music_generator import generate_sheet_music
+
 
 logger = logging.getLogger(__name__)
+
 
 class Sixtuple:
     """
@@ -386,3 +389,41 @@ class Tokenizer:
         # Delete for parallel processing
         # self.sixtuple_token_maps.extend(sixtuples)
         return sixtuples
+
+    def tokenize_original_key(self, score: stream.Score) -> list[Sixtuple]:
+        """
+        Tokenizes the score in its original key.
+        """
+        return self.tokenize(score)
+
+    def tokenize_all_keys(self, score: stream.Score) -> list[Sixtuple]:
+        """
+        Transpose the score through all 12 semitone steps (0 = original, +1, ..., +11)
+        and return a flat list of all tokens across every transposition.
+        """
+        all_tokens: list[Sixtuple] = []
+        for semitone_shift in range(12):
+            transposed_score = score.transpose(semitone_shift)
+            # extend the flat list instead of building a dict
+            all_tokens.extend(self.tokenize(transposed_score))
+        return all_tokens
+
+
+    def tokenize_cmajor_aminor(self, score: stream.Score) -> list[Sixtuple]:
+        """
+        Transpose every piece to C major (if originally major) or A minor (if originally minor),
+        and return the tokens from that single transposition as a list.
+        """
+        ks = score.analyze('key')              
+        tonic: pitch.Pitch = ks.tonic          
+
+        if ks.mode == 'major':
+            target_tonic = pitch.Pitch('C')
+        else:
+            target_tonic = pitch.Pitch('A')
+
+        iv = interval.Interval(tonic, target_tonic)
+        transposed_score = score.transpose(iv)
+
+        return self.tokenize(transposed_score)
+

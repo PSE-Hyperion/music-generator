@@ -7,8 +7,10 @@ from ..midi import parser
 from . import process, processed_io
 from .tokenization import token_map_io
 from .tokenization.tokenizer import Sixtuple, SixtupleTokenMaps, Tokenizer
+from music_generation_lstm.config import TOKENIZE_MODE, TokenizeMode
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class SixtupleSets:
@@ -33,8 +35,20 @@ def _parallel_tokenize_worker(midi_path: str, processed_dataset_id: str) -> tupl
     # Parse
     score = parser.parse_midi(midi_path)
 
-    # Tokenize
-    sixtuples = tokenizer.tokenize(score)
+    # Tokenize according to mode
+    if TOKENIZE_MODE is TokenizeMode.ORIGINAL:
+        sixtuples = tokenizer.tokenize_original_key(score)
+
+    elif TOKENIZE_MODE is TokenizeMode.ALL_KEYS:
+        sixtuples = tokenizer.tokenize_all_keys(score)
+        # token_result is now a dict[int, list[Sixtuple]]
+
+    elif TOKENIZE_MODE is TokenizeMode.C_MAJOR_A_MINOR:
+        sixtuples = tokenizer.tokenize_cmajor_aminor(score)
+        # token_result is now a dict[str, list[Sixtuple]]
+
+    else:
+        raise ValueError(f"Unsupported TOKENIZE_MODE: {TOKENIZE_MODE!r}")
 
     # Create sets of unique tokens (per feature)
     bar_set = set()
