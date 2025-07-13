@@ -4,14 +4,16 @@ import logging
 
 import numpy as np
 
-from music_generation_lstm.config import ALLOWED_MUSIC_FILE_EXTENSIONS, GENERATION_TEMPERATURE
-from music_generation_lstm.generation.generate import MusicGenerator, load_seed_sequence_from_midi
+from music_generation_lstm.config import ALLOWED_MUSIC_FILE_EXTENSIONS, GENERATION_TEMPERATURE, SEQUENCE_LENGTH
+from music_generation_lstm.generation.generate import MusicGenerator
 from music_generation_lstm.midi import writer
+from music_generation_lstm.midi.parser import parse_midi
 from music_generation_lstm.models import models, train as tr
 from music_generation_lstm.models.model_io import load_model, save_model
 from music_generation_lstm.processing import parallel_processing, processed_io
 from music_generation_lstm.processing.tokenization import token_map_io
 from music_generation_lstm.data_managment import delete_dataset_data, delete_result_data
+from music_generation_lstm.processing.tokenization.tokenizer import Tokenizer, detokenize
 
 logger = logging.getLogger(__name__)
 
@@ -112,12 +114,30 @@ def generate(model_name: str, input_name: str, output_name: str):
         raise FileNotFoundError(f"Input MIDI file not found: {input_name}")
 
     print(f"Loading seed sequence from: {input_midi_path}")
-    seed_sequence = load_seed_sequence_from_midi(input_midi_path, processed_dataset_id)
+
+    token_maps, _, _ = token_map_io.load_token_maps(processed_dataset_id)
+    score = parse_midi(input_midi_path)
+    tokenizer = Tokenizer(processed_dataset_id)
+    sixtuples = tokenizer.tokenize(score)
+
+    # Convert to numeric tuples
+    seed_sequence = []
+    for sixtuple in sixtuples[:SEQUENCE_LENGTH:]:
+        numeric_tuple = (
+            token_maps["bar"][sixtuple.bar],
+            token_maps["position"][sixtuple.position],
+            token_maps["pitch"][sixtuple.pitch],
+            token_maps["duration"][sixtuple.duration],
+            token_maps["velocity"][sixtuple.velocity],
+            token_maps["tempo"][sixtuple.tempo],
+        )
+        seed_sequence.append(numeric_tuple)
 
     generator = MusicGenerator(model.model, processed_dataset_id, GENERATION_TEMPERATURE)
 
+    generated_sixtuples = generator.generate_sequence(seed_sequence)
     # Generate music stream
-    generated_stream = generator.generate_music_stream(seed_sequence)
+    generated_stream = detokenize(generated_sixtuples)
 
     # Save the generated music
     writer.write_midi(output_name, generated_stream)
