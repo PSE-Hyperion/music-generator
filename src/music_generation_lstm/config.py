@@ -4,11 +4,13 @@ from typing import Final
 
 SEQUENCE_LENGTH: Final = 8
 
-GENERATION_LENGTH: Final = 50
+GENERATION_LENGTH: Final = 400
 
-TRAINING_EPOCHS: Final = 2
+TRAINING_EPOCHS: Final = 50
 
 TRAINING_BATCH_SIZE: Final = 12
+
+GENERATION_TEMPERATURE: Final = 0.7
 
 ALLOWED_MUSIC_FILE_EXTENSIONS: Final = [".mid", ".midi"]
 
