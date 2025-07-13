@@ -78,8 +78,9 @@ def generate_token(
     model: Model, input_feature_dict: dict[str, NDArray[np.int32]], temperature=float
 ) -> NumericSixtuple:
     """
-    CLEANUP REQUIRED AFTER THIS. I JUST WANT IT TO WORK!!!
+    This method works, but must be improved upon.
     """
+
     raw_outputs = model.predict(input_feature_dict)
 
     output_dict = dict(zip(model.output_names, raw_outputs))
@@ -87,23 +88,19 @@ def generate_token(
     next_ids = []
 
     for feature in FEATURE_NAMES:
-        logits_2d = output_dict[f"{feature}_output"]  # Change to _out or _output depending on model architecture
+        logits_2d = output_dict[f"{feature}_output"]
         last_logits = logits_2d[0]  # shape (vocab_size,)
 
-        # 1) Scale by temperature
+        # Scale by temperature
         scaled_logits = last_logits / temperature
 
-        # 2) Softmax as before
+        # Softmax
         exps = np.exp(scaled_logits - np.max(scaled_logits))
         probs = exps / np.sum(exps)
 
-        # 3) Sample
+        # Sample
         choice = np.random.choice(len(probs), p=probs)
         next_ids.append(choice)
-
-        """
-        CLEANUP REQUIRED BEFORE THIS. I JUST WANT IT TO WORK!!!
-        """
 
     next_numeric_event = NumericSixtuple(*next_ids)
     return next_numeric_event
