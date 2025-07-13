@@ -1,6 +1,9 @@
 import os
-from music_generation_lstm.config import DATASETS_MIDI_DIR, RESULTS_MIDI_DIR, INPUT_MIDI_DIR, TOKEN_MAPS_DIR
+import logging
+from music_generation_lstm.config import DATASETS_MIDI_DIR, RESULTS_MIDI_DIR, INPUT_MIDI_DIR, TOKEN_MAPS_DIR, MODELS_DIR
 
+
+logger = logging.getLogger(__name__)
 
 existing_result_ids = set()
 existing_dataset_ids = set()
@@ -13,11 +16,11 @@ def delete_dataset_data(dataset_id: str):
     """
     dataset_path = os.path.join(DATASETS_MIDI_DIR, dataset_id)
     if not os.path.exists(dataset_path):
-        print("Path does not exist.")
+        logger.info("Path does not exist.")
         return
     
     if not os.path.isdir(dataset_path):
-        print(f"{dataset_path} is not a directory.")
+        logger.info(f"{dataset_path} is not a directory.")
 
     
     for file in os.listdir(dataset_path): # Delete all files
@@ -25,9 +28,32 @@ def delete_dataset_data(dataset_id: str):
         if os.path.isfile(file_path):
             os.remove(file_path)
         else:
-            print(f"Could not remove: {file_path}")
+            logger.info(f"Could not remove: {file_path}")
     
     os.rmdir(dataset_path)# Delete empty folder
+
+def delete_model(model_id: str):
+    """
+    Deletes model given trough its model_id, will delete in data-> models 
+    deletes the empty dataset folder.
+    """
+    model_path = os.path.join(MODELS_DIR, model_id)
+    if not os.path.exists(model_path):
+        logger.info("Path does not exist.")
+        return
+    
+    if not os.path.isdir(model_path):
+        logger.info(f"{model_path} is not a directory.")
+
+    
+    for file in os.listdir(model_path): # Delete all files in model
+        file_path = os.path.join(model_path, file)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+        else:
+            logger.info(f"Could not remove: {file_path}")
+    
+    os.rmdir(model_path)# Delete empty folder
     
 
 def delete_result_data(result_id: str):
@@ -38,7 +64,7 @@ def delete_result_data(result_id: str):
     file_path = os.path.join(RESULTS_MIDI_DIR, result_id)
      
     if not os.path.exists(file_path):
-        print("file does not exist")
+        logger.info("file does not exist")
         return
     try:
         os.remove(file_path)
@@ -55,13 +81,13 @@ def delete_existing_processed(processed_id: str):
     map_path = os.path.join(TOKEN_MAPS_DIR, processed_id)
 
     if not os.path.exists(map_path):
-        print(f"{map_path} does not exist.")
+        logger.info(f"{map_path} does not exist.")
         return
     if not os.path.exists(processed_path):
-        print(f"{processed_path} does not exist.")
+        logger.info(f"{processed_path} does not exist.")
         return
     if not os.path.isdir(map_path):
-        print(f"{map_path} is not a directory.")
+        logger.info(f"{map_path} is not a directory.")
     
     os.remove(processed_path) # delete processed
 
@@ -70,7 +96,7 @@ def delete_existing_processed(processed_id: str):
         if os.path.isfile(file_path):
             os.remove(file_path)
         else:
-            print(f"Could not remove: {file_path}")
+            logger.info(f"Could not remove: {file_path}")
     os.rmdir(map_path)# Delete empty folder
 
 

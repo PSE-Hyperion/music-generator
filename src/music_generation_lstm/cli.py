@@ -33,9 +33,9 @@ def handle_help(args: list[str]):
     #   Handles the help command
     #   "-help"
     #
-    print(HELP_INSTRUCTIONS)
+    logger.info(HELP_INSTRUCTIONS)
     for command in Command:
-        print(command.name)
+        logger.info(command.name)
 
 
 def handle_process(args: list[str]):
@@ -66,8 +66,8 @@ def handle_generate(args: list[str]):
     #
     
     if len(args) != ARGUMENTLENGTH_GENERATE:
-        print("Incorrect use of the generate command.")
-        print("Please use the correct format: -generate [model name] [input name] [desired output name]")
+        logger.info("Incorrect use of the generate command.")
+        logger.info("Please use the correct format: -generate [model name] [input name] [desired output name]")
     if len(args) != ARGUMENTLENGTH_GENERATE:
         logger.error("Incorrect use of the generate command.")
         logger.error("Please use the correct format: -generate [model name] [input name] [desired output name]")
@@ -97,7 +97,7 @@ def handle_delete(args: list[str]):
     elif delete_subject == "dataset":
         controller.delete_dataset(processed_dataset_file_id)
     else:
-        print(f"Invalid delete subject: {delete_subject}")
+        logger.info(f"Invalid delete subject: {delete_subject}")
 
 
 def handle_exit():
@@ -181,7 +181,7 @@ def complete_show(arg_index, word, parts):
 
 
 def complete_help():
-    print("I dont know, nothing to complete")
+    logger.info("I dont know, nothing to complete")
     # should do nothing
 
 
@@ -223,7 +223,7 @@ def process_input(input: str):
         return
 
     if length != (len(parts) - 1):
-        print(f"Command should get {length} arguments, but got {len(parts) - 1}")
+        logger.info(f"Command should get {length} arguments, but got {len(parts) - 1}")
         return
 
     handler = COMMAND_HANDLERS.get(command)
@@ -296,7 +296,7 @@ class CommandCompleter(Completer):
             try:
                 yield from completer(arg_index, current_word, parts)
             except Exception as e:
-                print(f"[Completion Error] {e}")
+                logger.error(f"[Completion Error] {e}")
 
 
 
