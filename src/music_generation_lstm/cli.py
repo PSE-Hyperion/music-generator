@@ -152,7 +152,7 @@ def complete_train(arg_index, word, parts):
 
 def complete_generate(arg_index, word, parts):
     # completes generate command 
-    # first  the new model_id input 
+    # first  the all possible model_id input 
     # second all possible input
     # third new results_id
     if arg_index == 0:
@@ -234,7 +234,7 @@ COMMAND_HANDLERS = {
     Command.TRAIN: handle_train,  # -train model_id(new) processed_id
     Command.HELP: handle_help, # -help
     Command.DELETE: handle_delete, # -delete file/dataset/processed/model ids
-    Command.GENERATE: handle_generate,  # -generate model_id(new) input result_id(new) (not implemented yet)
+    Command.GENERATE: handle_generate,  # -generate model_id input result_id(new) (not implemented yet)
     Command.SHOW: handle_show,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
 }
 COMMAND_LENGTH = {
@@ -242,7 +242,7 @@ COMMAND_LENGTH = {
     Command.TRAIN: 2,  # -train model_id(new) processed_id
     Command.HELP: 0,
     Command.DELETE: 2,  # file/dataset/processed/model ids
-    Command.GENERATE: 3,  # -generate model_id(new) input result_id(new) (not implemented yet)
+    Command.GENERATE: 3,  # -generate model_id input result_id(new) (not implemented yet)
     Command.SHOW: 0,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
 }
 
@@ -251,7 +251,7 @@ COMMAND_COMMPLETER = {
     Command.TRAIN: complete_train,  # model_id, processed_id
     Command.DELETE: complete_delete, # file/ dataset/processed/model, ids
     Command.HELP: complete_help,  # needs no completion
-    Command.GENERATE: complete_generate,  # model_id(new), input, result_id(new) 
+    Command.GENERATE: complete_generate,  # model_id, input, result_id(new) 
     Command.SHOW: complete_show # not implemented
 }
 
