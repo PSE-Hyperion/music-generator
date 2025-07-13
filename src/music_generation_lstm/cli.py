@@ -120,13 +120,13 @@ def complete_delete(arg_index, word, parts):
     if arg_index == 1:
         delete_type = parts[1]
         if delete_type == "file":
-            existing_ids_completion(data_managment.get_existing_result_ids(), word)
+            id_completion(data_managment.get_existing_result_ids(), word)
         elif delete_type == "dataset":
-            existing_ids_completion(data_managment.get_existing_dataset_ids(), word)
+            id_completion(data_managment.get_existing_dataset_ids(), word)
         elif delete_type == "processed":
-            existing_ids_completion(data_managment.get_existing_processed_ids(), word)
+            id_completion(data_managment.get_existing_processed_ids(), word)
         elif delete_type == "model":
-            existing_ids_completion(data_managment.get_existing_model_ids(), word)
+            id_completion(data_managment.get_existing_model_ids(), word)
     
 
 def complete_process(arg_index,word, parts):
@@ -134,7 +134,7 @@ def complete_process(arg_index,word, parts):
     # first the all possible dataset-id 
     # second the new processed id
     if arg_index == 0:
-        existing_ids_completion(data_managment.get_existing_dataset_ids(), word)
+        id_completion(data_managment.get_existing_dataset_ids(), word)
     if arg_index == 1:
         yield Completion("[(new) processed id]", start_position = -len(word))
     
@@ -147,7 +147,7 @@ def complete_train(arg_index, word, parts):
     if arg_index == 0:
         yield Completion("[(new) model id]", start_position = -len(word))
     if arg_index == 1:
-        existing_ids_completion(data_managment.get_existing_processed_ids(), word)
+        id_completion(data_managment.get_existing_processed_ids(), word)
    
 
 def complete_generate(arg_index, word, parts):
@@ -156,9 +156,9 @@ def complete_generate(arg_index, word, parts):
     # second all possible input
     # third new results_id
     if arg_index == 0:
-        yield Completion("[(new) model id]", start_position = -len(word))
+        id_completion(data_managment.get_existing_model_ids(), word)
     if arg_index == 1:
-        existing_ids_completion(data_managment.get_existing_processed_ids(), word)
+        id_completion(data_managment.get_existing_processed_ids(), word)
     if arg_index == 2:
         yield Completion("[(new) results id]", start_position = -len(word))
     
@@ -169,7 +169,7 @@ def complete_show(arg_index, word, parts):
             if option.startswith(word):
                 yield Completion(option, start_position=-len(word))
 
-def existing_ids_completion(existing_ids, word):
+def id_completion(existing_ids, word):
     for id in existing_ids:
             if id.startswith(word):
                 yield Completion(id, start_position = -len(word))
