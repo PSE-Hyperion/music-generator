@@ -109,11 +109,11 @@ def handle_exit():
 
 def complete_delete(arg_index, word, parts):
     #   commpletes delete command
-    #   first suggestion is what you want to delete(file or dataset)
+    #   first suggestion is what you want to delete(file, dataset, processed, model)
     #   second is the corresponding id 
 
     if arg_index == 0:
-        for option in ["file", "dataset", "processed"]:
+        for option in ["file", "dataset", "processed", "model"]:
             if option.startswith(word):
                 yield Completion(option, start_position=-len(word))
                 
@@ -131,6 +131,10 @@ def complete_delete(arg_index, word, parts):
             for processed_id in data_managment.get_existing_processed_ids():
                 if processed_id.startswith(word):
                     yield Completion(processed_id, start_position=-len(word))
+        elif delete_type == "model":
+            for model_id in data_managment.get_existing_model_ids():
+                if model_id.startswith(word):
+                    yield Completion(model_id, start_position=-len(word))
     
 
 def complete_process(arg_index,word, parts):
@@ -239,7 +243,7 @@ COMMAND_HANDLERS = {
     Command.PROCESS: handle_process,  # -process dataset_id processed_id(new)
     Command.TRAIN: handle_train,  # -train model_id(new) processed_id
     Command.HELP: handle_help, # -help
-    Command.DELETE: handle_delete, # -delete file/dataset/processed ids
+    Command.DELETE: handle_delete, # -delete file/dataset/processed/model ids
     Command.GENERATE: handle_generate,  # -generate model_id(new) input result_id(new) (not implemented yet)
     Command.SHOW: handle_show,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
 }
@@ -247,7 +251,7 @@ COMMAND_LENGTH = {
     Command.PROCESS: 2,  # -process dataset_id processed_id(new)
     Command.TRAIN: 2,  # -train model_id(new) processed_id
     Command.HELP: 0,
-    Command.DELETE: 2,  # file/dataset/processed ids
+    Command.DELETE: 2,  # file/dataset/processed/model ids
     Command.GENERATE: 3,  # -generate model_id(new) input result_id(new) (not implemented yet)
     Command.SHOW: 0,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
 }
@@ -255,7 +259,7 @@ COMMAND_LENGTH = {
 COMMAND_COMMPLETER = {
     Command.PROCESS: complete_process,  # dataset_id processed_id(new)
     Command.TRAIN: complete_train,  # model_id, processed_id
-    Command.DELETE: complete_delete, # file/ dataset/processed, ids
+    Command.DELETE: complete_delete, # file/ dataset/processed/model, ids
     Command.HELP: complete_help,  # needs no completion
     Command.GENERATE: complete_generate,  # model_id(new), input, result_id(new) 
     Command.SHOW: complete_show # not implemented

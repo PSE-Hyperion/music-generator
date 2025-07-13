@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 existing_result_ids = set()
 existing_dataset_ids = set()
 existing_processed_ids = set()
+existing_model_ids = set()
 
 def delete_dataset_data(dataset_id: str):
     """
@@ -15,22 +16,7 @@ def delete_dataset_data(dataset_id: str):
     deletes the empty dataset folder.
     """
     dataset_path = os.path.join(DATASETS_MIDI_DIR, dataset_id)
-    if not os.path.exists(dataset_path):
-        logger.info("Path does not exist.")
-        return
-    
-    if not os.path.isdir(dataset_path):
-        logger.info(f"{dataset_path} is not a directory.")
-
-    
-    for file in os.listdir(dataset_path): # Delete all files
-        file_path = os.path.join(dataset_path, file)
-        if os.path.isfile(file_path):
-            os.remove(file_path)
-        else:
-            logger.info(f"Could not remove: {file_path}")
-    
-    os.rmdir(dataset_path)# Delete empty folder
+    delete_Folder(dataset_path)
 
 def delete_model(model_id: str):
     """
@@ -38,39 +24,15 @@ def delete_model(model_id: str):
     deletes the empty dataset folder.
     """
     model_path = os.path.join(MODELS_DIR, model_id)
-    if not os.path.exists(model_path):
-        logger.info("Path does not exist.")
-        return
-    
-    if not os.path.isdir(model_path):
-        logger.info(f"{model_path} is not a directory.")
-
-    
-    for file in os.listdir(model_path): # Delete all files in model
-        file_path = os.path.join(model_path, file)
-        if os.path.isfile(file_path):
-            os.remove(file_path)
-        else:
-            logger.info(f"Could not remove: {file_path}")
-    
-    os.rmdir(model_path)# Delete empty folder
+    delete_Folder(model_path)
     
 
 def delete_result_data(result_id: str):
     """
-    Deletes a file given trough the file ID, will delete in data -> midi -> results
+    Deletes a result given trough the result ID, will delete in data -> midi -> results
     """
-
-    file_path = os.path.join(RESULTS_MIDI_DIR, result_id)
-     
-    if not os.path.exists(file_path):
-        logger.info("file does not exist")
-        return
-    try:
-        os.remove(file_path)
-    except Exception as e:
-        raise RuntimeError(f"Failed to delete file '{file_path}': {e}")
-    
+    result_path = os.path.join(RESULTS_MIDI_DIR, result_id)   
+    delete_File(result_path)
 
 def delete_existing_processed(processed_id: str):
     """
@@ -80,24 +42,49 @@ def delete_existing_processed(processed_id: str):
     processed_path = os.path.join(INPUT_MIDI_DIR, processed_id)
     map_path = os.path.join(TOKEN_MAPS_DIR, processed_id)
 
-    if not os.path.exists(map_path):
-        logger.info(f"{map_path} does not exist.")
-        return
-    if not os.path.exists(processed_path):
-        logger.info(f"{processed_path} does not exist.")
-        return
-    if not os.path.isdir(map_path):
-        logger.info(f"{map_path} is not a directory.")
-    
-    os.remove(processed_path) # delete processed
+    delete_File(processed_path)
+    delete_Folder(map_path)
 
-    for file in os.listdir(map_path): # Delete all files from map
-        file_path = os.path.join(map_path, file)
+def delete_File(file_path):
+    """
+    Deletes a file given trough the file ID
+    """
+     
+    if not os.path.exists(file_path):
+        logger.info("file does not exist")
+        return
+    try:
+        os.remove(file_path)
+    except Exception as e:
+        raise RuntimeError(f"Failed to delete file '{file_path}': {e}")
+
+    
+def delete_Folder(folder_path):
+    """
+    Deletes folder with contents
+    deletes the empty dataset folder.
+    """
+
+    if not os.path.exists(folder_path):
+        logger.info("Path does not exist.")
+        return
+    
+    if not os.path.isdir(folder_path):
+        logger.info(f"{folder_path} is not a directory.")
+
+    
+    for file in os.listdir(folder_path): # Delete all files
+        file_path = os.path.join(folder_path, file)
         if os.path.isfile(file_path):
             os.remove(file_path)
         else:
             logger.info(f"Could not remove: {file_path}")
-    os.rmdir(map_path)# Delete empty folder
+    
+    os.rmdir(folder_path)# Delete empty folder
+
+
+
+ 
 
 
 
@@ -126,3 +113,9 @@ def get_existing_dataset_ids():
         if( dataset != ".gitkeep"):
             existing_dataset_ids.add(dataset)   
     return sorted(existing_dataset_ids)
+
+def get_existing_model_ids():
+    for model in os.listdir(MODELS_DIR): # neede in case the programm got closed
+        if( model != ".gitkeep"):
+            existing_model_ids.add(model)   
+    return sorted(existing_model_ids)
