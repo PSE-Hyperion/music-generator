@@ -16,7 +16,9 @@ def delete_dataset_data(dataset_id: str):
     deletes the empty dataset folder.
     """
     dataset_path = os.path.join(DATASETS_MIDI_DIR, dataset_id)
-    delete_Folder(dataset_path)
+
+    delete_folder_contents(dataset_path)
+    delete_empty_folder(dataset_path)
 
 def delete_model(model_id: str):
     """
@@ -24,7 +26,9 @@ def delete_model(model_id: str):
     deletes the empty dataset folder.
     """
     model_path = os.path.join(MODELS_DIR, model_id)
-    delete_Folder(model_path)
+
+    delete_folder_contents(model_path)
+    delete_empty_folder(model_path)
     
 
 def delete_result_data(result_id: str):
@@ -39,11 +43,21 @@ def delete_existing_processed(processed_id: str):
     Deletes the folder containing token maps and metadata for the given processed_dataset_id.
     The folder path is TOKEN_MAPS_DIR/processed_dataset_id. And deletes the processed dataset given trough the id
     """
-    processed_path = os.path.join(INPUT_MIDI_DIR, processed_id)
-    map_path = os.path.join(TOKEN_MAPS_DIR, processed_id)
+    processed_path = os.path.join(INPUT_MIDI_DIR, processed_id) #processed and map are deleted together
+    map_path = os.path.join(TOKEN_MAPS_DIR, processed_id) #maybe should be possible to delete only one
 
     delete_File(processed_path)
-    delete_Folder(map_path)
+    delete_folder_contents(map_path)
+    delete_empty_folder(map_path)
+
+def delete_all_results():
+    delete_folder_contents(RESULTS_MIDI_DIR)
+
+def delete_all_models():
+    delete_folder_contents(MODELS_DIR)
+
+def delete_all_datasets():
+    delete_folder_contents(DATASETS_MIDI_DIR)
 
 def delete_File(file_path):
     """
@@ -59,7 +73,7 @@ def delete_File(file_path):
         raise RuntimeError(f"Failed to delete file '{file_path}': {e}")
 
     
-def delete_Folder(folder_path):
+def delete_folder_contents(folder_path):
     """
     Deletes folder with contents
     deletes the empty dataset folder.
@@ -80,12 +94,12 @@ def delete_Folder(folder_path):
         else:
             logger.info(f"Could not remove: {file_path}")
     
+    
+
+def delete_empty_folder(folder_path):
     os.rmdir(folder_path)# Delete empty folder
 
-
-
  
-
 
 
 def add_result_id(result_id: str):
