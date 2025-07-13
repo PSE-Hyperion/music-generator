@@ -2,7 +2,7 @@ from typing import Final
 
 # Hyperparameters
 
-SEQUENCE_LENGTH: Final = 8
+SEQUENCE_LENGTH: Final = 8  # Changed from 8/32
 
 DEFAULT_GENERATION_LENGTH: Final = 50
 
@@ -15,6 +15,12 @@ ALLOWED_MUSIC_FILE_EXTENSIONS: Final = [".mid", ".midi"]
 FEATURE_NAMES = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
 
 NUMBER_OF_FEATURES = 6
+
+TEMPERATURE = 0.5
+
+TRAINING_ARCHITECTURE = "BASIC"  # Options are, BASIC and ADVANCED
+
+LEARNING_RATE = 0.0003  # Default for Adam is 0.001
 
 # Paths
 

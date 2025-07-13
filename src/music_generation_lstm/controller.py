@@ -1,16 +1,30 @@
+import inspect
 import json
 import os
+import sys
 
 import numpy as np
 
-from music_generation_lstm.config import DEFAULT_GENERATION_LENGTH, INPUT_MIDI_DIR
-from music_generation_lstm.generation.generate import generate_input_sequence
+from music_generation_lstm.config import (
+    DEFAULT_GENERATION_LENGTH,
+    FEATURE_NAMES,
+    INPUT_MIDI_DIR,
+    RESULTS_MIDI_DIR,
+    TEMPERATURE,
+)
+from music_generation_lstm.generation.generate import (
+    generate_token,
+    prepare_input_sequence,
+    reshape_input_sequence,
+    split_input_into_features,
+)
 from music_generation_lstm.midi.parser import parse_midi
 from music_generation_lstm.models import models, train as tr
 from music_generation_lstm.models.model_io import load_model, save_model
 from music_generation_lstm.processing import parallel_processing, processed_io
+from music_generation_lstm.processing.process import numerize
 from music_generation_lstm.processing.tokenization import token_map_io
-from music_generation_lstm.processing.tokenization.tokenizer import Tokenizer
+from music_generation_lstm.processing.tokenization.tokenizer import SixtupleTokenMaps, Tokenizer, detokenize
 
 
 def process(dataset_id: str, processed_dataset_id: str):
@@ -61,39 +75,78 @@ def train(model_id: str, processed_dataset_id: str):
 
     tr.train_model(model, file_paths)
 
-    save_model(model)
+    save_model(model, processed_dataset_id)
 
 
-def generate(model_name: str, input_name: str, output_name: str, generation_length=DEFAULT_GENERATION_LENGTH):
-    # Get model
-    model, config = load_model(model_name)
-
+def generate(
+    model_name: str,
+    input_name: str,
+    output_name: str,
+    generation_length=DEFAULT_GENERATION_LENGTH,
+    temperature=TEMPERATURE,
+):
+    # Get model and its configuration
+    base_model, config = load_model(model_name)
+    model = base_model.model
     print(f"Loaded model {model_name}.")
 
     # Get input MIDI from the given name
     input_midi_path = os.path.join(INPUT_MIDI_DIR, input_name) + ".mid"
-    input_midi = parse_midi(input_midi_path)
+    input_stream = parse_midi(input_midi_path)
 
     print(f"Preparing sequence for {model_name}")
 
+    # Prepare token maps for the model to pick from, obtained from the dataset it was trained on
+    token_maps = token_map_io.load_token_maps(config["processed dataset name"])
+    sixtuple_token_maps = SixtupleTokenMaps()
+
+    sixtuple_token_maps.create_from_dicts(
+        token_maps["bar_map"],
+        token_maps["position_map"],
+        token_maps["pitch_map"],
+        token_maps["duration_map"],
+        token_maps["velocity_map"],
+        token_maps["tempo_map"],
+    )
+
     # Tokenize the input
     input_tokenizer = Tokenizer()
-    tokenized_input = input_tokenizer.tokenize(input_midi)
+    tokenized_input = input_tokenizer.tokenize(input_stream)
 
     # Create a valid input sequence (making sure that input is large enough, and padding if not)
-    input_sequence = generate_input_sequence(tokenized_input)
+    input_sequence = prepare_input_sequence(tokenized_input)
 
-    """
-    I will check if the file exists here with the os.join blabla
-    and then I will create the correct directory, and then use the parse_midi
-    method from parser to give me the score, which I will then process and so
-    on and so forth. Will be an adventure.
-    """
-    #   Retrieve start sequence from given MIDI
-    #   Generate a new sequence from the start sequence
-    #   Write the generation in a folder
+    # Convert the sequence into a numeric sequence for the LSTM model
+    numeric_sequence = numerize(input_sequence, sixtuple_token_maps)
 
+    # Prepare the sliding window (we will add an output token and remove the last input)
+    numeric_window = numeric_sequence.copy()
+
+    # Initialize an empty event list and start the generation loop
+    event_list = []
     print("Generating music with AI...")
+    for generation in range(generation_length):
+        # Reshape the sequence into the correct format for the model -> (batch size: 1, SEQUENCE_LENGTH, features: 6)
+        input_sequence_matrix = reshape_input_sequence(numeric_window)
+
+        # Reshape the sequence into a dictionary with one item for each feature
+        input_feature_dict = split_input_into_features(input_sequence_matrix)
+
+        next_numeric_event = generate_token(model, input_feature_dict, temperature)
+
+        # Slide the numeric window forward by one, to include the generated token
+        numeric_window.pop(0)
+        numeric_window.append(next_numeric_event)
+
+        next_raw_event = sixtuple_token_maps.decode_numeric(next_numeric_event)
+        event_list.append(next_raw_event)
+
+    generated_stream = detokenize(event_list)  # There are two almost identical "detokenize" methods.
+
+    # Save the generation to the specified path by the user
+    output_path = os.path.join(RESULTS_MIDI_DIR, output_name + ".mid")
+    generated_stream.write("midi", fp=output_path)
+    print(f"Saved generated MIDI to {output_path}")
 
 
 def show():

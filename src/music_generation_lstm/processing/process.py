@@ -99,7 +99,6 @@ def sequenize(numeric_sixtuples: list[NumericSixtuple]):
             output_event.velocity,
             output_event.tempo,
         )
-
         X.append(input_seq)
         y.append(output_tuple)
 

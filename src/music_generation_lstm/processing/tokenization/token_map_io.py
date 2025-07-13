@@ -62,5 +62,35 @@ def save_token_maps(processed_dataset_id: str, token_maps: SixtupleTokenMaps):
     print("Finished saving maps")
 
 
-def load_token_maps():
-    pass
+def load_token_maps(processed_dataset_name: str) -> dict[str, dict[str, int]]:
+    """
+    Receives the name of a dataset that has been processed.
+    Retreives the token maps corresponding to that dataset.
+    Creates and returns a dictionary with one item for each map (i.e. pitch, velocity etc.)
+    """
+    # Set base path
+    processed_dataset_maps_path = os.path.join(TOKEN_MAPS_DIR, processed_dataset_name)
+
+    # Retreive all maps
+    with open(os.path.join(processed_dataset_maps_path, "bar_map.json"), "r") as map:
+        bar_map = json.load(map)
+    with open(os.path.join(processed_dataset_maps_path, "position_map.json"), "r") as map:
+        position_map = json.load(map)
+    with open(os.path.join(processed_dataset_maps_path, "pitch_map.json"), "r") as map:
+        pitch_map = json.load(map)
+    with open(os.path.join(processed_dataset_maps_path, "duration_map.json"), "r") as map:
+        duration_map = json.load(map)
+    with open(os.path.join(processed_dataset_maps_path, "velocity_map.json"), "r") as map:
+        velocity_map = json.load(map)
+    with open(os.path.join(processed_dataset_maps_path, "tempo_map.json"), "r") as map:
+        tempo_map = json.load(map)
+
+    # Return dictionary of maps
+    return {
+        "bar_map": bar_map,
+        "position_map": position_map,
+        "pitch_map": pitch_map,
+        "duration_map": duration_map,
+        "velocity_map": velocity_map,
+        "tempo_map": tempo_map,
+    }

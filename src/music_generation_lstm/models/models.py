@@ -1,7 +1,8 @@
 from tensorflow.keras.layers import LSTM, Concatenate, Dense, Dropout, Embedding, Input  # type: ignore
 from tensorflow.keras.models import Model  # type: ignore
+from tensorflow.keras.optimizers import Adam
 
-from music_generation_lstm.config import SEQUENCE_LENGTH
+from music_generation_lstm.config import LEARNING_RATE, SEQUENCE_LENGTH, TRAINING_ARCHITECTURE
 
 
 class BaseModel:
@@ -41,6 +42,11 @@ class LSTMModel(BaseModel):
         #
         #
 
+        if TRAINING_ARCHITECTURE == "ADVANCED":
+            self.build_model(vocab_sizes=vocab_sizes)
+            return
+        print("Training using basic architecture")
+
         # Inputs for each of the 6 features
         input_layers = {name: Input(shape=(SEQUENCE_LENGTH,), name=f"{name}") for name in vocab_sizes}
 
@@ -76,3 +82,50 @@ class LSTMModel(BaseModel):
                 "tempo_output": "accuracy",
             },
         )
+
+    def build_model(
+        self,
+        vocab_sizes: dict,
+        sequence_length: int = SEQUENCE_LENGTH,  # Default for this architecture -> 32
+        embedding_dim: int = 64,
+        lstm_units: int = 256,
+        num_lstm_layers: int = 3,
+        dropout_rate: float = 0.20,
+    ):
+        print("Training using advanced architecture")
+
+        # Input + Embedding layers (one per feature)
+        inputs = {}
+        embedded = []
+        for feature, vocab_size in vocab_sizes.items():
+            inp = Input(shape=(sequence_length,), name=f"{feature}")
+            emb = Embedding(input_dim=vocab_size, output_dim=embedding_dim, name=f"{feature}_emb")(inp)
+            inputs[feature] = inp
+            embedded.append(emb)
+
+        # Concatenate all embeddings along the feature axis
+        x = Concatenate(name="concat_embeddings")(embedded)
+
+        # Stacked LSTM layers with dropout
+        for layer_idx in range(num_lstm_layers):
+            # return_sequences=True except on the final layer
+            return_sequences = layer_idx < num_lstm_layers - 1
+
+            x = LSTM(units=lstm_units, return_sequences=return_sequences, name=f"lstm_{layer_idx + 1}")(x)
+            x = Dropout(rate=dropout_rate, name=f"dropout_{layer_idx + 1}")(x)
+
+        # Separate Dense heads for each feature
+        outputs = []
+        for feature, vocab_size in vocab_sizes.items():
+            out = Dense(units=vocab_size, activation="softmax", name=f"{feature}_output")(x)
+            outputs.append(out)
+
+        # Compile losses & metrics for each feature
+        built_model = Model(inputs=list(inputs.values()), outputs=outputs, name="midi_sixtuple_lstm")
+        optimizer_selection = Adam(learning_rate=LEARNING_RATE)
+        built_model.compile(
+            optimizer=optimizer_selection,
+            loss={f"{feature}_out": "sparse_categorical_crossentropy" for feature in vocab_sizes},
+            metrics={f"{feature}_out": "accuracy" for feature in vocab_sizes},
+        )
+        self.model = built_model
