@@ -116,25 +116,28 @@ def complete_delete(arg_index, word, parts):
         for option in ["file", "dataset", "processed", "model"]:
             if option.startswith(word):
                 yield Completion(option, start_position=-len(word))
-                
-    if arg_index == 1:
+
+    elif arg_index == 1:
+        if len(parts) < 2:
+            return
+
         delete_type = parts[1]
-        if delete_type == "file":
-            id_completion(data_managment.get_existing_result_ids(), word)
-        elif delete_type == "dataset":
-            id_completion(data_managment.get_existing_dataset_ids(), word)
-        elif delete_type == "processed":
-            id_completion(data_managment.get_existing_processed_ids(), word)
-        elif delete_type == "model":
-            id_completion(data_managment.get_existing_model_ids(), word)
-    
+        id_sources = {
+            "file":        data_managment.get_existing_result_ids,
+            "dataset":     data_managment.get_existing_dataset_ids,
+            "processed":   data_managment.get_existing_processed_ids,
+            "model":       data_managment.get_existing_model_ids,
+        }
+
+        if delete_type in id_sources:
+            yield from id_completion(id_sources[delete_type](), word)
 
 def complete_process(arg_index,word, parts):
     # completes process command 
     # first the all possible dataset-id 
     # second the new processed id
     if arg_index == 0:
-        id_completion(data_managment.get_existing_dataset_ids(), word)
+        yield from id_completion(data_managment.get_existing_dataset_ids(), word)
     if arg_index == 1:
         yield Completion("[(new) processed id]", start_position = -len(word))
     
@@ -147,7 +150,7 @@ def complete_train(arg_index, word, parts):
     if arg_index == 0:
         yield Completion("[(new) model id]", start_position = -len(word))
     if arg_index == 1:
-        id_completion(data_managment.get_existing_processed_ids(), word)
+        yield from id_completion(data_managment.get_existing_processed_ids(), word)
    
 
 def complete_generate(arg_index, word, parts):
@@ -156,9 +159,9 @@ def complete_generate(arg_index, word, parts):
     # second all possible input
     # third new results_id
     if arg_index == 0:
-        id_completion(data_managment.get_existing_model_ids(), word)
+        yield from id_completion(data_managment.get_existing_model_ids(), word)
     if arg_index == 1:
-        id_completion(data_managment.get_existing_processed_ids(), word)
+        yield from id_completion(data_managment.get_existing_processed_ids(), word)
     if arg_index == 2:
         yield Completion("[(new) results id]", start_position = -len(word))
     
@@ -170,9 +173,9 @@ def complete_show(arg_index, word, parts):
                 yield Completion(option, start_position=-len(word))
 
 def id_completion(existing_ids, word):
-    for id in existing_ids:
-            if id.startswith(word):
-                yield Completion(id, start_position = -len(word))
+    for _id in existing_ids:
+        if _id.startswith(word):
+            yield Completion(_id, start_position=-len(word))
 
 def complete_help():
     logger.info("I dont know, nothing to complete")
