@@ -1,9 +1,12 @@
 import json
 import os
+import logging
 from typing import Final
 
 from music_generation_lstm.config import TOKEN_MAPS_DIR
 from music_generation_lstm.processing.tokenization.tokenizer import SixtupleTokenMaps
+
+logger = logging.getLogger(__name__)
 
 TOTAL_UNIQUE_BAR_TOKENS: Final = "total_unique_bar_tokens"
 TOTAL_UNIQUE_POSITION_TOKENS: Final = "total_unique_position_tokens"
@@ -21,11 +24,11 @@ def save_token_maps(processed_dataset_id: str, token_maps: SixtupleTokenMaps):
     You can find the file in TOKEN_MAPS_DIR plus id
     """
 
-    print("Start saving maps...")
+    logger.info("Start saving maps...")
 
     total_unique_tokens = token_maps.total_size
 
-    print(f"Total unique tokens: {total_unique_tokens}")
+    logger.info("Total unique tokens: %s", total_unique_tokens)
 
     folder_path = os.path.join(TOKEN_MAPS_DIR, processed_dataset_id)
     os.makedirs(folder_path, exist_ok=False)
@@ -59,7 +62,7 @@ def save_token_maps(processed_dataset_id: str, token_maps: SixtupleTokenMaps):
     with open(os.path.join(folder_path, "tempo_map.json"), "w") as f:
         json.dump(token_maps.tempo_map, f, indent=4)
 
-    print("Finished saving maps")
+    logger.info("Finished saving maps")
 
 
 def load_token_maps():

@@ -1,3 +1,4 @@
+import logging
 from enum import Enum
 
 from prompt_toolkit import PromptSession
@@ -5,6 +6,7 @@ from prompt_toolkit.completion import Completer, Completion
 
 from music_generation_lstm import controller
 
+logger = logging.getLogger(__name__)
 
 class Command(Enum):
     """
@@ -46,8 +48,8 @@ def handle_generate(args: list[str]):
     #   Usage: "-generate [model name] [input name] [desired output name]"
     #
     if len(args) != 3:
-        print("Incorrect use of the generate command.")
-        print("Please use the correct format: -generate [model name] [input name] [desired output name]")
+        logger.error("Incorrect use of the generate command.")
+        logger.error("Please use the correct format: -generate [model name] [input name] [desired output name]")
 
     model_name = args[0]
     input_name = args[1]
@@ -90,7 +92,7 @@ def process_input(input: str):
     parts = input.split(" ")
 
     if len(parts) < 2:
-        print("Invalid input.")
+        logger.error("Invalid input.")
         return
 
     command = parts[0]
@@ -99,13 +101,13 @@ def process_input(input: str):
     command = parse_command(command)
 
     if command is None:
-        print("Invalid command.")
+        logger.error("Invalid command.")
         return
 
     handler = COMMAND_HANDLERS.get(command, None)
 
     if handler is None:
-        print("Command has no handler assigned.")
+        logger.error("Command has no handler assigned.")
         return
 
     handler(args)
@@ -150,4 +152,4 @@ def start_session():
                 break
             process_input(u_input)
         except Exception as e:
-            print(f"[ERROR] {e}")
+            logger.error("%s", e)
