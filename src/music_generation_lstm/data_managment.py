@@ -122,7 +122,7 @@ def add_dataset_id(dataset_id: str):
         existing_dataset_ids.add(dataset_id)
 
 def get_existing_dataset_ids():
-    for dataset in os.listdir(DATASETS_MIDI_DIR): # needed in case the programm got closed
+    for dataset in os.listdir(DATASETS_MIDI_DIR): # neede in case the programm got closed
         if( dataset != ".gitkeep"):
             existing_dataset_ids.add(dataset)   
     return sorted(existing_dataset_ids)
