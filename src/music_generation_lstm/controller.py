@@ -1,5 +1,6 @@
 import json
 import os
+import logging
 
 import numpy as np
 
@@ -10,6 +11,9 @@ from music_generation_lstm.models import models, train as tr
 from music_generation_lstm.models.model_io import load_model, save_model
 from music_generation_lstm.processing import parallel_processing, processed_io
 from music_generation_lstm.processing.tokenization import token_map_io
+from music_generation_lstm.data_managment import delete_dataset_data, delete_result_data
+
+logger = logging.getLogger(__name__)
 
 
 def process(dataset_id: str, processed_dataset_id: str):
@@ -64,6 +68,21 @@ def train(model_id: str, processed_dataset_id: str):
     save_model(model, processed_dataset_id)
 
 
+def delete_dataset(dataset_id: str):
+    """
+    Deletes a dataset given trough its dataset_id, will delete in data-> midi-> datasets
+    deletes the empty dataset folder.
+    """
+    delete_dataset_data(dataset_id)
+
+
+def delete_result(result_id: str):
+    """
+    Deletes a file given trough the result_id, will delete in data -> midi -> results
+    """
+    delete_result_data(result_id)
+
+
 def generate(model_name: str, input_name: str, output_name: str):
     """
     Generate music using a trained model
@@ -113,8 +132,8 @@ def show():
     #   generate with model using start sequence
     #   write result in folder
 
-    print("show")
+    logger.info("show")
 
 
 def exit():
-    print("You've exited the program.")
+    logger.info("You've exited the program.")
