@@ -78,7 +78,6 @@ def delete_folder_contents(folder_path):
     Deletes folder with contents
     deletes the empty dataset folder.
     """
-
     if not os.path.exists(folder_path):
         logger.info("Path does not exist.")
         return
