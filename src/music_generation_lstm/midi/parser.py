@@ -1,9 +1,12 @@
 import glob
 import os
+import logging
 
 from music21 import converter, stream
 
 from music_generation_lstm.config import ALLOWED_MUSIC_FILE_EXTENSIONS, DATASETS_MIDI_DIR
+
+logger = logging.getLogger(__name__)
 
 
 def get_midi_paths_from_dataset(dataset_id: str) -> list[str]:
@@ -11,7 +14,7 @@ def get_midi_paths_from_dataset(dataset_id: str) -> list[str]:
     #   This is used to avoid loading all files at same
     #   The returned files then can be used to process all songs of the dataset seperatly
 
-    print(f"Started parsing {dataset_id}...")
+    logger.info("Started parsing %s...", dataset_id)
 
     path = os.path.join(DATASETS_MIDI_DIR, dataset_id)
 
@@ -21,11 +24,11 @@ def get_midi_paths_from_dataset(dataset_id: str) -> list[str]:
         for extension in ALLOWED_MUSIC_FILE_EXTENSIONS:
             midi_paths.extend(glob.glob(os.path.join(path, f"*{extension}")))
         total = len(midi_paths)
-        print(f"Folder found with {total} accepted midi files.")
+        logger.info("Folder found with %s accepted midi files.", total)
     elif os.path.isfile(path):
         if path.lower().endswith(tuple(ALLOWED_MUSIC_FILE_EXTENSIONS)):
             midi_paths.append(path)
-            print("File found")
+            logger.info("File found")
         else:
             raise Exception("File found, but doesn't have allowed extension.")
     else:

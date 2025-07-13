@@ -1,8 +1,8 @@
 #!/bin/bash
-PROJECTPATH="${HOME}/Coding/music-generator"
+PROJECTPATH="${HOME}/music-generator"
 
 # Install virtual environment
-python3.11 -m --clear venv ${PROJECTPATH}/.venv
+python3.11 -m venv --clear ${PROJECTPATH}/.venv
 ${PROJECTPATH}/.venv/bin/pip install -U pip
 ${PROJECTPATH}/.venv/bin/pip install -r ${PROJECTPATH}/requirements.txt
 

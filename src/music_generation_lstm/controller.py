@@ -1,10 +1,16 @@
 import json
 import os
+import logging
 
-from music_generation_lstm.models import model_io, models, train as tr
+import numpy as np
+
+from music_generation_lstm.models import models, train as tr
+from music_generation_lstm.models.model_io import load_model, save_model
 from music_generation_lstm.processing import parallel_processing, processed_io
 from music_generation_lstm.processing.tokenization import token_map_io
+from music_generation_lstm.data_managment import delete_dataset_data, delete_result_data
 
+logger = logging.getLogger(__name__)
 
 def process(dataset_id: str, processed_dataset_id: str):
     #   parses midi file(s) to music21.stream.Score
@@ -45,8 +51,6 @@ def train(model_id: str, processed_dataset_id: str):
         "tempo": metadata[token_map_io.TOTAL_UNIQUE_TEMPO_TOKENS],
     }
 
-    import numpy as np  # bad, this shouldn't be in here
-
     # Get input shape from first file
     with np.load(file_paths[0]) as data:
         input_shape = data["X"].shape[1:]  # Remove batch dimension
@@ -56,17 +60,36 @@ def train(model_id: str, processed_dataset_id: str):
 
     tr.train_model(model, file_paths)
 
-    model_io.save_model(model)
+    save_model(model)
 
 
-def generate():
-    #   get model via label
-    #   get midi
-    #   get start sequence from midi
-    #   generate with model using start sequence
-    #   write result in folder
+def delete_dataset(dataset_id: str):
+    """
+    Deletes a dataset given trough its dataset_id, will delete in data-> midi-> datasets 
+    deletes the empty dataset folder.
+    """
+    delete_dataset_data(dataset_id)
 
-    print("generate")
+
+def delete_result(result_id: str):
+    """
+    Deletes a file given trough the result_id, will delete in data -> midi -> results
+    """
+    delete_result_data(result_id)
+
+
+
+def generate(model_name: str, input_name: str, output_name: str):
+    #   Get model
+    model, config = load_model(model_name)
+
+    #   Get input MIDI
+
+    #   Retrieve start sequence from given MIDI
+    #   Generate a new sequence from the start sequence
+    #   Write the generation in a folder
+
+    logger.info("Generating music with AI...")
 
 
 def show():
@@ -76,8 +99,8 @@ def show():
     #   generate with model using start sequence
     #   write result in folder
 
-    print("show")
+    logger.info("show") 
 
 
 def exit():
-    print("You've exited the program.")
+    logger.info("You've exited the program.")
