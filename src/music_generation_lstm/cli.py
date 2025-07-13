@@ -113,7 +113,7 @@ def complete_delete(arg_index, word, parts):
     #   second is the corresponding id 
 
     if arg_index == 0:
-        for option in ["file", "dataset"]:
+        for option in ["file", "dataset", "processed"]:
             if option.startswith(word):
                 yield Completion(option, start_position=-len(word))
                 
@@ -127,6 +127,10 @@ def complete_delete(arg_index, word, parts):
             for dataset_id in data_managment.get_existing_dataset_ids():
                 if dataset_id.startswith(word):
                     yield Completion(dataset_id, start_position=-len(word))
+        elif delete_type == "processed":
+            for processed_id in data_managment.get_existing_processed_ids():
+                if processed_id.startswith(word):
+                    yield Completion(processed_id, start_position=-len(word))
     
 
 def complete_process(arg_index,word, parts):
