@@ -1,12 +1,14 @@
 import json
 import os
 import shutil
+import logging
 
 from tensorflow.keras.models import load_model as load_keras_model
 
 from music_generation_lstm.config import MODELS_DIR
 from music_generation_lstm.models.models import BaseModel
 
+logger = logging.getLogger(__name__)
 
 def save_model(model: BaseModel):
     model_directory = os.path.join(MODELS_DIR, model.model_id)
@@ -16,7 +18,7 @@ def save_model(model: BaseModel):
 
     model_path = os.path.join(model_directory, "model.keras")
 
-    print(f"Saving model {model.model_id} to {model_directory}")
+    logger.info("Saving model %s to %s", model.model_id, model_directory)
 
     model.model.save(model_path)  # Using model.model since the "Model" type provides a save function
 
@@ -33,7 +35,7 @@ def save_model(model: BaseModel):
     with open(config_filepath, "w") as fp:
         json.dump(config, fp)
 
-    print("Model saved successfully, let the AI takeover BEGIN!!! >:D")
+    logger.info("Model saved successfully, let the AI takeover BEGIN!!! >:D")
 
 
 def load_model(name: str) -> BaseModel | None:

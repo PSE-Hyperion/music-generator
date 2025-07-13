@@ -1,3 +1,4 @@
+import logging
 from enum import Enum
 
 from prompt_toolkit import PromptSession
@@ -9,6 +10,7 @@ from music_generation_lstm import data_managment
 
 HELP_INSTRUCTIONS = "the following commands exists:"
 
+logger = logging.getLogger(__name__)
 
 class Command(Enum):
     """
@@ -62,9 +64,13 @@ def handle_generate(args: list[str]):
     #   Handles the generate command by calling corresponding controller function
     #   Usage: "-generate [model name] [input name] [desired output name]"
     #
+    
     if len(args) != ARGUMENTLENGTH_GENERATE:
         print("Incorrect use of the generate command.")
         print("Please use the correct format: -generate [model name] [input name] [desired output name]")
+    if len(args) != ARGUMENTLENGTH_GENERATE:
+        logger.error("Incorrect use of the generate command.")
+        logger.error("Please use the correct format: -generate [model name] [input name] [desired output name]")
 
     model_name = args[0]
     input_name = args[1]
@@ -151,9 +157,8 @@ def process_input(input: str):
 
     parts = input.split(" ")
 
-
     if len(parts) < 0:
-        print("Invalid input.Yayyy")
+        logger.error("Invalid input.")
         return
 
     command = parts[0]
@@ -162,13 +167,13 @@ def process_input(input: str):
     command = parse_command(command)
 
     if command is None:
-        print(f"Invalid command. {parts[0]} is not a command.")
+        logger.error("Invalid command. %s is not a command.", parts[0])
         return
 
     length = COMMAND_LENGTH.get(command)
 
     if length is None:
-        print("Command has no length assigned.")
+        logger.error("Command has no length assigned.")
         return
 
     if length != (len(parts) - 1):
@@ -178,7 +183,7 @@ def process_input(input: str):
     handler = COMMAND_HANDLERS.get(command)
 
     if handler is None:
-        print("Command has no handler assigned.")
+        logger.error("Command has no handler assigned.")
         return
 
     handler(args)
@@ -269,4 +274,4 @@ def start_session():
 
             process_input(u_input)
         except Exception as e:
-            print(f"[ERROR] {e}")
+            logger.error("%s", e)

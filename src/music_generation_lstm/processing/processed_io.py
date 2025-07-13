@@ -1,11 +1,14 @@
 import json
 import os
 import shutil
+import logging
 from typing import Final
 
 import numpy as np
 
 from music_generation_lstm.config import PROCESSED_DIR
+
+logger = logging.getLogger(__name__)
 
 JSON_METADATA_SHAPE: Final = "input_shape"
 JSON_METADATA_MAP_ID: Final = "map_id"
@@ -17,7 +20,7 @@ def save_processed_data(processed_dataset_id: str, music_path: str, X, y):
     target_folder_path = os.path.join(PROCESSED_DIR, processed_dataset_id, music_file_name)
     os.makedirs(target_folder_path, exist_ok=False)
     try:
-        print(f"Start saving processed dataset as {processed_dataset_id}...", end="\r")
+        logger.info("Start saving processed dataset as %s...", processed_dataset_id)
 
         # Save .npz file inside subfolder
         np.savez_compressed(os.path.join(target_folder_path, music_file_name), X=X, y=y)
@@ -32,13 +35,13 @@ def save_processed_data(processed_dataset_id: str, music_path: str, X, y):
         shutil.rmtree(target_folder_path)
         raise Exception(f"Failed to save tokenized data: {e}") from e
 
-    print(f"Finished saving processed dataset as {processed_dataset_id}.")
-    print(f"Input Shape: {X.shape}")
+    logger.info("Finished saving processed dataset as %s", processed_dataset_id)
+    logger.info("Input Shape: %s", X.shape)
 
 
 # Loads tokenized dataset and associated metadata for a given processed_dataset_id.
 def load_tokenized_data(processed_dataset_id: str):
-    print("Enter tokenized data getter")
+    logger.info("Enter tokenized data getter")
 
     target_folder_path = os.path.join(PROCESSED_DIR, processed_dataset_id)
     target_data_path = os.path.join(target_folder_path, processed_dataset_id + ".npz")
@@ -59,7 +62,7 @@ def load_tokenized_data(processed_dataset_id: str):
     data_input_shape = config[JSON_METADATA_SHAPE]
     data_map_id = config[JSON_METADATA_MAP_ID]
 
-    print("Tokenized data loaded")
+    logger.info("Tokenized data loaded")
 
     return X, y, data_input_shape, data_map_id
 
@@ -68,7 +71,7 @@ def load_tokenized_data(processed_dataset_id: str):
 def delete_data(name: str):
     data_dir = os.path.join(PROCESSED_DIR, name)
     if not os.path.exists(data_dir):
-        print(f"Deleting data {name} failed")
+        logger.error("Deleting data %s failed", name)
         return
     shutil.rmtree(data_dir)
 
@@ -79,7 +82,7 @@ def get_all_data_str_list() -> list[str]:
     os.makedirs(PROCESSED_DIR, exist_ok=True)
     for entry in os.listdir(PROCESSED_DIR):
         if not (entry == "metadata.json" or entry == ".gitkeep"):
-            print("This will never happen")
+            logger.error("This will never happen")
             data_str_list.append(entry)
 
     return data_str_list
