@@ -57,7 +57,6 @@ def train(model_id: str, processed_dataset_id: str):
 
     model = models.LSTMModel(model_id, input_shape)
     model.build(vocab_sizes=vocab_sizes)
-    print(model.model.input_shape)
 
     tr.train_model_eager(model, file_paths)
 
