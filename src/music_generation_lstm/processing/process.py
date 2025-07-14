@@ -6,6 +6,7 @@ from music_generation_lstm.processing.tokenization.tokenizer import Sixtuple, Si
 
 logger = logging.getLogger(__name__)
 
+
 class NumericSixtuple:
     def __init__(self, bar: int, position: int, pitch: int, duration: int, velocity: int, tempo: int):
         self._bar = bar
@@ -105,6 +106,25 @@ def sequenize(numeric_sixtuples: list[NumericSixtuple]):
 
     logger.info("Finished sequenizing")
     return X, y
+
+
+def sequence_to_model_input(sequence: list[tuple[int, int, int, int, int, int]]) -> dict[str, np.ndarray]:
+    """
+    Convert a sequence of numeric sixtuples to model input format
+    """
+
+    # Convert to numpy array
+    seq_array = np.array(sequence)
+
+    # Create input dictionary for the model
+    feature_names = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
+
+    model_input = {}
+    for i, feature_name in enumerate(feature_names):
+        # Add batch dimension (1, sequence_length)
+        model_input[feature_name] = seq_array[:, i].reshape(1, -1)
+
+    return model_input
 
 
 def reshape_X(X):
