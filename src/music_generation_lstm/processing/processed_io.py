@@ -67,25 +67,6 @@ def load_tokenized_data(processed_dataset_id: str):
     return X, y, data_input_shape, data_map_id
 
 
-def sequence_to_model_input(sequence: list[tuple[int, int, int, int, int, int]]) -> dict[str, np.ndarray]:
-    """
-    Convert a sequence of numeric sixtuples to model input format
-    """
-
-    # Convert to numpy array
-    seq_array = np.array(sequence)
-
-    # Create input dictionary for the model
-    feature_names = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
-
-    model_input = {}
-    for i, feature_name in enumerate(feature_names):
-        # Add batch dimension (1, sequence_length)
-        model_input[feature_name] = seq_array[:, i].reshape(1, -1)
-
-    return model_input
-
-
 # Deletes the entire folder of a tokenized dataset.
 def delete_data(name: str):
     data_dir = os.path.join(PROCESSED_DIR, name)

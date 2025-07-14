@@ -3,8 +3,8 @@ from dataclasses import dataclass
 import numpy as np
 from tensorflow.keras.models import Model  # type: ignore
 
-from music_generation_lstm.config import GENERATION_LENGTH, SEQUENCE_LENGTH
-from music_generation_lstm.processing.processed_io import sequence_to_model_input
+from music_generation_lstm.config import GENERATION_LENGTH
+from music_generation_lstm.processing.process import sequence_to_model_input
 from music_generation_lstm.processing.tokenization.token_map_io import load_token_maps
 from music_generation_lstm.processing.tokenization.tokenizer import Sixtuple
 
@@ -24,6 +24,9 @@ class MusicGenerator:
         self.model = model
         self.processed_dataset_id = processed_dataset_id
         self.temperature = temperature
+
+        first_input = model.inputs[0]
+        self.sequence_length = first_input.shape[1]
 
         # Load token maps, metadata and reverse mapping for this dataset
         self.token_maps, self.metadata, self.reverse_mappings = load_token_maps(processed_dataset_id)
@@ -47,7 +50,7 @@ class MusicGenerator:
         # Sample from the new distribution
         return np.random.choice(len(new_probabilities), p=new_probabilities)
 
-    def _predictions_to_sixtuple(self, predictions: list[np.ndarray]) -> Sixtuple:
+    def _predictions_to_sixtuple(self, predictions: ModelPredictions) -> Sixtuple:
         """
         Convert model predictions to a Sixtuple using temperature sampling
         """
@@ -98,8 +101,8 @@ class MusicGenerator:
         print(f"Starting generation with temperature: {self.temperature}")
         print(f"Generation length: {generation_length}")
 
-        if len(seed_sequence) != SEQUENCE_LENGTH:
-            raise ValueError(f"Seed sequence must be exactly {SEQUENCE_LENGTH} events long")
+        if len(seed_sequence) != self.sequence_length:
+            raise ValueError(f"Seed sequence must be exactly {self.sequence_length} events long")
 
         current_sequence = seed_sequence
         generated_events = []
