@@ -58,14 +58,14 @@ def train(model_id: str, processed_dataset_id: str):
     model = models.LSTMModel(model_id, input_shape)
     model.build(vocab_sizes=vocab_sizes)
 
-    tr.train_model(model, file_paths)
+    tr.train_model_eager(model, file_paths)
 
     save_model(model)
 
 
 def delete_dataset(dataset_id: str):
     """
-    Deletes a dataset given trough its dataset_id, will delete in data-> midi-> datasets 
+    Deletes a dataset given trough its dataset_id, will delete in data-> midi-> datasets
     deletes the empty dataset folder.
     """
     delete_dataset_data(dataset_id)
@@ -99,7 +99,7 @@ def show():
     #   generate with model using start sequence
     #   write result in folder
 
-    logger.info("show") 
+    logger.info("show")
 
 
 def exit():
