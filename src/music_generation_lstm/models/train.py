@@ -1,3 +1,4 @@
+import tensorflow as tf
 import numpy as np
 import logging
 from tensorflow.keras.callbacks import History  # type: ignore
@@ -91,3 +92,24 @@ def train_model(model: BaseModel, file_paths: list):
 
     if isinstance(history, History):
         plot.plot_training(history, model.model_id)
+
+def train_model_eager(model: BaseModel, file_paths: list):
+    full_data_X = []
+    full_data_y = []
+    full_data = {'X': full_data_X, 'y': full_data_y}
+    for path in file_paths:
+        data = np.load(path)
+        full_data_X.append(data['X'])
+        full_data_y.append(data['y'])
+    dataset_size = len(full_data_X)
+    dataset = tf.data.Dataset.from_tensor_slices(full_data)
+
+    dataset = dataset.batch(TRAINING_BATCH_SIZE)
+    dataset = dataset.shuffle(buffer_size=len(dataset_size))
+    dataset = dataset.prefetch(tf.data.AUTOTUNE)
+
+    history = model.model.fit(
+        dataset,
+        epochs=TRAINING_EPOCHS,
+        verbose=2
+    )
