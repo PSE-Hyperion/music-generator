@@ -1,3 +1,5 @@
+from pyexpat import features
+
 import tensorflow as tf
 import numpy as np
 import logging
@@ -94,18 +96,31 @@ def train_model(model: BaseModel, file_paths: list):
         plot.plot_training(history, model.model_id)
 
 def train_model_eager(model: BaseModel, file_paths: list):
-    full_data_X = []
-    full_data_y = []
-    full_data = {'X': full_data_X, 'y': full_data_y}
+    full_list_X = []
+    full_list_y = []
     for path in file_paths:
         data = np.load(path)
-        full_data_X.append(data['X'])
-        full_data_y.append(data['y'])
-    dataset_size = len(full_data_X)
-    dataset = tf.data.Dataset.from_tensor_slices(full_data)
+        full_list_X.append(data['X'])
+        full_list_y.append(data['y'])
+    full_array_X = np.concatenate(full_list_X)
+    full_array_y = np.concatenate(full_list_y)
+
+    assert full_array_X.shape[0] == full_array_y.shape[0]
+    dataset_size = full_array_X.shape[0]
+
+    X_dict = {
+        feature: full_array_X[:,:,idx]
+        for idx, feature in enumerate(['bar','position','pitch','duration','velocity','tempo'])
+    }
+    y_output = tuple(
+        full_array_y[:,idx]
+        for idx, feature in enumerate(['bar','position','pitch','duration','velocity','tempo'])
+    )
+
+    dataset = tf.data.Dataset.from_tensor_slices((X_dict, y_output))
 
     dataset = dataset.batch(TRAINING_BATCH_SIZE)
-    dataset = dataset.shuffle(buffer_size=len(dataset_size))
+    dataset = dataset.shuffle(buffer_size=dataset_size)
     dataset = dataset.prefetch(tf.data.AUTOTUNE)
 
     history = model.model.fit(
