@@ -1,60 +1,14 @@
 import logging
 
-import numpy as np
 from tensorflow.keras.callbacks import History  # type: ignore
 
 from music_generation_lstm.config import TRAINING_BATCH_SIZE, TRAINING_EPOCHS
 from music_generation_lstm.models import plot
 from music_generation_lstm.models.lazy_sequence_generator import LazySequenceGenerator
 from music_generation_lstm.models.models import BaseModel
+from music_generation_lstm.models.training_callback import TrainingCallback
 
 logger = logging.getLogger(__name__)
-
-
-def temperature():
-    pass
-
-
-def split_x_y(x, y):
-    #
-    #   Splits X and y into dictionaries of feature-wise arrays for model input and output
-    #
-
-    feature_names = ["type", "pitch", "duration", "delta_offset", "velocity", "instrument"]
-
-    x_dict = {feature_names[i]: x[:, :, i] for i in range(6)}
-
-    y_array = np.array(y, dtype=np.int32)
-    y_dict = {feature_names[i]: y_array[:, i] for i in range(6)}
-
-    return x_dict, y_dict
-
-
-def train_model_without_lazy(model: BaseModel, X, y):
-    #   trains the given model
-    #
-    #
-
-    logger.info("Start training %s...", model.model_id)
-    try:
-        x_dict, y_dict = split_x_y(X, y)
-
-        history = model.model.fit(
-            x_dict,
-            [y_dict[name] for name in ["type", "pitch", "duration", "delta_offset", "velocity", "instrument"]],
-            epochs=TRAINING_EPOCHS,
-            batch_size=TRAINING_BATCH_SIZE,
-            validation_split=0.1,
-            verbose=2,  # type: ignore[arg-type]
-            # try out 1 and 2. Terminal output is weird with all the different
-        )
-
-    except Exception as e:
-        raise Exception(f"Training failed {model.model_id} {e}") from e
-    #    if isinstance(history, History):
-    #        plot.plot_training(history, model.model_id)
-
-    return history
 
 
 def train_model(model: BaseModel, file_paths: list):
@@ -80,7 +34,8 @@ def train_model(model: BaseModel, file_paths: list):
             train_generator,
             epochs=TRAINING_EPOCHS,
             steps_per_epoch=steps_per_epoch,
-            verbose=2,  # type: ignore
+            verbose=0,  # type: ignore
+            callbacks=[TrainingCallback()],
             # Note: validation_split doesn't work with generators,
             # you'd need a separate validation generator (or other solution)
         )
