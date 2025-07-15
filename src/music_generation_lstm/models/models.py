@@ -1,9 +1,12 @@
+import logging
+
 from tensorflow.keras.layers import LSTM, Concatenate, Dense, Dropout, Embedding, Input  # type: ignore
 from tensorflow.keras.models import Model  # type: ignore
 from tensorflow.keras.optimizers import Adam
 
 from music_generation_lstm.config import LEARNING_RATE, SEQUENCE_LENGTH, TRAINING_ARCHITECTURE
 
+logger = logging.getLogger(__name__)
 
 class BaseModel:
     #   Base model class, that defines an abstract implementation of a model class

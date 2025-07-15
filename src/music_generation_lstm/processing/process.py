@@ -1,7 +1,10 @@
 import numpy as np
+import logging
 
 from music_generation_lstm.config import SEQUENCE_LENGTH
 from music_generation_lstm.processing.tokenization.tokenizer import Sixtuple, SixtupleTokenMaps
+
+logger = logging.getLogger(__name__)
 
 
 class NumericSixtuple:
@@ -43,7 +46,7 @@ def numerize(sixtuples: list[Sixtuple], sixtuple_token_maps: SixtupleTokenMaps) 
     #   Uses maps of the given tokenizer
     #
 
-    print("Start numerize...")
+    logger.info("Start numerize...")
 
     bar_map = sixtuple_token_maps.bar_map
     position_map = sixtuple_token_maps.position_map
@@ -64,7 +67,7 @@ def numerize(sixtuples: list[Sixtuple], sixtuple_token_maps: SixtupleTokenMaps) 
         )
         numeric_sixtuples.append(numeric_sixtuple)
 
-    print("Finished numerize.")
+    logger.info("Finished numerize.")
 
     return numeric_sixtuples
 
@@ -78,7 +81,7 @@ def sequenize(numeric_sixtuples: list[NumericSixtuple]):
     sequence X[i] is followed by y[i]
     """
 
-    print("Start sequenizing...")
+    logger.info("Start sequenizing...")
 
     X, y = [], []
 
@@ -102,8 +105,27 @@ def sequenize(numeric_sixtuples: list[NumericSixtuple]):
         X.append(input_seq)
         y.append(output_tuple)
 
-    print("Finished sequenizing")
+    logger.info("Finished sequenizing")
     return X, y
+
+
+def sequence_to_model_input(sequence: list[tuple[int, int, int, int, int, int]]) -> dict[str, np.ndarray]:
+    """
+    Convert a sequence of numeric sixtuples to model input format
+    """
+
+    # Convert to numpy array
+    seq_array = np.array(sequence)
+
+    # Create input dictionary for the model
+    feature_names = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
+
+    model_input = {}
+    for i, feature_name in enumerate(feature_names):
+        # Add batch dimension (1, sequence_length)
+        model_input[feature_name] = seq_array[:, i].reshape(1, -1)
+
+    return model_input
 
 
 def reshape_X(X):
@@ -111,11 +133,11 @@ def reshape_X(X):
     #   embedding layers expect integers, so we dont need to normalize
     #
 
-    print("Started reshaping...")
+    logger.info("Started reshaping...")
 
     X = np.array(X, dtype=np.int32)
 
-    print("Finished reshaping")
+    logger.info("Finished reshaping")
     return X
 
 

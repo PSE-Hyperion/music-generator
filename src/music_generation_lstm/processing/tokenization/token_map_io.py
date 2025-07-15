@@ -1,9 +1,12 @@
 import json
 import os
+import logging
 from typing import Final
 
 from music_generation_lstm.config import TOKEN_MAPS_DIR
 from music_generation_lstm.processing.tokenization.tokenizer import SixtupleTokenMaps
+
+logger = logging.getLogger(__name__)
 
 TOTAL_UNIQUE_BAR_TOKENS: Final = "total_unique_bar_tokens"
 TOTAL_UNIQUE_POSITION_TOKENS: Final = "total_unique_position_tokens"
@@ -21,11 +24,11 @@ def save_token_maps(processed_dataset_id: str, token_maps: SixtupleTokenMaps):
     You can find the file in TOKEN_MAPS_DIR plus id
     """
 
-    print("Start saving maps...")
+    logger.info("Start saving maps...")
 
     total_unique_tokens = token_maps.total_size
 
-    print(f"Total unique tokens: {total_unique_tokens}")
+    logger.info("Total unique tokens: %s", total_unique_tokens)
 
     folder_path = os.path.join(TOKEN_MAPS_DIR, processed_dataset_id)
     os.makedirs(folder_path, exist_ok=False)
@@ -59,38 +62,44 @@ def save_token_maps(processed_dataset_id: str, token_maps: SixtupleTokenMaps):
     with open(os.path.join(folder_path, "tempo_map.json"), "w") as f:
         json.dump(token_maps.tempo_map, f, indent=4)
 
-    print("Finished saving maps")
+    logger.info("Finished saving maps")
 
 
-def load_token_maps(processed_dataset_name: str) -> dict[str, dict[str, int]]:
+def load_token_maps(processed_dataset_id: str) -> tuple[dict, dict]:
     """
-    Receives the name of a dataset that has been processed.
-    Retreives the token maps corresponding to that dataset.
-    Creates and returns a dictionary with one item for each map (i.e. pitch, velocity etc.)
+    Load token maps, metadata and reverse mapping for a processed dataset
     """
-    # Set base path
-    processed_dataset_maps_path = os.path.join(TOKEN_MAPS_DIR, processed_dataset_name)
+    token_maps_dir = os.path.join(TOKEN_MAPS_DIR, processed_dataset_id)
 
-    # Retreive all maps
-    with open(os.path.join(processed_dataset_maps_path, "bar_map.json"), "r") as map:
-        bar_map = json.load(map)
-    with open(os.path.join(processed_dataset_maps_path, "position_map.json"), "r") as map:
-        position_map = json.load(map)
-    with open(os.path.join(processed_dataset_maps_path, "pitch_map.json"), "r") as map:
-        pitch_map = json.load(map)
-    with open(os.path.join(processed_dataset_maps_path, "duration_map.json"), "r") as map:
-        duration_map = json.load(map)
-    with open(os.path.join(processed_dataset_maps_path, "velocity_map.json"), "r") as map:
-        velocity_map = json.load(map)
-    with open(os.path.join(processed_dataset_maps_path, "tempo_map.json"), "r") as map:
-        tempo_map = json.load(map)
+    # Load metadata
+    metadata_path = os.path.join(token_maps_dir, "metadata.json")
+    if not os.path.exists(metadata_path):
+        raise FileNotFoundError(f"Token maps metadata not found: {metadata_path}")
 
-    # Return dictionary of maps
-    return {
-        "bar_map": bar_map,
-        "position_map": position_map,
-        "pitch_map": pitch_map,
-        "duration_map": duration_map,
-        "velocity_map": velocity_map,
-        "tempo_map": tempo_map,
-    }
+    with open(metadata_path) as f:
+        metadata = json.load(f)
+
+    # Load token maps
+    token_maps = {}
+    map_files = [
+        ("bar", "bar_map.json"),
+        ("position", "position_map.json"),
+        ("pitch", "pitch_map.json"),
+        ("duration", "duration_map.json"),
+        ("velocity", "velocity_map.json"),
+        ("tempo", "tempo_map.json"),
+    ]
+
+    for feature_name, filename in map_files:
+        map_path = os.path.join(token_maps_dir, filename)
+        if not os.path.exists(map_path):
+            raise FileNotFoundError(f"Token map not found: {map_path}")
+        with open(map_path) as f:
+            token_maps[feature_name] = json.load(f)
+
+    # Create reverse mappings
+    reverse_mappings = {}
+    for feature_name, token_map in token_maps.items():
+        reverse_mappings[feature_name] = {v: k for k, v in token_map.items()}
+
+    return token_maps, metadata, reverse_mappings

@@ -1,7 +1,11 @@
-import numpy as np
-from tensorflow.keras.utils import Sequence  # type: ignore
+import logging
 
-from music_generation_lstm.config import FEATURE_NAMES, NUMBER_OF_FEATURES
+import numpy as np
+from tensorflow.keras.utils import Sequence
+
+from music_generation_lstm.config import FEATURE_NAMES, NUMBER_OF_FEATURES  # type: ignore
+
+logger = logging.getLogger(__name__)
 
 
 class LazySequenceGenerator(Sequence):
