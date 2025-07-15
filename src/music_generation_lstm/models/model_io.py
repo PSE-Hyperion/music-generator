@@ -11,7 +11,7 @@ from music_generation_lstm.models.models import BaseModel
 logger = logging.getLogger(__name__)
 
 
-def save_model(model: BaseModel):
+def save_model(model: BaseModel, processed_dataset_id: str):
     model_directory = os.path.join(MODELS_DIR, model.model_id)
 
     # Make sure directory exists and if not, create it
@@ -27,6 +27,7 @@ def save_model(model: BaseModel):
     config = {
         "name": str(model.model_id),
         "input shape": str(model.get_input_shape()),
+        "processed_dataset_id": str(processed_dataset_id),
         # Further data will be saved here in future updates, such as model history,
         # input shape, time steps, features etc.
     }

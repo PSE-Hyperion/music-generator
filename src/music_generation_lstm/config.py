@@ -1,4 +1,5 @@
 from enum import Enum
+from enum import Enum
 from typing import Final
 
 
@@ -12,11 +13,16 @@ class TokenizeMode(Enum):
 
 SEQUENCE_LENGTH: Final = 8
 
-GENERATION_LENGTH: Final = 50
+GENERATION_LENGTH: Final = 1000
 
-TRAINING_EPOCHS: Final = 2
+TRAINING_EPOCHS: Final = 50
 
 TRAINING_BATCH_SIZE: Final = 12
+
+# temp= 0 -> immer das was predicted wird
+# temp > 1 -> mehr random und unwahrscheinlicherere noten
+# temp < 1 -> wahrscheinliche noten aber trotzdem bissl random
+GENERATION_TEMPERATURE: Final = 0.7
 
 ALLOWED_MUSIC_FILE_EXTENSIONS: Final = [".mid", ".midi"]
 
