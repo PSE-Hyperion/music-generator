@@ -1,13 +1,11 @@
+from fractions import Fraction
 import logging
 
-from fractions import Fraction
-
-from music21 import chord, note, stream, key, interval, pitch
+from music21 import chord, interval, key, note, pitch, stream
 from music21.tempo import MetronomeMark, TempoIndication
 
 from music_generation_lstm.config import CREATE_SHEET_MUSIC
 from music_generation_lstm.sheet_music_generator.sheet_music_generator import generate_sheet_music
-
 
 logger = logging.getLogger(__name__)
 
@@ -252,8 +250,10 @@ class SixtupleTokenMaps:
 
     def extend(self, sixtuples: list[Sixtuple]):
         """
-        Since the tokenizer tokenizes in batches, this method is used to extend the maps of features of a sixtuple after every new tokenization. That way, the tokenizer
-        keeps track of all unique sixtuple features across all tokenized scores. After having tokenized all scores, the maps can be saved with token_maps_io.py
+        Since the tokenizer tokenizes in batches, this method is used to extend the maps of features of a sixtuple
+        after every new tokenization. That way, the tokenizer
+        keeps track of all unique sixtuple features across all tokenized scores. After having tokenized all scores,
+        the maps can be saved with token_maps_io.py
         """
 
         logger.info("Start extending maps of tokens...")
@@ -405,25 +405,28 @@ class Tokenizer:
         for semitone_shift in range(12):
             transposed_score = score.transpose(semitone_shift)
             # extend the flat list instead of building a dict
-            all_tokens.extend(self.tokenize(transposed_score))
+            if transposed_score:
+                all_tokens.extend(self.tokenize(transposed_score))
+            else:
+                raise Exception("Couldn't transpose scor to semitone shift")
         return all_tokens
-
 
     def tokenize_cmajor_aminor(self, score: stream.Score) -> list[Sixtuple]:
         """
         Transpose every piece to C major (if originally major) or A minor (if originally minor),
         and return the tokens from that single transposition as a list.
         """
-        ks = score.analyze('key')              
-        tonic: pitch.Pitch = ks.tonic          
+        ks = score.analyze("key")
+        if isinstance(ks, key.Key):
+            tonic: pitch.Pitch = ks.tonic
 
-        if ks.mode == 'major':
-            target_tonic = pitch.Pitch('C')
-        else:
-            target_tonic = pitch.Pitch('A')
+            target_tonic = pitch.Pitch("C") if ks.mode == "major" else pitch.Pitch("A")
 
-        iv = interval.Interval(tonic, target_tonic)
-        transposed_score = score.transpose(iv)
+            iv = interval.Interval(tonic, target_tonic)
+            transposed_score = score.transpose(iv)
 
-        return self.tokenize(transposed_score)
+            if transposed_score:
+                return self.tokenize(transposed_score)
 
+            raise Exception("Transposition of score was unsuccessful and returned null.")
+        raise Exception("Analyzing of score was unsuccessful and didn't return a key.")

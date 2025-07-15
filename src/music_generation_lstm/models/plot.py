@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 
 from matplotlib import pyplot as plt
 from tensorflow.keras.callbacks import History  # type: ignore

@@ -1,14 +1,18 @@
 from __future__ import annotations
-import os
-import logging
-from music21 import stream
+
 from itertools import count
-from music_generation_lstm.config import OUTPUT_SHEET_MUSIC_DIR, CREATE_SHEET_MUSIC
+import logging
+import os
+
+from music21 import stream
+
+from music_generation_lstm.config import CREATE_SHEET_MUSIC, OUTPUT_SHEET_MUSIC_DIR
 
 logger = logging.getLogger(__name__)
 
 # Counter for automatic, sequential filenames
 SHEET_INDEX = count(0)
+
 
 def generate_sheet_music(
     score: stream.Stream,
@@ -35,5 +39,5 @@ def generate_sheet_music(
     index = next(SHEET_INDEX)
     filename = f"{prefix}{index}.xml"
     filepath = os.path.join(OUTPUT_SHEET_MUSIC_DIR, filename)
-    score.write('musicxml', fp=filepath)
-    logger.info(f"Wrote MusicXML to %s", filepath)
+    score.write("musicxml", fp=filepath)
+    logger.info("Wrote MusicXML to %s", filepath)
