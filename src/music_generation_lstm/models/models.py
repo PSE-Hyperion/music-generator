@@ -143,15 +143,3 @@ class LSTMModel(BaseModel):
 
         # Assign model to this Model object's LSTM model.
         self.model = built_model
-
-
-"""
-Notes:
-
-
-Make it so that in cli the person can input the type of model preset they want
-
-Make it so that config checks out, so like, you can change the epochs in the config and that's what happens
-or instead, just remove the epochs from the config entirely
-
-"""
