@@ -78,8 +78,8 @@ def delete_File(file_path):
     
 def delete_folder_contents(folder_path): #files or folders
     """
-    Deletes folder with contents
-    deletes the empty dataset folder.
+    Deletes folder with contents(files or more folders)
+    deletes not the empty folder
     """
     if not os.path.exists(folder_path):
         logger.info("Path does not exist.")
@@ -94,8 +94,7 @@ def delete_folder_contents(folder_path): #files or folders
         if os.path.isfile(content_path):
             os.remove(content_path)
 
-        elif os.path.isdir(content_path):#folder with folders inside
-
+        elif os.path.isdir(content_path): #folder with folders inside
             for file in os.listdir(content_path):
                 file_path = os.path.join(content_path, file)
                 if os.path.isfile(file_path):
@@ -107,7 +106,8 @@ def delete_folder_contents(folder_path): #files or folders
     
 
 def delete_empty_folder(folder_path):
-    os.rmdir(folder_path)# Delete empty folder
+    """deletes the empty folder"""
+    os.rmdir(folder_path)
 
  
 

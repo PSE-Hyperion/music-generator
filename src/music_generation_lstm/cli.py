@@ -86,8 +86,8 @@ def handle_show(args: list[str]):
 
 
 def handle_delete(args: list[str]):
-    #   Handles the delete command for a processed dataset
-    #   "-delete"
+    #   Handles the delete command for file, dataset, model, processed, it can delete all instances or one given trough the id
+    #   "-delete" file/dataset/model/processed id/all
     id = args[1]
     delete_subject = args[0]
     
@@ -113,7 +113,7 @@ def handle_exit():
 def complete_delete(arg_index, word, parts):
     #   commpletes delete command
     #   first suggestion is what you want to delete(file, dataset, processed, model)
-    #   second is the corresponding id
+    #   second is the corresponding id or all
 
     if arg_index == 0:
         for option in ["file", "dataset", "processed", "model"]:
@@ -253,7 +253,7 @@ COMMAND_HANDLERS = {
     Command.PROCESS: handle_process,  # -process dataset_id processed_id(new)
     Command.TRAIN: handle_train,  # -train model_id(new) processed_id
     Command.HELP: handle_help,  # -help
-    Command.DELETE: handle_delete,  # -delete file/dataset/processed/model ids
+    Command.DELETE: handle_delete,  # -delete file/dataset/processed/model ids/all
     Command.GENERATE: handle_generate,  # -generate model_id input result_id(new) (not implemented yet)
     Command.SHOW: handle_show,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
 }
@@ -261,7 +261,7 @@ COMMAND_LENGTHS = {
     Command.PROCESS: 2,  # -process dataset_id processed_id(new)
     Command.TRAIN: 2,  # -train model_id(new) processed_id
     Command.HELP: 0,
-    Command.DELETE: 2,  # file/dataset/processed/model ids
+    Command.DELETE: 2,  # file/dataset/processed/model ids/all
     Command.GENERATE: 3,  # -generate model_id input result_id(new) (not implemented yet)
     Command.SHOW: 0,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
 }
@@ -269,7 +269,7 @@ COMMAND_LENGTHS = {
 COMMAND_COMMPLETERS = {
     Command.PROCESS: complete_process,  # dataset_id processed_id(new)
     Command.TRAIN: complete_train,  # model_id, processed_id
-    Command.DELETE: complete_delete,  # file/ dataset/processed/model, ids
+    Command.DELETE: complete_delete,  # file/ dataset/processed/model, ids/all
     Command.HELP: complete_help,  # needs no completion
     Command.GENERATE: complete_generate,  # model_id, input, result_id(new)
     Command.SHOW: complete_show,  # not implemented
