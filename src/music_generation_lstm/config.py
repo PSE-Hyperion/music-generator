@@ -10,7 +10,7 @@ class TokenizeMode(Enum):
 
 # Hyperparameters
 
-SEQUENCE_LENGTH: Final = 32
+SEQUENCE_LENGTH: Final = 32  # Important to match processed dataset sequence length to model sequence length!!
 
 GENERATION_LENGTH: Final = 200
 
