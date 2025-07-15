@@ -19,8 +19,6 @@ def save_model(model: BaseModel, processed_dataset_id: str):
 
     model_path = os.path.join(model_directory, "model.keras")
 
-    logger.info("Saving model %s to %s", model.model_id, model_directory)
-
     model.model.save(model_path)  # Using model.model since the "Model" type provides a save function
 
     # Create configuration .json
@@ -37,7 +35,7 @@ def save_model(model: BaseModel, processed_dataset_id: str):
     with open(config_filepath, "w") as fp:
         json.dump(config, fp)
 
-    logger.info("Model saved successfully, let the AI takeover BEGIN!!! >:D")
+    logger.info("Model saved successfully.")
 
 
 def load_model(name: str) -> tuple[BaseModel, dict[str, str]]:

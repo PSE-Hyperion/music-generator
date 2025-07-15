@@ -1,7 +1,14 @@
 import logging
 import os
 
-from music_generation_lstm.config import DATASETS_MIDI_DIR, INPUT_MIDI_DIR, MODELS_DIR, RESULTS_MIDI_DIR, TOKEN_MAPS_DIR
+from music_generation_lstm.config import (
+    DATASETS_MIDI_DIR,
+    INPUT_MIDI_DIR,
+    MODELS_DIR,
+    RESULTS_MIDI_DIR,
+    TOKEN_MAPS_DIR,
+    PROCESSED_DIR,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -110,16 +117,15 @@ def add_result_id(result_id: str):
 
 
 def get_existing_result_ids():
-    for result in os.listdir(
-        RESULTS_MIDI_DIR
-    ):  # look at all the files in results, needed in case the programm got closed
+    # look at all the files in results, needed in case the programm got closed
+    for result in os.listdir(RESULTS_MIDI_DIR):
         if result != ".gitkeep":
             existing_result_ids.add(result)
     return sorted(existing_result_ids)
 
 
 def get_existing_processed_ids():
-    for processed in os.listdir(INPUT_MIDI_DIR):  # neede in case the programm got closed
+    for processed in os.listdir(PROCESSED_DIR):  # neede in case the programm got closed
         if processed != ".gitkeep":
             existing_dataset_ids.add(processed)
     return sorted(existing_dataset_ids)

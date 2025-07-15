@@ -1,9 +1,8 @@
+import logging
 from pyexpat import features
 
-import tensorflow as tf
 import numpy as np
-import logging
-
+import tensorflow as tf
 from tensorflow.keras.callbacks import History  # type: ignore
 
 from music_generation_lstm.config import TRAINING_BATCH_SIZE, TRAINING_EPOCHS
@@ -38,8 +37,8 @@ def train_model(model: BaseModel, file_paths: list):
             train_generator,
             epochs=TRAINING_EPOCHS,
             steps_per_epoch=steps_per_epoch,
-            verbose=0,  # type: ignore
-            callbacks=[TrainingCallback()],
+            verbose=2,  # type: ignore
+            # callbacks=[TrainingCallback()],
             # Note: validation_split doesn't work with generators,
             # you'd need a separate validation generator (or other solution)
         )
@@ -60,35 +59,41 @@ def train_model_eager(model: BaseModel, file_paths: list):
     It leads to better use of the computation units resources.
     It should be the most efficient way of training until the size of the dataset is at least 1 GB
     """
+
     try:
-        full_list_X = []
+        logger.info("Start gathering processed songs...")
+        full_list_x = []
         full_list_y = []
         # Collects all batches in one list
         for path in file_paths:
             data = np.load(path)
-            full_list_X.append(data["X"])
+            full_list_x.append(data["x"])
             full_list_y.append(data["y"])
         # Conversion into numpy arrays
-        full_array_X = np.concatenate(full_list_X)
+        full_array_x = np.concatenate(full_list_x)
         full_array_y = np.concatenate(full_list_y)
         # Assert that the formats of X and y arrays match
-        assert full_array_X.shape[0] == full_array_y.shape[0]
-        dataset_size = full_array_X.shape[0]
+        assert full_array_x.shape[0] == full_array_y.shape[0]
+        dataset_size = full_array_x.shape[0]
 
+        logger.info("Start converting...")
         # Conversion for the model
-        X_dict = {
-            feature: full_array_X[:, :, idx]
+        x_dict = {
+            feature: full_array_x[:, :, idx]
             for idx, feature in enumerate(["bar", "position", "pitch", "duration", "velocity", "tempo"])
         }
         y_output = tuple(
             full_array_y[:, idx]
             for idx, feature in enumerate(["bar", "position", "pitch", "duration", "velocity", "tempo"])
         )
-        dataset = tf.data.Dataset.from_tensor_slices((X_dict, y_output))
+        dataset = tf.data.Dataset.from_tensor_slices((x_dict, y_output))
 
+        logger.info("Start shuffling...")
         # Providing input for the model is now handled by Tensorflow since it's maximally optimized
         # Shuffle all samples
         dataset = dataset.shuffle(buffer_size=dataset_size)
+
+        logger.info("Start batching...")
         # Creating new batches of the data
         dataset = dataset.batch(TRAINING_BATCH_SIZE)
         # Automates how TF prefetches the batches for better resource use
@@ -96,6 +101,17 @@ def train_model_eager(model: BaseModel, file_paths: list):
         # this could have no effect at all (maybe on GPU training)
         dataset = dataset.prefetch(tf.data.AUTOTUNE)
 
-        history = model.model.fit(dataset, epochs=TRAINING_EPOCHS, verbose=2)
+        logger.info("Start training...")
+
+        training_callback = TrainingCallback()
+
+        # verbose set to 0, since we use custom callbacks instead
+        history = model.model.fit(dataset, epochs=TRAINING_EPOCHS, verbose=0, callbacks=[training_callback])
+
+        logger.info("Finished training %s", model.model_id)
+
+        if isinstance(history, History):
+            plot.plot_training(history, model.model_id)
+
     except Exception as e:
-        raise Exception(f"Training failed: {e}").with_traceback(e)
+        raise Exception(f"Training failed: {e}") from e
