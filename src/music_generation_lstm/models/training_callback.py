@@ -49,7 +49,7 @@ class TrainingCallback(callbacks.Callback):
 
         logs = logs or {}
 
-        outputs = {key.split("_")[0] for key in logs if key != "loss" and "_" in key}
+        outputs = sorted({key.split("_")[0] for key in logs if key != "loss" and "_" in key})
 
         header = [
             f"{'Epoch':<{TrainingCallback.EPOCH_COLUMN_WIDTH}}",
