@@ -88,13 +88,17 @@ def handle_show(args: list[str]):
 def handle_delete(args: list[str]):
     #   Handles the delete command for a processed dataset
     #   "-delete"
-    processed_dataset_file_id = args[1]
+    id = args[1]
     delete_subject = args[0]
 
     if delete_subject == "file":
-        controller.delete_result(processed_dataset_file_id)
+        controller.delete_result(id)
     elif delete_subject == "dataset":
-        controller.delete_dataset(processed_dataset_file_id)
+        controller.delete_dataset(id)
+    elif delete_subject == "model":
+        controller.delete_model(id)
+    elif delete_subject == "processed":
+        controller.delete_processed(id)
     else:
         logger.info(f"Invalid delete subject: {delete_subject}")
 
