@@ -10,11 +10,11 @@ class TokenizeMode(Enum):
 
 # Hyperparameters
 
-SEQUENCE_LENGTH: Final = 8  # Changed from 8/32
+SEQUENCE_LENGTH: Final = 32
 
 GENERATION_LENGTH: Final = 200
 
-TRAINING_EPOCHS: Final = 1
+TRAINING_EPOCHS: Final = 20
 
 TRAINING_BATCH_SIZE: Final = 12
 
@@ -28,10 +28,6 @@ ALLOWED_MUSIC_FILE_EXTENSIONS: Final = [".mid", ".midi"]
 FEATURE_NAMES = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
 
 NUMBER_OF_FEATURES = 6
-
-TRAINING_ARCHITECTURE = "BASIC"  # Options are, BASIC and ADVANCED
-
-LEARNING_RATE = 0.0003  # Default for Adam is 0.001
 
 # Paths
 
@@ -58,3 +54,64 @@ CREATE_SHEET_MUSIC: Final = False
 # TokenizeMode.ALL_KEYS   - if you want to create copies of the song in all 12 possible keys
 # TokenizeMode.C_MAJOR_A_MINOR  - if you want all songs to be in C major or A minor (Cmaj for major songs, Amin for minor songs)
 TOKENIZE_MODE = TokenizeMode.ORIGINAL
+
+# Model architecture presets as a mapping from preset name to its hyperparameter configuration
+
+# Each config dict includes:
+#   - sequence_length: int
+#   - lstm_units: int
+#   - num_lstm_layers: int
+#   - dropout_rate: float
+#   - learning_rate: float
+#   - batch_size: int
+#   - epochs: int
+#   - embedding_dims: dict[str, int]  # -> dict[feature name, embedding size]
+
+MODEL_PRESETS = {
+    "light": {
+        "sequence_length": 16,
+        "lstm_units": 64,
+        "num_lstm_layers": 1,
+        "dropout_rate": 0.1,
+        "learning_rate": 1e-3,  # This is the default for ADAM
+        "embedding_dims": {
+            "pitch": 16,
+            "duration": 8,
+            "velocity": 8,
+            "position": 8,
+            "bar": 4,
+            "tempo": 8,
+        },
+    },
+    "basic": {
+        "sequence_length": 32,
+        "lstm_units": 128,
+        "num_lstm_layers": 2,
+        "dropout_rate": 0.2,
+        "learning_rate": 1e-3,
+        "embedding_dims": {
+            "pitch": 32,
+            "duration": 16,
+            "velocity": 16,
+            "position": 16,
+            "bar": 8,
+            "tempo": 16,
+        },
+    },
+    "advanced": {
+        "sequence_length": 64,
+        "lstm_units": 512,
+        "num_lstm_layers": 3,
+        "dropout_rate": 0.3,
+        "learning_rate": 5e-4,
+        "embedding_dims": {
+            "pitch": 128,
+            "duration": 64,
+            "velocity": 64,
+            "position": 64,
+            "bar": 32,
+            "tempo": 64,
+        },
+    },
+    # Further presets can be added here
+}

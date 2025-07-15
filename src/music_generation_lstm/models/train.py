@@ -95,6 +95,7 @@ def train_model(model: BaseModel, file_paths: list):
     if isinstance(history, History):
         plot.plot_training(history, model.model_id)
 
+
 def train_model_eager(model: BaseModel, file_paths: list):
     """
     Loads all necessary data upfront.
@@ -108,8 +109,8 @@ def train_model_eager(model: BaseModel, file_paths: list):
         # Collects all batches in one list
         for path in file_paths:
             data = np.load(path)
-            full_list_X.append(data['X'])
-            full_list_y.append(data['y'])
+            full_list_X.append(data["X"])
+            full_list_y.append(data["y"])
         # Conversion into numpy arrays
         full_array_X = np.concatenate(full_list_X)
         full_array_y = np.concatenate(full_list_y)
@@ -119,12 +120,12 @@ def train_model_eager(model: BaseModel, file_paths: list):
 
         # Conversion for the model
         X_dict = {
-            feature: full_array_X[:,:,idx]
-            for idx, feature in enumerate(['bar','position','pitch','duration','velocity','tempo'])
+            feature: full_array_X[:, :, idx]
+            for idx, feature in enumerate(["bar", "position", "pitch", "duration", "velocity", "tempo"])
         }
         y_output = tuple(
-            full_array_y[:,idx]
-            for idx, feature in enumerate(['bar','position','pitch','duration','velocity','tempo'])
+            full_array_y[:, idx]
+            for idx, feature in enumerate(["bar", "position", "pitch", "duration", "velocity", "tempo"])
         )
         dataset = tf.data.Dataset.from_tensor_slices((X_dict, y_output))
 
@@ -138,11 +139,8 @@ def train_model_eager(model: BaseModel, file_paths: list):
         # this could have no effect at all (maybe on GPU training)
         dataset = dataset.prefetch(tf.data.AUTOTUNE)
 
-        history = model.model.fit(
-            dataset,
-            epochs=TRAINING_EPOCHS,
-            verbose=2
-        )
-    except Exception as e:
-        raise Exception(f"Training failed: {e}").with_traceback(e)
+        history = model.model.fit(dataset, epochs=TRAINING_EPOCHS, verbose=2)
 
+    except Exception as e:
+        # 'from e' will automatically carry over the original traceback
+        raise Exception(f"Training failed: {e}") from e

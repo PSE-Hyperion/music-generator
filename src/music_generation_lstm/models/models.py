@@ -1,12 +1,14 @@
 import logging
 
+import tensorflow as tf
 from tensorflow.keras.layers import LSTM, Concatenate, Dense, Dropout, Embedding, Input  # type: ignore
 from tensorflow.keras.models import Model  # type: ignore
 from tensorflow.keras.optimizers import Adam
 
-from music_generation_lstm.config import LEARNING_RATE, SEQUENCE_LENGTH, TRAINING_ARCHITECTURE
+from music_generation_lstm.config import MODEL_PRESETS
 
 logger = logging.getLogger(__name__)
+
 
 class BaseModel:
     #   Base model class, that defines an abstract implementation of a model class
@@ -33,102 +35,123 @@ class BaseModel:
 
 
 class LSTMModel(BaseModel):
-    #   LSTM model class, that implements the architecture of an lstm model
     #
+    # LSTM model class, that implements the architecture of an LSTM model
     #
 
     def __init__(self, model_id: str, input_shape: tuple[int, int]):
         super().__init__(model_id=model_id, input_shape=input_shape)
 
-    def build(self, vocab_sizes, embedding_dims=32, lstm_units=128):
-        #   Builds the architecture of the lstm model
-        #
-        #
+    def build(self, vocab_sizes: dict[str, int], preset_name: str = "basic"):
+        """
+        Builds the LSTMModel according to the hyperparameters defined
+        in MODEL_PRESETS[preset_name].
 
-        if TRAINING_ARCHITECTURE == "ADVANCED":
-            self.build_model(vocab_sizes=vocab_sizes)
-            return
-        print("Training using basic architecture")
+        Arguments:
+            vocab_sizes: A dict mapping each feature name to its vocabulary size.
+            preset_name: The key for the preset in MODEL_PRESETS to use.
+        """
 
-        # Inputs for each of the 6 features
-        input_layers = {name: Input(shape=(SEQUENCE_LENGTH,), name=f"{name}") for name in vocab_sizes}
+        if preset_name not in MODEL_PRESETS:
+            raise ValueError(f"Unknown preset '{preset_name}'. Available presets: {list(MODEL_PRESETS.keys())}")
 
-        # Embeddings for each feature
-        embedding_layers = {
-            name: Embedding(input_dim=vocab_sizes[name], output_dim=embedding_dims)(input_layers[name])
-            for name in vocab_sizes
+        logger.info(f"Training new model with the '{preset_name}' architecture preset.")
+
+        # Load configuration
+        config = MODEL_PRESETS[preset_name]
+
+        sequence_length: int = config["sequence_length"]
+        lstm_units: int = config["lstm_units"]
+        num_lstm_layers: int = config["num_lstm_layers"]
+        dropout_rate: float = config["dropout_rate"]
+        learning_rate: float = config["learning_rate"]
+        embedding_dims_config = config["embedding_dims"]  # Raw embedding dims, either an int or a dict
+
+        if isinstance(embedding_dims_config, int):
+            # If user gave a single integer, apply it to all features
+            embedding_dims: dict[str, int] = dict.fromkeys(vocab_sizes, embedding_dims_config)
+        else:
+            embedding_dims: dict[str, int] = embedding_dims_config
+
+        # Create one Input() per feature, each taking a sequence of tokens
+        input_layers = {
+            feature_name: Input(
+                shape=(sequence_length,),  # -> Ex: (32,)
+                name=feature_name,
+            )
+            for feature_name in vocab_sizes
         }
 
-        # Concatenate embedded features
-        x = Concatenate()(list(embedding_layers.values()))  # shape: (batch_size, sequence_length, embedding_dims * 6)
+        # Wrap each Input in an Embedding layer using each input's dimension
+        embedding_layers = {}
+        for feature_name, vocab_size in vocab_sizes.items():
+            # Look up how many dimensions we want for this feature
+            feature_embedding_dim = embedding_dims[feature_name]
 
-        # LSTM layers
-        x = LSTM(lstm_units, return_sequences=True)(x)
-        x = Dropout(0.2)(x)
-        x = LSTM(lstm_units)(x)
+            # Build the Embedding layer
+            embedded_tensor = Embedding(
+                input_dim=vocab_size,  # Size of this feature's vocabulary.
+                # Embedding matrix has [vocab_size] rows to choose from for each feature
+                output_dim=feature_embedding_dim,  # Ex: Pitch -> 128, Bar -> 8, etc.
+                name=f"{feature_name}_emb",  # Helps with debugging & saving
+            )(input_layers[feature_name])  # Apply embedding to the corresponding Input()
+            embedding_layers[feature_name] = embedded_tensor
 
-        # Output layer: predicting full next event as flattened 6 features
-        outputs = []
-        for name in vocab_sizes:
-            outputs.append(Dense(vocab_sizes[name], activation="softmax", name=f"{name}_output")(x))
-
-        self.model = Model(inputs=list(input_layers.values()), outputs=outputs)
-        self.model.compile(
-            loss="sparse_categorical_crossentropy",
-            optimizer="adam",
-            metrics={
-                "bar_output": "accuracy",
-                "position_output": "accuracy",
-                "pitch_output": "accuracy",
-                "duration_output": "accuracy",
-                "velocity_output": "accuracy",
-                "tempo_output": "accuracy",
-            },
+        # Concatenate all feature embeddings into one vector
+        # Resulting shape: (batch, sequence_length, sum_of_all_embedding_dims)
+        x = Concatenate(name="concat_all_embeddings")(
+            list(embedding_layers.values())  # Creates a list of all the embedded_tensors found in the dict.
         )
 
-    def build_model(
-        self,
-        vocab_sizes: dict,
-        sequence_length: int = SEQUENCE_LENGTH,  # Default for this architecture -> 32
-        embedding_dim: int = 64,
-        lstm_units: int = 256,
-        num_lstm_layers: int = 3,
-        dropout_rate: float = 0.20,
-    ):
-        print("Training using advanced architecture")
+        for layer_index in range(num_lstm_layers):
+            # Decide whether this LSTM layer should return the full sequence
+            # (needed by the next LSTM layer) or just the last output
+            is_last_layer = layer_index == num_lstm_layers - 1
+            return_sequences_flag = not is_last_layer
 
-        # Input + Embedding layers (one per feature)
-        inputs = {}
-        embedded = []
-        for feature, vocab_size in vocab_sizes.items():
-            inp = Input(shape=(sequence_length,), name=f"{feature}")
-            emb = Embedding(input_dim=vocab_size, output_dim=embedding_dim, name=f"{feature}_emb")(inp)
-            inputs[feature] = inp
-            embedded.append(emb)
+            # Build the LSTM layer
+            # - units: how many hidden units in this layer
+            # - return_sequences: True for all but the last layer, so layers have temporal knowledge
+            x = LSTM(units=lstm_units, return_sequences=return_sequences_flag, name=f"lstm_layer_{layer_index + 1}")(x)
 
-        # Concatenate all embeddings along the feature axis
-        x = Concatenate(name="concat_embeddings")(embedded)
+            # Add a Dropout layer to avoid overfitting.
+            x = Dropout(rate=dropout_rate, name=f"dropout_after_lstm_{layer_index + 1}")(x)
 
-        # Stacked LSTM layers with dropout
-        for layer_idx in range(num_lstm_layers):
-            # return_sequences=True except on the final layer
-            return_sequences = layer_idx < num_lstm_layers - 1
+            # Add a per feature dense layer
+        output_tensors = []
+        for feature_name, vocab_size in vocab_sizes.items():
+            # Build a Dense softmax head for this feature
+            dense_output = Dense(
+                units=vocab_size,  # Number of classes for this feature
+                activation="softmax",  # We want a probability distribution
+                name=f"{feature_name}_output",
+            )(x)  # apply to the last LSTM/Dropout output
+            output_tensors.append(dense_output)
 
-            x = LSTM(units=lstm_units, return_sequences=return_sequences, name=f"lstm_{layer_idx + 1}")(x)
-            x = Dropout(rate=dropout_rate, name=f"dropout_{layer_idx + 1}")(x)
-
-        # Separate Dense heads for each feature
-        outputs = []
-        for feature, vocab_size in vocab_sizes.items():
-            out = Dense(units=vocab_size, activation="softmax", name=f"{feature}_output")(x)
-            outputs.append(out)
-
-        # Compile losses & metrics for each feature
-        built_model = Model(inputs=list(inputs.values()), outputs=outputs, name="midi_sixtuple_lstm")
-        optimizer_selection = Adam(learning_rate=LEARNING_RATE)
-        built_model.compile(
-            optimizer=optimizer_selection,
-            loss={f"{feature}_out": "sparse_categorical_crossentropy" for feature in vocab_sizes},
-            metrics={f"{feature}_out": "accuracy" for feature in vocab_sizes},
+        # Create the model object
+        built_model = Model(
+            inputs=list(input_layers.values()), outputs=output_tensors, name=f"{self.model_id}_midi_lstm"
         )
+
+        # Prepare and set the loss function and metrics for each output
+        loss_dict = {f"{feature_name}_output": "sparse_categorical_crossentropy" for feature_name in vocab_sizes}
+        metric_dict = {f"{feature_name}_output": "accuracy" for feature_name in vocab_sizes}
+
+        # Compile model using the specified learning rate
+        optimizer = Adam(learning_rate=learning_rate)
+        built_model.compile(optimizer=optimizer, loss=loss_dict, metrics=metric_dict)
+
+        # Assign model to this Model object's LSTM model.
         self.model = built_model
+
+
+"""
+Notes:
+
+
+Make it so that in cli the person can input the type of model preset they want
+
+Make it so that config checks out, so like, you can change the epochs in the config and that's what happens
+or instead, just remove the epochs from the config entirely
+
+"""

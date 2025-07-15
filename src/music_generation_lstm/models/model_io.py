@@ -1,14 +1,12 @@
 import json
+import logging
 import os
 import shutil
-import logging
 
 from tensorflow.keras.models import load_model as load_keras_model
 
 from music_generation_lstm.config import MODELS_DIR
 from music_generation_lstm.models.models import BaseModel
-
-logger = logging.getLogger(__name__)
 
 logger = logging.getLogger(__name__)
 

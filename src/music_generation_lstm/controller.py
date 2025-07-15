@@ -30,7 +30,7 @@ def process(dataset_id: str, processed_dataset_id: str):
     parallel_processing.parallel_process(dataset_id, processed_dataset_id)
 
 
-def train(model_id: str, processed_dataset_id: str):
+def train(model_id: str, processed_dataset_id: str, preset_name: str):
     """
     Step 1:   Get processed datasets .npz file paths via provided processed_dataset_id
 
@@ -65,7 +65,7 @@ def train(model_id: str, processed_dataset_id: str):
         input_shape = data["X"].shape[1:]  # Remove batch dimension
 
     model = models.LSTMModel(model_id, input_shape)
-    model.build(vocab_sizes=vocab_sizes)
+    model.build(vocab_sizes=vocab_sizes, preset_name=preset_name)
 
     tr.train_model_eager(model, file_paths)
 
