@@ -76,7 +76,7 @@ def delete_File(file_path):
         raise RuntimeError(f"Failed to delete file '{file_path}': {e}")
 
     
-def delete_folder_contents(folder_path):
+def delete_folder_contents(folder_path): #files or folders
     """
     Deletes folder with contents
     deletes the empty dataset folder.
@@ -89,12 +89,20 @@ def delete_folder_contents(folder_path):
         logger.info(f"{folder_path} is not a directory.")
 
     
-    for file in os.listdir(folder_path): # Delete all files
-        file_path = os.path.join(folder_path, file)
-        if os.path.isfile(file_path):
-            os.remove(file_path)
+    for content in os.listdir(folder_path): # Delete all files
+        content_path = os.path.join(folder_path, content)
+        if os.path.isfile(content_path):
+            os.remove(content_path)
+
+        elif os.path.isdir(content_path):#folder with folders inside
+
+            for file in os.listdir(content_path):
+                file_path = os.path.join(content_path, file)
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+            delete_empty_folder(content_path)
         else:
-            logger.info(f"Could not remove: {file_path}")
+            logger.info(f"Could not remove: {content_path}")
     
     
 

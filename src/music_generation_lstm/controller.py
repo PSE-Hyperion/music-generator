@@ -75,7 +75,7 @@ def train(model_id: str, processed_dataset_id: str):
 def delete_dataset(dataset_id: str):
     """Deletes a dataset given trough its dataset_id, will delete in data-> midi-> datasets
     """
-    if(id == "all"):
+    if(dataset_id == "all"):
         delete_all_datasets()
     else:
         delete_dataset_data(dataset_id)
@@ -83,7 +83,7 @@ def delete_dataset(dataset_id: str):
 def delete_result(result_id: str):
     """Deletes a file given trough the result_id, will delete in data -> midi -> results
     """
-    if(id == "all"):
+    if(result_id == "all"):
         delete_all_results()
     else:
         delete_result_data(result_id)
@@ -91,7 +91,7 @@ def delete_result(result_id: str):
 def delete_processed(processed_id: str):
     """Deletes a processed given trough the processed_id, will delete in data -> processed
     """
-    if(id == "all"):
+    if(processed_id == "all"):
         delete_all_processed()
     else:
         delete_processed_data(processed_id)
@@ -99,7 +99,7 @@ def delete_processed(processed_id: str):
 def delete_model(model_id: str):
     """Deletes a model given trough the model_id, will delete in data -> models
     """
-    if(id == "all"):
+    if(model_id == "all"):
         delete_all_models()
     else:
         delete_model_data(model_id)
