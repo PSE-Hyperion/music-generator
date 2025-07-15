@@ -59,6 +59,9 @@ def delete_all_models():
 def delete_all_datasets():
     delete_folder_contents(DATASETS_MIDI_DIR)
 
+def delete_all_processed():
+    delete_folder_contents(PROCESSED_DIR)
+
 def delete_File(file_path):
     """
     Deletes a file given trough the file ID

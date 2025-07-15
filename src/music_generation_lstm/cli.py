@@ -90,7 +90,7 @@ def handle_delete(args: list[str]):
     #   "-delete"
     id = args[1]
     delete_subject = args[0]
-
+    
     if delete_subject == "file":
         controller.delete_result(id)
     elif delete_subject == "dataset":
@@ -121,6 +121,9 @@ def complete_delete(arg_index, word, parts):
                 yield Completion(option, start_position=-len(word))
 
     elif arg_index == 1:
+        if "all".startswith(word): # add 'all' option for deleting everything
+            yield Completion("all", start_position=-len(word))
+
         if len(parts) < 2:
             return
 
@@ -133,7 +136,6 @@ def complete_delete(arg_index, word, parts):
             id_completion(data_managment.get_existing_processed_ids(), word)
         elif delete_type == "model":
             id_completion(data_managment.get_existing_model_ids(), word)
-
         id_sources = {
             "file": data_managment.get_existing_result_ids,
             "dataset": data_managment.get_existing_dataset_ids,
