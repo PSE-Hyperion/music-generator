@@ -29,6 +29,11 @@ class TrainingCallback(callbacks.Callback):
         Called once before the first epoch to log training start.
         """
         logger.info("Started training...")
+
+    def on_epoch_begin(self, epoch, logs=None):  # noqa: ARG002
+        """
+        Called on epoch begin to save epoch start time
+        """
         self._start_time = time.time()
 
     def on_epoch_end(self, epoch, logs: dict[str, float] | None = None) -> None:
@@ -64,7 +69,6 @@ class TrainingCallback(callbacks.Callback):
         end_time = time.time()
         duration = end_time - self._start_time
         mins, secs = divmod(duration, 60)
-        self._start_time = end_time
 
         values = [
             f"{epoch + 1:<{TrainingCallback.EPOCH_COLUMN_WIDTH}}",
