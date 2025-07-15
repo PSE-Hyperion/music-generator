@@ -1,8 +1,10 @@
-import numpy as np
 import logging
+
+import numpy as np
 from tensorflow.keras.utils import Sequence  # type: ignore
 
 logger = logging.getLogger(__name__)
+
 
 class LazySequenceGenerator(Sequence):
     """

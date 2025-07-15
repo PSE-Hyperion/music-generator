@@ -1,10 +1,12 @@
-from typing import Final
 from enum import Enum
+from typing import Final
+
 
 class TokenizeMode(Enum):
-    ORIGINAL         = 1
-    ALL_KEYS         = 2
-    C_MAJOR_A_MINOR  = 3
+    ORIGINAL = 1
+    ALL_KEYS = 2
+    C_MAJOR_A_MINOR = 3
+
 
 # Hyperparameters
 
@@ -42,5 +44,6 @@ CREATE_SHEET_MUSIC: Final = False
 # choose how to transpose the data here. Set TOKENIZE_MODE to:
 # TokenizeMode.ORIGINAL   - if you want to keep the song's key intact.
 # TokenizeMode.ALL_KEYS   - if you want to create copies of the song in all 12 possible keys
-# TokenizeMode.C_MAJOR_A_MINOR  - if you want all songs to be in C major or A minor (Cmaj for major songs, Amin for minor songs) 
+# TokenizeMode.C_MAJOR_A_MINOR  - if you want all songs to be in C major or A minor
+# (Cmaj for major songs, Amin for minor songs)
 TOKENIZE_MODE = TokenizeMode.ORIGINAL

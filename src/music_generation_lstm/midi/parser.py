@@ -1,6 +1,6 @@
 import glob
-import os
 import logging
+import os
 
 from music21 import converter, stream
 

@@ -1,14 +1,15 @@
 import json
+import logging
 import os
 import shutil
-import logging
 
-from tensorflow.keras.models import load_model as load_keras_model
+from tensorflow.keras.models import load_model as load_keras_model  # type: ignore
 
 from music_generation_lstm.config import MODELS_DIR
 from music_generation_lstm.models.models import BaseModel
 
 logger = logging.getLogger(__name__)
+
 
 def save_model(model: BaseModel):
     model_directory = os.path.join(MODELS_DIR, model.model_id)
@@ -24,8 +25,8 @@ def save_model(model: BaseModel):
 
     # Create configuration .json
     config = {
-        "name": model.model_id,
-        "input shape": model.get_input_shape(),
+        "name": str(model.model_id),
+        "input shape": str(model.get_input_shape()),
         # Further data will be saved here in future updates, such as model history,
         # input shape, time steps, features etc.
     }
@@ -38,7 +39,7 @@ def save_model(model: BaseModel):
     logger.info("Model saved successfully, let the AI takeover BEGIN!!! >:D")
 
 
-def load_model(name: str) -> BaseModel | None:
+def load_model(name: str) -> tuple[BaseModel, dict[str, str]]:
     model_dir = os.path.join(MODELS_DIR, name)
     metadata_path = os.path.join(model_dir, "config.json")
     model_path = os.path.join(model_dir, "model.keras")
@@ -74,7 +75,7 @@ def get_all_models_str_list() -> list[str]:
     models_str_list = []
     os.makedirs(MODELS_DIR, exist_ok=True)
     for entry in os.listdir(MODELS_DIR):
-        if not (entry == "metadata.json" or entry == ".gitkeep"):
+        if entry not in {"metadata.json", ".gitkeep"}:
             models_str_list.append(entry)
 
     return models_str_list

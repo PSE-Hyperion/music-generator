@@ -1,6 +1,6 @@
 import json
-import os
 import logging
+import os
 from typing import Final
 
 from music_generation_lstm.config import TOKEN_MAPS_DIR

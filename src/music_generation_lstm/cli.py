@@ -1,16 +1,15 @@
-import logging
 from enum import Enum
+import logging
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
 
-from music_generation_lstm import controller
-from music_generation_lstm import data_managment
-
+from music_generation_lstm import controller, data_managment
 
 HELP_INSTRUCTIONS = "the following commands exists:"
 
 logger = logging.getLogger(__name__)
+
 
 class Command(Enum):
     """
@@ -64,7 +63,7 @@ def handle_generate(args: list[str]):
     #   Handles the generate command by calling corresponding controller function
     #   Usage: "-generate [model name] [input name] [desired output name]"
     #
-    
+
     if len(args) != ARGUMENTLENGTH_GENERATE:
         logger.info("Incorrect use of the generate command.")
         logger.info("Please use the correct format: -generate [model name] [input name] [desired output name]")
@@ -101,22 +100,22 @@ def handle_delete(args: list[str]):
 
 
 def handle_exit():
-   #   Handles the exit command
-   #   "-exit"
-   #
-   controller.exit()
+    #   Handles the exit command
+    #   "-exit"
+    #
+    controller.exit()
 
 
 def complete_delete(arg_index, word, parts):
     #   commpletes delete command
     #   first suggestion is what you want to delete(file, dataset, processed, model)
-    #   second is the corresponding id 
+    #   second is the corresponding id
 
     if arg_index == 0:
         for option in ["file", "dataset", "processed", "model"]:
             if option.startswith(word):
                 yield Completion(option, start_position=-len(word))
-                
+
     if arg_index == 1:
         delete_type = parts[1]
         if delete_type == "file":
@@ -127,32 +126,31 @@ def complete_delete(arg_index, word, parts):
             id_completion(data_managment.get_existing_processed_ids(), word)
         elif delete_type == "model":
             id_completion(data_managment.get_existing_model_ids(), word)
-    
 
-def complete_process(arg_index,word, parts):
-    # completes process command 
-    # first the all possible dataset-id 
+
+def complete_process(arg_index, word, parts):
+    # completes process command
+    # first the all possible dataset-id
     # second the new processed id
     if arg_index == 0:
         id_completion(data_managment.get_existing_dataset_ids(), word)
     if arg_index == 1:
-        yield Completion("[(new) processed id]", start_position = -len(word))
-    
-        
-        
+        yield Completion("[(new) processed id]", start_position=-len(word))
+
+
 def complete_train(arg_index, word, parts):
-    # completes train command 
+    # completes train command
     # first  the new model id
     # second the all possible processed-id
     if arg_index == 0:
-        yield Completion("[(new) model id]", start_position = -len(word))
+        yield Completion("[(new) model id]", start_position=-len(word))
     if arg_index == 1:
         id_completion(data_managment.get_existing_processed_ids(), word)
-   
+
 
 def complete_generate(arg_index, word, parts):
-    # completes generate command 
-    # first  the all possible model_id input 
+    # completes generate command
+    # first  the all possible model_id input
     # second all possible input
     # third new results_id
     if arg_index == 0:
@@ -160,19 +158,22 @@ def complete_generate(arg_index, word, parts):
     if arg_index == 1:
         id_completion(data_managment.get_existing_processed_ids(), word)
     if arg_index == 2:
-        yield Completion("[(new) results id]", start_position = -len(word))
-    
+        yield Completion("[(new) results id]", start_position=-len(word))
+
+
 def complete_show(arg_index, word, parts):
-    # completes show command 
+    # completes show command
     if arg_index == 0:
         for option in ["models", "raw_datasets", "results", "processed_datasets"]:
             if option.startswith(word):
                 yield Completion(option, start_position=-len(word))
 
+
 def id_completion(existing_ids, word):
     for id in existing_ids:
-            if id.startswith(word):
-                yield Completion(id, start_position = -len(word))
+        if id.startswith(word):
+            yield Completion(id, start_position=-len(word))
+
 
 def complete_help():
     logger.info("I dont know, nothing to complete")
@@ -232,8 +233,8 @@ def process_input(input: str):
 COMMAND_HANDLERS = {
     Command.PROCESS: handle_process,  # -process dataset_id processed_id(new)
     Command.TRAIN: handle_train,  # -train model_id(new) processed_id
-    Command.HELP: handle_help, # -help
-    Command.DELETE: handle_delete, # -delete file/dataset/processed/model ids
+    Command.HELP: handle_help,  # -help
+    Command.DELETE: handle_delete,  # -delete file/dataset/processed/model ids
     Command.GENERATE: handle_generate,  # -generate model_id input result_id(new) (not implemented yet)
     Command.SHOW: handle_show,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
 }
@@ -249,10 +250,10 @@ COMMAND_LENGTH = {
 COMMAND_COMMPLETER = {
     Command.PROCESS: complete_process,  # dataset_id processed_id(new)
     Command.TRAIN: complete_train,  # model_id, processed_id
-    Command.DELETE: complete_delete, # file/ dataset/processed/model, ids
+    Command.DELETE: complete_delete,  # file/ dataset/processed/model, ids
     Command.HELP: complete_help,  # needs no completion
-    Command.GENERATE: complete_generate,  # model_id, input, result_id(new) 
-    Command.SHOW: complete_show # not implemented
+    Command.GENERATE: complete_generate,  # model_id, input, result_id(new)
+    Command.SHOW: complete_show,  # not implemented
 }
 
 
@@ -269,17 +270,15 @@ class CommandCompleter(Completer):
         command = parts[0]
         command_enum = parse_command(command)
 
-        
         if len(parts) == 1 and not text.endswith(" "):  # command name(-delete, -train, ...)
             current_word = parts[0]
             for command in Command:
                 if command.value.startswith(current_word):
-                    yield Completion(command.value, start_position = -len(current_word))
+                    yield Completion(command.value, start_position=-len(current_word))
             return
 
-        
-        if command_enum in COMMAND_COMMPLETER: # arguments (ids, file, ...)
-            if text.endswith(" "): # " " gedrückt zwischen argumenten
+        if command_enum in COMMAND_COMMPLETER:  # arguments (ids, file, ...)
+            if text.endswith(" "):  # " " gedrückt zwischen argumenten
                 current_word = ""
                 arg_index = len(parts) - 1
             else:
@@ -291,11 +290,6 @@ class CommandCompleter(Completer):
                 yield from completer(arg_index, current_word, parts)
             except Exception as e:
                 logger.error(f"[Completion Error] {e}")
-
-
-
-        
-        
 
 
 def start_session():

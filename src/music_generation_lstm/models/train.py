@@ -1,5 +1,6 @@
-import numpy as np
 import logging
+
+import numpy as np
 from tensorflow.keras.callbacks import History  # type: ignore
 
 from music_generation_lstm.config import TRAINING_BATCH_SIZE, TRAINING_EPOCHS
@@ -14,19 +15,19 @@ def temperature():
     pass
 
 
-def split_X_y(X, y):
+def split_x_y(x, y):
     #
     #   Splits X and y into dictionaries of feature-wise arrays for model input and output
     #
 
     feature_names = ["type", "pitch", "duration", "delta_offset", "velocity", "instrument"]
 
-    X_dict = {feature_names[i]: X[:, :, i] for i in range(6)}
+    x_dict = {feature_names[i]: x[:, :, i] for i in range(6)}
 
     y_array = np.array(y, dtype=np.int32)
     y_dict = {feature_names[i]: y_array[:, i] for i in range(6)}
 
-    return X_dict, y_dict
+    return x_dict, y_dict
 
 
 def train_model_without_lazy(model: BaseModel, X, y):
@@ -36,10 +37,10 @@ def train_model_without_lazy(model: BaseModel, X, y):
 
     logger.info("Start training %s...", model.model_id)
     try:
-        X_dict, y_dict = split_X_y(X, y)
+        x_dict, y_dict = split_x_y(X, y)
 
         history = model.model.fit(
-            X_dict,
+            x_dict,
             [y_dict[name] for name in ["type", "pitch", "duration", "delta_offset", "velocity", "instrument"]],
             epochs=TRAINING_EPOCHS,
             batch_size=TRAINING_BATCH_SIZE,
@@ -49,7 +50,7 @@ def train_model_without_lazy(model: BaseModel, X, y):
         )
 
     except Exception as e:
-        raise Exception(f"Training failed {model.model_id} {e}")
+        raise Exception(f"Training failed {model.model_id} {e}") from e
     #    if isinstance(history, History):
     #        plot.plot_training(history, model.model_id)
 
@@ -85,7 +86,7 @@ def train_model(model: BaseModel, file_paths: list):
         )
 
     except Exception as e:
-        raise Exception(f"Training failed: {e}")
+        raise Exception(f"Training failed: {e}") from e
 
     logger.info("Finished training %s", model.model_id)
 
