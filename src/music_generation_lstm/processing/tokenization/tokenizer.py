@@ -73,75 +73,85 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
     current_offset = 0.0  # absolute
     current_tempo = None
 
-    # Group events by position for chord reconstruction
-    pending_notes: dict[float, list[Sixtuple]] = {}
+    """
+    Group events by position and for chord reconstruction (also considers duration).
+
+    Saves note events by their starting time and then by their duration (to differentiate between chords and
+    simultainous notes)
+    """
+    chords_and_notes: dict[float, dict[float, list[Sixtuple]]] = {}
 
     for event in sixtuples:
         bar_num = int(event.bar.split("_")[1])
         position_16th = int(event.position.split("_")[1])
+        duration = float(Fraction(event.duration.split("_")[1]))
 
         # Convert to absolute offset, assuming 4/4
         # Das ist so schön
         abs_offset = bar_num * 4.0 + position_16th / 4.0
 
-        # Collect all notes, playing at the same absolute offset
-        if abs_offset not in pending_notes:
-            pending_notes[abs_offset] = []
-        pending_notes[abs_offset].append(event)
+        """
+        Start collect all notes, playing at the same absolute offset, differentiating between
+        notes froming a chord and simultanious notes (of different duration)
+        """
+        if abs_offset not in chords_and_notes:
+            chords_and_notes[abs_offset] = {}
+
+        if duration not in chords_and_notes[abs_offset]:
+            chords_and_notes[abs_offset][duration] = []
+
+        chords_and_notes[abs_offset][duration].append(event)
 
     # Sort dictionary by it's absolute offset keys, to iterate in correct order
-    sorted_offsets = sorted(pending_notes.keys())
-
+    sorted_offsets = sorted(chords_and_notes.keys())
     # Big loop, inserting multiple events, if needed, per iteration into the stream
     for abs_offset in sorted_offsets:
-        events_at_position = pending_notes[abs_offset]
+        events_at_position = chords_and_notes[abs_offset]
 
-        # Check if tempo has changed at this position
-        if events_at_position:
-            tempo_value = int(events_at_position[0].tempo.split("_")[1])
-            if current_tempo != tempo_value:
-                current_tempo = tempo_value
-                s.insert(abs_offset, TempoIndication(number=current_tempo))
-                s.insert(abs_offset, MetronomeMark(number=current_tempo))
+        for duration in events_at_position:
+            events_same_duration = events_at_position[duration]
 
-        # Add rest if there's a gap
-        if abs_offset > current_offset:
-            rest_duration = abs_offset - current_offset
-            if rest_duration > 0:
-                s.insert(current_offset, note.Rest(quarterLength=rest_duration))
+            # Check if tempo has changed at this position
+            if events_same_duration:
+                tempo_value = int(events_same_duration[0].tempo.split("_")[1])
+                if current_tempo != tempo_value:
+                    current_tempo = tempo_value
+                    s.insert(abs_offset, TempoIndication(number=current_tempo))
+                    s.insert(abs_offset, MetronomeMark(number=current_tempo))
 
-        # Big if single note or chord, consisting of multiple notes
-        # Single note:
-        if len(events_at_position) == 1:
-            event = events_at_position[0]
-            pitch_midi = int(event.pitch.split("_")[1])
-            duration = float(Fraction(event.duration.split("_")[1]))
-            velocity = int(event.velocity.split("_")[1])
+            # Add rest if there's a gap
+            if abs_offset > current_offset:
+                rest_duration = abs_offset - current_offset
+                if rest_duration > 0:
+                    s.insert(current_offset, note.Rest(quarterLength=rest_duration))
 
-            n = note.Note(midi=pitch_midi, quarterLength=duration)
-            n.volume.velocity = velocity
-            s.insert(abs_offset, n)
-
-        else:
-            # Chord:
-            pitches = []
-            duration = None
-            velocity = None
-
-            for event in events_at_position:
+            # Big if single note or chord, consisting of multiple notes
+            # Single note:
+            if len(events_same_duration) == 1:
+                event = events_same_duration[0]
                 pitch_midi = int(event.pitch.split("_")[1])
-                pitches.append(pitch_midi)
-                if duration is None:
-                    duration = float(Fraction(event.duration.split("_")[1]))
+                velocity = int(event.velocity.split("_")[1])
+
+                n = note.Note(midi=pitch_midi, quarterLength=duration)
+                n.volume.velocity = velocity
+                s.insert(abs_offset, n)
+
+            else:
+                # Chord:
+                pitches: list[int] = []
+                velocity: int
+
+                for event in events_same_duration:
+                    pitch_midi = int(event.pitch.split("_")[1])
+                    pitches.append(pitch_midi)
                     velocity = int(event.velocity.split("_")[1])
 
-            c = chord.Chord(pitches, quarterLength=duration)
-            c.volume.velocity = velocity
-            s.insert(abs_offset, c)
+                c = chord.Chord(pitches, quarterLength=duration)
+                c.volume.velocity = velocity
+                s.insert(abs_offset, c)
 
-        # Update current offset to the end of this event
-        event_duration = float(Fraction(events_at_position[0].duration.split("_")[1]))
-        current_offset = abs_offset + event_duration
+            # Update current offset to the end of this event
+            current_offset = abs_offset + duration
 
     logger.info("Finished detokenizing.")
     if CREATE_SHEET_MUSIC:
