@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.callbacks import History  # type: ignore
 
-from music_generation_lstm.config import TRAINING_BATCH_SIZE, TRAINING_EPOCHS
+from music_generation_lstm.config import TRAINING_BATCH_SIZE, TRAINING_EPOCHS, FEATURE_NAMES
 from music_generation_lstm.models import plot
 from music_generation_lstm.models.lazy_sequence_generator import LazySequenceGenerator
 from music_generation_lstm.models.models import BaseModel
@@ -62,29 +62,30 @@ def train_model_eager(model: BaseModel, file_paths: list):
 
     try:
         logger.info("Start gathering processed songs...")
-        full_list_x = []
-        full_list_y = []
-        # Collects all batches in one list
-        for path in file_paths:
-            data = np.load(path)
-            full_list_x.append(data["x"])
-            full_list_y.append(data["y"])
-        # Conversion into numpy arrays
-        full_array_x = np.concatenate(full_list_x)
-        full_array_y = np.concatenate(full_list_y)
-        # Assert that the formats of X and y arrays match
-        assert full_array_x.shape[0] == full_array_y.shape[0]
-        dataset_size = full_array_x.shape[0]
+        # Concatenates the sample seq["bar", "position", "pitch", "duration", "velocity", "tempo"])uences of all files into an array
+        full_array_x = np.concatenate([
+            (np.load(path))['X']
+            for path in file_paths
+        ])
+        # Concatenates the sample targets of all files into an array
+        full_array_y = np.concatenate([
+            (np.load(path))['y']
+            for path in file_paths
+        ])
+        # Structure of the arrays:
+        # sample sequences x: [<sample_idx>, <token_in_sample_idx>, <feature_idx>]
+        # sample targets: [<sample_idx>, <feature_idx>]
 
         logger.info("Start converting...")
         # Conversion for the model
+        # Iterating ov er the feature axis of the tensors
         x_dict = {
-            feature: full_array_x[:, :, idx]
-            for idx, feature in enumerate(["bar", "position", "pitch", "duration", "velocity", "tempo"])
+            feature: full_array_x[:, :, idx] # take of each sample only the specified feature
+            for idx, feature in enumerate(FEATURE_NAMES)
         }
         y_output = tuple(
             full_array_y[:, idx]
-            for idx, feature in enumerate(["bar", "position", "pitch", "duration", "velocity", "tempo"])
+            for idx, feature in enumerate(FEATURE_NAMES)
         )
         dataset = tf.data.Dataset.from_tensor_slices((x_dict, y_output))
 
