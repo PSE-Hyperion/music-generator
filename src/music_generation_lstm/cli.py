@@ -6,7 +6,6 @@ from prompt_toolkit.completion import Completer, Completion
 
 from music_generation_lstm import controller, data_managment
 
-
 HELP_INSTRUCTIONS = "the following commands exists:"
 MIN_DELETE_COMMAND_PARTS = 2
 ARG_INDEX_RESULT_ID = 2
@@ -26,7 +25,6 @@ class Command(Enum):
     SHOW = "-show"
     DELETE = "-delete"
     EXIT = "-exit"
-
 
 
 ARGUMENTLENGTH_GENERATE = 3
@@ -65,7 +63,9 @@ def handle_train(args: list[str]):
 
     model_id = args[0]
     processed_dataset_id = args[1]
-    preset_name = args[2] if len(args) > 2 else "light"  # For when variable length commands are implemented
+    preset_name = (
+        args[2] if len(args) > COMMAND_LENGTHS[Command.TRAIN] else "light"
+    )  # For when variable length commands are implemented
 
     controller.train(model_id, processed_dataset_id, preset_name)
 
