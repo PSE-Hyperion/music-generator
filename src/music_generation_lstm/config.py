@@ -16,7 +16,7 @@ GENERATION_LENGTH: Final = 200
 
 TRAINING_EPOCHS: Final = 25
 
-TRAINING_BATCH_SIZE: Final = 12
+TRAINING_BATCH_SIZE: Final = 64
 
 # temp= 0 -> immer das was predicted wird
 # temp > 1 -> mehr random und unwahrscheinlicherere noten
@@ -50,7 +50,9 @@ CREATE_SHEET_MUSIC: Final = False
 # choose how to transpose the data here. Set TOKENIZE_MODE to:
 # TokenizeMode.ORIGINAL   - if you want to keep the song's key intact.
 # TokenizeMode.ALL_KEYS   - if you want to create copies of the song in all 12 possible keys
-# TokenizeMode.C_MAJOR_A_MINOR  - if you want all songs to be in C major or A minor (Cmaj for major songs, Amin for minor songs)
+
+# TokenizeMode.C_MAJOR_A_MINOR  - if you want all songs to be in C major or A minor
+# (Cmaj for major songs, Amin for minor songs)
 TOKENIZE_MODE = TokenizeMode.ORIGINAL
 
 # Model architecture presets as a mapping from preset name to its hyperparameter configuration

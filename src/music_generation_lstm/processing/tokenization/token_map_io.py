@@ -1,6 +1,6 @@
 import json
-import os
 import logging
+import os
 from typing import Final
 
 from music_generation_lstm.config import TOKEN_MAPS_DIR
@@ -65,7 +65,7 @@ def save_token_maps(processed_dataset_id: str, token_maps: SixtupleTokenMaps):
     logger.info("Finished saving maps")
 
 
-def load_token_maps(processed_dataset_id: str) -> tuple[dict, dict]:
+def load_token_maps(processed_dataset_id: str) -> dict:
     """
     Load token maps, metadata and reverse mapping for a processed dataset
     """
@@ -102,4 +102,4 @@ def load_token_maps(processed_dataset_id: str) -> tuple[dict, dict]:
     for feature_name, token_map in token_maps.items():
         reverse_mappings[feature_name] = {v: k for k, v in token_map.items()}
 
-    return token_maps, metadata, reverse_mappings
+    return token_maps  # , metadata, reverse_mappings

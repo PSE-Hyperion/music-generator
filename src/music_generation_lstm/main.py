@@ -3,6 +3,7 @@ import logging
 from music_generation_lstm import cli
 from music_generation_lstm.logging_config import setup_logging
 
+
 def main():
     """
     Starts the program by starting logging and a cli session

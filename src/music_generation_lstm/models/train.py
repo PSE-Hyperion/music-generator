@@ -1,62 +1,17 @@
+import logging
 from pyexpat import features
 
-import tensorflow as tf
 import numpy as np
-import logging
+import tensorflow as tf
 from tensorflow.keras.callbacks import History  # type: ignore
 
-from music_generation_lstm.config import TRAINING_BATCH_SIZE, TRAINING_EPOCHS
+from music_generation_lstm.config import FEATURE_NAMES, TRAINING_BATCH_SIZE, TRAINING_EPOCHS
 from music_generation_lstm.models import plot
 from music_generation_lstm.models.lazy_sequence_generator import LazySequenceGenerator
 from music_generation_lstm.models.models import BaseModel
+from music_generation_lstm.models.training_callback import TrainingCallback
 
 logger = logging.getLogger(__name__)
-
-
-def temperature():
-    pass
-
-
-def split_X_y(X, y):
-    #
-    #   Splits X and y into dictionaries of feature-wise arrays for model input and output
-    #
-
-    feature_names = ["type", "pitch", "duration", "delta_offset", "velocity", "instrument"]
-
-    X_dict = {feature_names[i]: X[:, :, i] for i in range(6)}
-
-    y_array = np.array(y, dtype=np.int32)
-    y_dict = {feature_names[i]: y_array[:, i] for i in range(6)}
-
-    return X_dict, y_dict
-
-
-def train_model_without_lazy(model: BaseModel, X, y):
-    #   trains the given model
-    #
-    #
-
-    logger.info("Start training %s...", model.model_id)
-    try:
-        X_dict, y_dict = split_X_y(X, y)
-
-        history = model.model.fit(
-            X_dict,
-            [y_dict[name] for name in ["type", "pitch", "duration", "delta_offset", "velocity", "instrument"]],
-            epochs=TRAINING_EPOCHS,
-            batch_size=TRAINING_BATCH_SIZE,
-            validation_split=0.1,
-            verbose=2,  # type: ignore[arg-type]
-            # try out 1 and 2. Terminal output is weird with all the different
-        )
-
-    except Exception as e:
-        raise Exception(f"Training failed {model.model_id} {e}")
-    #    if isinstance(history, History):
-    #        plot.plot_training(history, model.model_id)
-
-    return history
 
 
 def train_model(model: BaseModel, file_paths: list):
@@ -83,12 +38,13 @@ def train_model(model: BaseModel, file_paths: list):
             epochs=TRAINING_EPOCHS,
             steps_per_epoch=steps_per_epoch,
             verbose=2,  # type: ignore
+            # callbacks=[TrainingCallback()],
             # Note: validation_split doesn't work with generators,
             # you'd need a separate validation generator (or other solution)
         )
 
     except Exception as e:
-        raise Exception(f"Training failed: {e}").with_traceback(e)
+        raise Exception(f"Training failed: {e}") from e
 
     logger.info("Finished training %s", model.model_id)
 
@@ -103,35 +59,37 @@ def train_model_eager(model: BaseModel, file_paths: list):
     It leads to better use of the computation units resources.
     It should be the most efficient way of training until the size of the dataset is at least 1 GB
     """
+
     try:
-        full_list_X = []
-        full_list_y = []
-        # Collects all batches in one list
-        for path in file_paths:
-            data = np.load(path)
-            full_list_X.append(data["X"])
-            full_list_y.append(data["y"])
-        # Conversion into numpy arrays
-        full_array_X = np.concatenate(full_list_X)
-        full_array_y = np.concatenate(full_list_y)
-        # Assert that the formats of X and y arrays match
-        assert full_array_X.shape[0] == full_array_y.shape[0]
-        dataset_size = full_array_X.shape[0]
+        logger.info("Start gathering processed songs...")
+        # Concatenates the sample seq["bar", "position", "pitch", "duration", "velocity", "tempo"])uences of all files into an array
+        full_array_x = np.concatenate([(np.load(path))["X"] for path in file_paths])
+        # Concatenates the sample targets of all files into an array
+        full_array_y = np.concatenate([(np.load(path))["y"] for path in file_paths])
+        # Ensures that the lengths of samples of targets match
+        assert full_array_x.shape[0] == full_array_y.shape[0]
+        dataset_size = full_array_x.shape[0]
 
-        # Conversion for the model
-        X_dict = {
-            feature: full_array_X[:, :, idx]
-            for idx, feature in enumerate(["bar", "position", "pitch", "duration", "velocity", "tempo"])
+        # Structure of the arrays:
+        # sample sequences x: [<sample_idx>, <token_in_sample_idx>, <feature_idx>]
+        # sample targets: [<sample_idx>, <feature_idx>]
+
+        logger.info("Start converting...")
+        # Conversion for the model input layers
+        # Iterating over the feature axis of the tensors
+        x_dict = {
+            feature: full_array_x[:, :, idx]  # take of each sample only the specified feature
+            for idx, feature in enumerate(FEATURE_NAMES)
         }
-        y_output = tuple(
-            full_array_y[:, idx]
-            for idx, feature in enumerate(["bar", "position", "pitch", "duration", "velocity", "tempo"])
-        )
-        dataset = tf.data.Dataset.from_tensor_slices((X_dict, y_output))
+        y_output = tuple(full_array_y[:, idx] for idx, feature in enumerate(FEATURE_NAMES))
+        dataset = tf.data.Dataset.from_tensor_slices((x_dict, y_output))
 
+        logger.info("Start shuffling...")
         # Providing input for the model is now handled by Tensorflow since it's maximally optimized
         # Shuffle all samples
         dataset = dataset.shuffle(buffer_size=dataset_size)
+
+        logger.info("Start batching...")
         # Creating new batches of the data
         dataset = dataset.batch(TRAINING_BATCH_SIZE)
         # Automates how TF prefetches the batches for better resource use
@@ -139,8 +97,17 @@ def train_model_eager(model: BaseModel, file_paths: list):
         # this could have no effect at all (maybe on GPU training)
         dataset = dataset.prefetch(tf.data.AUTOTUNE)
 
-        history = model.model.fit(dataset, epochs=TRAINING_EPOCHS, verbose=2)
+        logger.info("Start training...")
+
+        training_callback = TrainingCallback()
+
+        # verbose set to 0, since we use custom callbacks instead
+        history = model.model.fit(dataset, epochs=TRAINING_EPOCHS, verbose=0, callbacks=[training_callback])
+
+        logger.info("Finished training %s", model.model_id)
+
+        if isinstance(history, History):
+            plot.plot_training(history, model.model_id)
 
     except Exception as e:
-        # 'from e' will automatically carry over the original traceback
         raise Exception(f"Training failed: {e}") from e

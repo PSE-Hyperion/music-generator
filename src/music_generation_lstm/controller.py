@@ -6,6 +6,7 @@ import sys
 
 import numpy as np
 
+from music_generation_lstm.data_managment import delete_dataset_data, delete_result_data
 from music_generation_lstm.config import ALLOWED_MUSIC_FILE_EXTENSIONS, GENERATION_TEMPERATURE
 from music_generation_lstm.data_managment import delete_dataset_data, delete_result_data
 from music_generation_lstm.generation.generate import MusicGenerator
@@ -62,7 +63,7 @@ def train(model_id: str, processed_dataset_id: str, preset_name: str):
 
     # Get input shape from first file
     with np.load(file_paths[0]) as data:
-        input_shape = data["X"].shape[1:]  # Remove batch dimension
+        input_shape = data["x"].shape[1:]  # Remove batch dimension
 
     model = models.LSTMModel(model_id, input_shape)
     model.build(vocab_sizes=vocab_sizes, preset_name=preset_name)
@@ -120,7 +121,7 @@ def generate(model_name: str, input_name: str, output_name: str):
 
     print(f"Loading seed sequence from: {input_midi_path}")
 
-    token_maps, _, _ = token_map_io.load_token_maps(processed_dataset_id)
+    token_maps = token_map_io.load_token_maps(processed_dataset_id)
     score = parse_midi(input_midi_path)
     tokenizer = Tokenizer(processed_dataset_id)
     sixtuples = tokenizer.tokenize(score)

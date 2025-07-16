@@ -15,7 +15,7 @@ JSON_METADATA_MAP_ID: Final = "map_id"
 
 
 # Saves the tokenized dataset and metadata, X and y are numpy arrays, X is a sequence of integer inputs for the model
-def save_processed_data(processed_dataset_id: str, music_path: str, X, y):
+def save_processed_data(processed_dataset_id: str, music_path: str, x, y):
     music_file_name = os.path.splitext(os.path.basename(music_path))[0]
     target_folder_path = os.path.join(PROCESSED_DIR, processed_dataset_id, music_file_name)
     os.makedirs(target_folder_path, exist_ok=False)
@@ -23,9 +23,9 @@ def save_processed_data(processed_dataset_id: str, music_path: str, X, y):
         logger.info("Start saving processed dataset as %s...", processed_dataset_id)
 
         # Save .npz file inside subfolder
-        np.savez_compressed(os.path.join(target_folder_path, music_file_name), X=X, y=y)
+        np.savez_compressed(os.path.join(target_folder_path, music_file_name), x=x, y=y)
 
-        metadata = {JSON_METADATA_SHAPE: f"{X.shape}", JSON_METADATA_MAP_ID: f"{processed_dataset_id}"}
+        metadata = {JSON_METADATA_SHAPE: f"{x.shape}", JSON_METADATA_MAP_ID: f"{processed_dataset_id}"}
 
         metadata_path = os.path.join(target_folder_path, "metadata.json")
         with open(metadata_path, "w") as f:
@@ -36,7 +36,7 @@ def save_processed_data(processed_dataset_id: str, music_path: str, X, y):
         raise Exception(f"Failed to save tokenized data: {e}") from e
 
     logger.info("Finished saving processed dataset as %s", processed_dataset_id)
-    logger.info("Input Shape: %s", X.shape)
+    logger.info("Input Shape: %s", x.shape)
 
 
 # Loads tokenized dataset and associated metadata for a given processed_dataset_id.
@@ -51,7 +51,7 @@ def load_tokenized_data(processed_dataset_id: str):
         raise Exception(f"File not found. Searched for {target_data_path}")
 
     npz_data = np.load(target_data_path)
-    X = npz_data["X"]
+    x = npz_data["x"]
     y = npz_data["y"]
 
     if not os.path.exists(target_metadata_path):
@@ -64,7 +64,7 @@ def load_tokenized_data(processed_dataset_id: str):
 
     logger.info("Tokenized data loaded")
 
-    return X, y, data_input_shape, data_map_id
+    return x, y, data_input_shape, data_map_id
 
 
 # Deletes the entire folder of a tokenized dataset.
@@ -81,7 +81,7 @@ def get_all_data_str_list() -> list[str]:
     data_str_list = []
     os.makedirs(PROCESSED_DIR, exist_ok=True)
     for entry in os.listdir(PROCESSED_DIR):
-        if not (entry == "metadata.json" or entry == ".gitkeep"):
+        if entry not in {"metadata.json", ".gitkeep"}:
             logger.error("This will never happen")
             data_str_list.append(entry)
 
@@ -111,7 +111,7 @@ def get_processed_file_paths(processed_dataset_id: str) -> list[str]:
     file_paths = []
 
     # Walk through all subdirectories to find .npz files
-    for root, dirs, files in os.walk(processed_dir):
+    for root, _dirs, files in os.walk(processed_dir):
         for file in files:
             if file.endswith(".npz"):
                 file_paths.append(os.path.join(root, file))
