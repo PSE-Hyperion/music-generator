@@ -4,10 +4,17 @@ import os
 
 import numpy as np
 
-from music_generation_lstm.data_managment import delete_dataset_data, delete_result_data
 from music_generation_lstm.config import ALLOWED_MUSIC_FILE_EXTENSIONS, GENERATION_TEMPERATURE
-from music_generation_lstm.data_managment import delete_dataset_data, delete_result_data, delete_model_data, delete_processed_data
-from music_generation_lstm.data_managment import delete_all_datasets, delete_all_models, delete_all_results, delete_all_processed
+from music_generation_lstm.data_managment import (
+    delete_all_datasets,
+    delete_all_models,
+    delete_all_processed,
+    delete_all_results,
+    delete_dataset_data,
+    delete_model_data,
+    delete_processed_data,
+    delete_result_data,
+)
 from music_generation_lstm.generation.generate import MusicGenerator
 from music_generation_lstm.midi import writer
 from music_generation_lstm.midi.parser import parse_midi
@@ -73,36 +80,36 @@ def train(model_id: str, processed_dataset_id: str):
 
 
 def delete_dataset(dataset_id: str):
-    """Deletes a dataset given trough its dataset_id, will delete in data-> midi-> datasets
-    """
-    if(dataset_id == "all"):
+    """Deletes a dataset given trough its dataset_id, will delete in data-> midi-> datasets"""
+    if dataset_id == "all":
         delete_all_datasets()
     else:
         delete_dataset_data(dataset_id)
 
+
 def delete_result(result_id: str):
-    """Deletes a file given trough the result_id, will delete in data -> midi -> results
-    """
-    if(result_id == "all"):
+    """Deletes a file given trough the result_id, will delete in data -> midi -> results"""
+    if result_id == "all":
         delete_all_results()
     else:
         delete_result_data(result_id)
 
+
 def delete_processed(processed_id: str):
-    """Deletes a processed given trough the processed_id, will delete in data -> processed
-    """
-    if(processed_id == "all"):
+    """Deletes a processed given trough the processed_id, will delete in data -> processed"""
+    if processed_id == "all":
         delete_all_processed()
     else:
         delete_processed_data(processed_id)
 
+
 def delete_model(model_id: str):
-    """Deletes a model given trough the model_id, will delete in data -> models
-    """
-    if(model_id == "all"):
+    """Deletes a model given trough the model_id, will delete in data -> models"""
+    if model_id == "all":
         delete_all_models()
     else:
         delete_model_data(model_id)
+
 
 def generate(model_name: str, input_name: str, output_name: str):
     """

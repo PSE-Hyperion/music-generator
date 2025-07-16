@@ -7,6 +7,8 @@ from prompt_toolkit.completion import Completer, Completion
 from music_generation_lstm import controller, data_managment
 
 HELP_INSTRUCTIONS = "the following commands exists:"
+MIN_DELETE_COMMAND_PARTS = 2
+ARG_INDEX_RESULT_ID = 2
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +30,7 @@ class Command(Enum):
 ARGUMENTLENGTH_GENERATE = 3
 
 
-def handle_help(args: list[str]):
+def handle_help(_args: list[str]):
     #   Handles the help command
     #   "-help"
     #
@@ -78,7 +80,7 @@ def handle_generate(args: list[str]):
     controller.generate(model_name, input_name, output_name)
 
 
-def handle_show(args: list[str]):
+def handle_show(_args: list[str]):
     #   Handles the show command by calling corresponding controller function
     #   "-show models/raw_datasets/results/processed_datasets (not implemented yet)"
     #
@@ -86,11 +88,12 @@ def handle_show(args: list[str]):
 
 
 def handle_delete(args: list[str]):
-    #   Handles the delete command for file, dataset, model, processed, it can delete all instances or one given trough the id
+    #   Handles the delete command for file, dataset, model, processed,
+    #   it can delete all instances or one given trough the id
     #   "-delete" file/dataset/model/processed id/all
     id = args[1]
     delete_subject = args[0]
-    
+
     if delete_subject == "file":
         controller.delete_result(id)
     elif delete_subject == "dataset":
@@ -121,10 +124,10 @@ def complete_delete(arg_index, word, parts):
                 yield Completion(option, start_position=-len(word))
 
     elif arg_index == 1:
-        if "all".startswith(word): # add 'all' option for deleting everything
+        if "all".startswith(word):  # add 'all' option for deleting everything
             yield Completion("all", start_position=-len(word))
 
-        if len(parts) < 2:
+        if len(parts) < MIN_DELETE_COMMAND_PARTS:
             return
 
         delete_type = parts[1]
@@ -147,7 +150,7 @@ def complete_delete(arg_index, word, parts):
             yield from id_completion(id_sources[delete_type](), word)
 
 
-def complete_process(arg_index, word, parts):
+def complete_process(arg_index, word, _parts):
     # completes process command
     # first the all possible dataset-id
     # second the new processed id
@@ -157,7 +160,7 @@ def complete_process(arg_index, word, parts):
         yield Completion("new_processed_id", start_position=-len(word))
 
 
-def complete_train(arg_index, word, parts):
+def complete_train(arg_index, word, _parts):
     # completes train command
     # first  the new model id
     # second the all possible processed-id
@@ -167,7 +170,7 @@ def complete_train(arg_index, word, parts):
         yield from id_completion(data_managment.get_existing_processed_ids(), word)
 
 
-def complete_generate(arg_index, word, parts):
+def complete_generate(arg_index, word, _parts):
     # completes generate command
     # first  the all possible model_id input
     # second all possible input
@@ -176,11 +179,11 @@ def complete_generate(arg_index, word, parts):
         yield from id_completion(data_managment.get_existing_model_ids(), word)
     if arg_index == 1:
         yield from id_completion(data_managment.get_existing_processed_ids(), word)
-    if arg_index == 2:
+    if arg_index == ARG_INDEX_RESULT_ID:
         yield Completion("new_results_id", start_position=-len(word))
 
 
-def complete_show(arg_index, word, parts):
+def complete_show(arg_index, word, _parts):
     # completes show command
     if arg_index == 0:
         for option in ["models", "raw_datasets", "results", "processed_datasets"]:
@@ -277,7 +280,7 @@ COMMAND_COMMPLETERS = {
 
 
 class CommandCompleter(Completer):
-    def get_completions(self, document, complete_event):
+    def get_completions(self, document):
         text = document.text_before_cursor
         parts = text.split()
 
