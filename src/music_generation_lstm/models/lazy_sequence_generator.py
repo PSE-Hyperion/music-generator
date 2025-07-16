@@ -1,14 +1,17 @@
 import logging
 
 import numpy as np
-from tensorflow.keras.utils import Sequence  # type: ignore
+from tensorflow.keras.utils import Sequence  # type: ignore - IGNORE ERROR, NOT ACTUAL ERROR
+
+from music_generation_lstm.config import FEATURE_NAMES
 
 logger = logging.getLogger(__name__)
 
 
 class LazySequenceGenerator(Sequence):
     """
-    Receives a list of .npz file paths, prepares internal indexing, optionally shuffles the order of samples, also prepares them for embedding
+    Receives a list of .npz file paths,
+    prepares internal indexing, optionally shuffles the order of samples, also prepares them for embedding
 
     Assumes, that all file paths are correct
     """
@@ -72,9 +75,8 @@ class LazySequenceGenerator(Sequence):
         # This splitting was previously done in train.py, but now needs to be done inside of the sequence generator
 
         # Split inputs into feature-wise dictionaries for multi-input model
-        feature_names = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
 
-        x_dict = {feature_names[i]: x_array[:, :, i] for i in range(6)}
+        x_dict = {FEATURE_NAMES[i]: x_array[:, :, i] for i in range(len(FEATURE_NAMES))}
         """
         Creates a map similar to this:
         {
@@ -90,7 +92,7 @@ class LazySequenceGenerator(Sequence):
         """
 
         # Split outputs into feature-wise arrays for multi-output model
-        # Return as tuple of numpy arrays, instead of lists (I believe lists can#t be input into a model)
+        # Return as tuple of numpy arrays, instead of lists (I believe lists can't be input into a model)
         y_outputs = tuple(y_array[:, i] for i in range(6))
 
         return x_dict, y_outputs

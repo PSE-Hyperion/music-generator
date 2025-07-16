@@ -5,7 +5,6 @@ from tensorflow.keras.models import Model  # type: ignore
 
 from music_generation_lstm.config import GENERATION_LENGTH
 from music_generation_lstm.processing.process import sequence_to_model_input
-from music_generation_lstm.processing.tokenization.token_map_io import load_token_maps
 from music_generation_lstm.processing.tokenization.tokenizer import Sixtuple
 
 
@@ -20,16 +19,17 @@ class ModelPredictions:
 
 
 class MusicGenerator:
-    def __init__(self, model: Model, processed_dataset_id: str, temperature: float = 1.0):
+    def __init__(
+        self, model: Model, token_maps: dict, reverse_mappings: dict, metadata: dict, temperature: float = 1.0
+    ):
         self.model = model
-        self.processed_dataset_id = processed_dataset_id
+        self.token_maps = token_maps
+        self.reverse_mappings = reverse_mappings
+        self.metadata = metadata
         self.temperature = temperature
 
         first_input = model.inputs[0]
         self.sequence_length = first_input.shape[1]
-
-        # Load token maps, metadata and reverse mapping for this dataset
-        self.token_maps, self.metadata, self.reverse_mappings = load_token_maps(processed_dataset_id)
 
     def _apply_temperature_sampling(self, probabilities: np.ndarray, temperature: float) -> int:
         """
@@ -38,7 +38,7 @@ class MusicGenerator:
 
         if temperature == 0:
             # Greedy sampling (deterministic)
-            return np.argmax(probabilities)
+            return int(np.argmax(probabilities))
 
         # Apply temperature scaling
         scaled_logits = np.log(probabilities + 1e-8) / temperature

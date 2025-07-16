@@ -82,9 +82,17 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
     chords_and_notes: dict[float, dict[float, list[Sixtuple]]] = {}
 
     for event in sixtuples:
-        bar_num = int(event.bar.split("_")[1])
-        position_16th = int(event.position.split("_")[1])
-        duration = float(Fraction(event.duration.split("_")[1]))
+        try:
+            bar_num = int(event.bar.split("_", 1)[1])
+        except Exception:
+            logger.error("Can't parse bar token: %s", repr(event.bar))
+            raise
+
+        try:
+            position_16th = int(event.position.split("_", 1)[1])
+        except Exception:
+            logger.error("Can't parse position token: %s", repr(event.position))
+            raise
 
         # Convert to absolute offset, assuming 4/4
         # Das ist so schön
@@ -294,7 +302,7 @@ class SixtupleTokenMaps:
 
 
 class Tokenizer:
-    def __init__(self, processed_dataset_id: str):
+    def __init__(self, processed_dataset_id: str = "EMPTY"):
         self.processed_dataset_id = processed_dataset_id
 
         self.sixtuple_token_maps = SixtupleTokenMaps()
