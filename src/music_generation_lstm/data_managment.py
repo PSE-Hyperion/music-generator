@@ -18,8 +18,8 @@ def delete_dataset_data(dataset_id: str):
     """
     dataset_path = os.path.join(DATASETS_MIDI_DIR, dataset_id)
 
-    delete_folder_contents(dataset_path)
-    delete_empty_folder(dataset_path)
+    _delete_folder_contents(dataset_path)
+    _delete_empty_folder(dataset_path)
 
 
 def delete_model_data(model_id: str):
@@ -29,8 +29,8 @@ def delete_model_data(model_id: str):
     """
     model_path = os.path.join(MODELS_DIR, model_id)
 
-    delete_folder_contents(model_path)
-    delete_empty_folder(model_path)
+    _delete_folder_contents(model_path)
+    _delete_empty_folder(model_path)
 
 
 def delete_result_data(result_id: str):
@@ -38,7 +38,7 @@ def delete_result_data(result_id: str):
     Deletes a result given trough the result ID, will delete in data -> midi -> results
     """
     result_path = os.path.join(RESULTS_MIDI_DIR, result_id)
-    delete_file(result_path)
+    _delete_file(result_path)
 
 
 def delete_processed_data(processed_id: str):
@@ -49,28 +49,28 @@ def delete_processed_data(processed_id: str):
     processed_path = os.path.join(PROCESSED_DIR, processed_id)  # processed and map are deleted together
     map_path = os.path.join(TOKEN_MAPS_DIR, processed_id)  # maybe should be possible to delete only one
 
-    delete_file(processed_path)
-    delete_folder_contents(map_path)
-    delete_empty_folder(map_path)
+    _delete_file(processed_path)
+    _delete_folder_contents(map_path)
+    _delete_empty_folder(map_path)
 
 
 def delete_all_results():
-    delete_folder_contents(RESULTS_MIDI_DIR)
+    _delete_folder_contents(RESULTS_MIDI_DIR)
 
 
 def delete_all_models():
-    delete_folder_contents(MODELS_DIR)
+    _delete_folder_contents(MODELS_DIR)
 
 
 def delete_all_datasets():
-    delete_folder_contents(DATASETS_MIDI_DIR)
+    _delete_folder_contents(DATASETS_MIDI_DIR)
 
 
 def delete_all_processed():
-    delete_folder_contents(PROCESSED_DIR)
+    _delete_folder_contents(PROCESSED_DIR)
 
 
-def delete_file(file_path):
+def _delete_file(file_path):
     """
     Deletes a file given trough the file ID
     """
@@ -84,7 +84,7 @@ def delete_file(file_path):
         raise RuntimeError(f"Failed to delete file '{file_path}'") from e
 
 
-def delete_folder_contents(folder_path):  # files or folders
+def _delete_folder_contents(folder_path):  # files or folders
     """
     Deletes folder with contents(files or more folders)
     deletes not the empty folder
@@ -106,12 +106,12 @@ def delete_folder_contents(folder_path):  # files or folders
                 file_path = os.path.join(content_path, file)
                 if os.path.isfile(file_path):
                     os.remove(file_path)
-            delete_empty_folder(content_path)
+            _delete_empty_folder(content_path)
         else:
             logger.info(f"Could not remove: {content_path}")
 
 
-def delete_empty_folder(folder_path):
+def _delete_empty_folder(folder_path):
     """deletes the empty folder"""
     os.rmdir(folder_path)
 
