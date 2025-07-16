@@ -63,7 +63,7 @@ def train_model_eager(model: BaseModel, file_paths: list):
     try:
         logger.info("Start gathering processed songs...")
         # Concatenates the sample seq["bar", "position", "pitch", "duration", "velocity", "tempo"])uences of all files into an array
-        full_array_x = np.concatenate([(np.load(path))["X"] for path in file_paths])
+        full_array_x = np.concatenate([(np.load(path))["x"] for path in file_paths])
         # Concatenates the sample targets of all files into an array
         full_array_y = np.concatenate([(np.load(path))["y"] for path in file_paths])
         # Ensures that the lengths of samples of targets match

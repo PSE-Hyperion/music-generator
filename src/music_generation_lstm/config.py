@@ -14,7 +14,7 @@ SEQUENCE_LENGTH: Final = 32  # Important to match processed dataset sequence len
 
 GENERATION_LENGTH: Final = 400
 
-TRAINING_EPOCHS: Final = 50
+TRAINING_EPOCHS: Final = 1
 
 TRAINING_BATCH_SIZE: Final = 64
 
