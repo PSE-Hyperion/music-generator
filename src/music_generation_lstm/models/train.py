@@ -72,13 +72,17 @@ def train_model_eager(model: BaseModel, file_paths: list):
             (np.load(path))['y']
             for path in file_paths
         ])
+        # Ensures that the lengths of samples of targets match
+        assert full_array_x.shape[0] == full_array_y.shape[0]
+        dataset_size = full_array_x.shape[0]
+
         # Structure of the arrays:
         # sample sequences x: [<sample_idx>, <token_in_sample_idx>, <feature_idx>]
         # sample targets: [<sample_idx>, <feature_idx>]
 
         logger.info("Start converting...")
-        # Conversion for the model
-        # Iterating ov er the feature axis of the tensors
+        # Conversion for the model input layers
+        # Iterating over the feature axis of the tensors
         x_dict = {
             feature: full_array_x[:, :, idx] # take of each sample only the specified feature
             for idx, feature in enumerate(FEATURE_NAMES)
