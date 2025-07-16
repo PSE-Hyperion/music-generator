@@ -85,7 +85,7 @@ def _parallel_process_worker(
 
     # Sequenize + reshape
     x, y = process.sequenize(numeric_sixtuples)
-    x = process.reshape_X(x)
+    x = process.reshape_x(x)
 
     # Save .npz
     processed_io.save_processed_data(processed_dataset_id, midi_path, x, y)
