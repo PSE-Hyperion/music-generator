@@ -117,7 +117,7 @@ def get_existing_result_ids():
 
 
 def get_existing_processed_ids():
-    # neede in case the programm got closed
+    # needed in case the programm got closed
     for processed in os.listdir(PROCESSED_DIR):
         if processed != ".gitkeep":
             existing_dataset_ids.add(processed)
