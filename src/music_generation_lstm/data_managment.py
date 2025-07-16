@@ -103,11 +103,6 @@ def _delete_folder_contents(folder_path):
             logger.info(f"Could not remove: {content_path}")
 
 
-def _delete_empty_folder(folder_path):
-    """deletes the empty folder"""
-    os.rmdir(folder_path)
-
-
 def add_result_id(result_id: str):
     if result_id not in existing_result_ids:
         existing_result_ids.add(result_id)
