@@ -66,7 +66,7 @@ class LazySequenceGenerator(Sequence):
             file_path, _ = self.data_info[file_idx]
 
             with np.load(file_path) as data:
-                x_batch.append(data["X"][sample_idx])
+                x_batch.append(data["x"][sample_idx])
                 y_batch.append(data["y"][sample_idx])
 
         x_array = np.array(x_batch)
