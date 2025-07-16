@@ -1,5 +1,4 @@
 import logging
-from pyexpat import features
 
 import numpy as np
 import tensorflow as tf
@@ -62,7 +61,8 @@ def train_model_eager(model: BaseModel, file_paths: list):
 
     try:
         logger.info("Start gathering processed songs...")
-        # Concatenates the sample seq["bar", "position", "pitch", "duration", "velocity", "tempo"])uences of all files into an array
+        # Concatenates the sample seq["bar", "position", "pitch", "duration", "velocity", "tempo"])uences of all files
+        # into an array
         full_array_x = np.concatenate([(np.load(path))["x"] for path in file_paths])
         # Concatenates the sample targets of all files into an array
         full_array_y = np.concatenate([(np.load(path))["y"] for path in file_paths])
