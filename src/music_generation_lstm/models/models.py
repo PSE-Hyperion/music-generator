@@ -1,9 +1,8 @@
 import logging
 
-import tensorflow as tf
 from tensorflow.keras.layers import LSTM, Concatenate, Dense, Dropout, Embedding, Input  # type: ignore
 from tensorflow.keras.models import Model  # type: ignore
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam  # type: ignore
 
 from music_generation_lstm.config import MODEL_PRESETS
 
