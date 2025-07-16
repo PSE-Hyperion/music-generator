@@ -14,7 +14,7 @@ SEQUENCE_LENGTH: Final = 32  # Important to match processed dataset sequence len
 
 GENERATION_LENGTH: Final = 200
 
-TRAINING_EPOCHS: Final = 20
+TRAINING_EPOCHS: Final = 25
 
 TRAINING_BATCH_SIZE: Final = 12
 
@@ -26,8 +26,6 @@ GENERATION_TEMPERATURE: Final = 0.7
 ALLOWED_MUSIC_FILE_EXTENSIONS: Final = [".mid", ".midi"]
 
 FEATURE_NAMES = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
-
-NUMBER_OF_FEATURES = 6
 
 # Paths
 

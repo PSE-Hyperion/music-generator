@@ -3,7 +3,7 @@ import logging
 import numpy as np
 from tensorflow.keras.utils import Sequence
 
-from music_generation_lstm.config import FEATURE_NAMES, NUMBER_OF_FEATURES  # type: ignore
+from music_generation_lstm.config import FEATURE_NAMES  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,7 @@ class LazySequenceGenerator(Sequence):
 
         # Split inputs into feature-wise dictionaries for multi-input model
 
-        x_dict = {FEATURE_NAMES[i]: x_array[:, :, i] for i in range(NUMBER_OF_FEATURES)}
+        x_dict = {FEATURE_NAMES[i]: x_array[:, :, i] for i in range(len(FEATURE_NAMES))}
         """
         Creates a map similar to this:
         {

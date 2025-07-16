@@ -82,13 +82,13 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
         try:
             bar_num = int(event.bar.split("_", 1)[1])
         except Exception:
-            print(f"[DEBUG] Can't parse bar token: {event.bar!r}")
+            logger.error("Can't parse bar token: %s", repr(event.bar))
             raise
 
         try:
             position_16th = int(event.position.split("_", 1)[1])
         except Exception:
-            print(f"[DEBUG] Can't parse position token: {event.position!r}")
+            logger.error("Can't parse position token: %s", repr(event.position))
             raise
 
         # Convert to absolute offset, assuming 4/4
@@ -291,66 +291,6 @@ class SixtupleTokenMaps:
         self._velocity_map = {token: idx for idx, token in enumerate(velocity_set)}
         self._tempo_map = {token: idx for idx, token in enumerate(tempo_set)}
 
-    def create_from_dicts(
-        self,
-        bar_map: dict[str, int],
-        position_map: dict[str, int],
-        pitch_map: dict[str, int],
-        duration_map: dict[str, int],
-        velocity_map: dict[str, int],
-        tempo_map: dict[str, int],
-    ):
-        """
-        Receives the token maps corresponding to a dataset and
-        sets them as the token maps of this SixtupleTokenMaps object.
-        """
-        self._bar_map = bar_map.copy()
-        self._position_map = position_map.copy()
-        self._pitch_map = pitch_map.copy()
-        self._duration_map = duration_map.copy()
-        self._velocity_map = velocity_map.copy()
-        self._tempo_map = tempo_map.copy()
-
-    def decode_numeric(self, numeric) -> Sixtuple:
-        """
-        Converts one NumericSixtuple (of six ints) back into the original Sixtuple.
-        """
-        # Build reverse maps
-        if not hasattr(self, "_bar_rev"):
-            self._bar_rev = {v: k for k, v in self._bar_map.items()}
-            self._pos_rev = {v: k for k, v in self._position_map.items()}
-            self._pitch_rev = {v: k for k, v in self._pitch_map.items()}
-            self._dur_rev = {v: k for k, v in self._duration_map.items()}
-            self._vel_rev = {v: k for k, v in self._velocity_map.items()}
-            self._tempo_rev = {v: k for k, v in self._tempo_map.items()}
-
-        # Reverse‐lookup the token strings (each like "BAR_XXX")
-        raw_bar = self._bar_rev[numeric.bar]
-        raw_pos = self._pos_rev[numeric.position]
-        raw_pitch = self._pitch_rev[numeric.pitch]
-        raw_dur = self._dur_rev[numeric.duration]
-        raw_vel = self._vel_rev[numeric.velocity]
-        raw_temp = self._tempo_rev[numeric.tempo]
-
-        # Strip off the existing prefix (up to the first underscore),
-        # since Sixtuple appends them by default
-        bar_suffix = raw_bar.split("_", 1)[1]
-        pos_suffix = raw_pos.split("_", 1)[1]
-        pitch_suffix = raw_pitch.split("_", 1)[1]
-        dur_suffix = raw_dur.split("_", 1)[1]
-        vel_suffix = raw_vel.split("_", 1)[1]
-        temp_suffix = raw_temp.split("_", 1)[1]
-
-        # Pass only the numeric strings into Sixtuple
-        return Sixtuple(
-            bar=bar_suffix,
-            position=pos_suffix,
-            pitch=pitch_suffix,
-            duration=dur_suffix,
-            velocity=vel_suffix,
-            tempo=temp_suffix,
-        )
-
 
 class Tokenizer:
     def __init__(self, processed_dataset_id: str = "EMPTY"):
@@ -477,22 +417,20 @@ class Tokenizer:
             all_tokens.extend(self.tokenize(transposed_score))
         return all_tokens
 
-
     def tokenize_cmajor_aminor(self, score: stream.Score) -> list[Sixtuple]:
         """
         Transpose every piece to C major (if originally major) or A minor (if originally minor),
         and return the tokens from that single transposition as a list.
         """
-        ks = score.analyze('key')              
-        tonic: pitch.Pitch = ks.tonic          
+        ks = score.analyze("key")
+        tonic: pitch.Pitch = ks.tonic
 
-        if ks.mode == 'major':
-            target_tonic = pitch.Pitch('C')
+        if ks.mode == "major":
+            target_tonic = pitch.Pitch("C")
         else:
-            target_tonic = pitch.Pitch('A')
+            target_tonic = pitch.Pitch("A")
 
         iv = interval.Interval(tonic, target_tonic)
         transposed_score = score.transpose(iv)
 
         return self.tokenize(transposed_score)
-
