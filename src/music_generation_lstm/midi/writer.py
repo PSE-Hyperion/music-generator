@@ -1,11 +1,10 @@
-import os
 import logging
+import os
 
 from music21.stream import Stream
 
-from music_generation_lstm.config import RESULTS_MIDI_DIR
 from music_generation_lstm import data_managment
-
+from music_generation_lstm.config import RESULTS_MIDI_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -21,4 +20,3 @@ def write_midi(result_id: str, stream: Stream):
     stream.write("midi", fp=os.path.join(write_dir, f"{result_id}.midi"))
     data_managment.add_result_id(result_id)
     logger.info("Finished saving %s.", result_id)
-

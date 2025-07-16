@@ -1,16 +1,17 @@
 import json
+import logging
 import os
 import shutil
-import logging
 
-from tensorflow.keras.models import load_model as load_keras_model
+from tensorflow.keras.models import load_model as load_keras_model  # type: ignore
 
 from music_generation_lstm.config import MODELS_DIR
 from music_generation_lstm.models.models import BaseModel
 
 logger = logging.getLogger(__name__)
 
-def save_model(model: BaseModel):
+
+def save_model(model: BaseModel, processed_dataset_id: str):
     model_directory = os.path.join(MODELS_DIR, model.model_id)
 
     # Make sure directory exists and if not, create it
@@ -18,14 +19,13 @@ def save_model(model: BaseModel):
 
     model_path = os.path.join(model_directory, "model.keras")
 
-    logger.info("Saving model %s to %s", model.model_id, model_directory)
-
     model.model.save(model_path)  # Using model.model since the "Model" type provides a save function
 
     # Create configuration .json
     config = {
-        "name": model.model_id,
-        "input shape": model.get_input_shape(),
+        "name": str(model.model_id),
+        "input shape": str(model.get_input_shape()),
+        "processed_dataset_id": str(processed_dataset_id),
         # Further data will be saved here in future updates, such as model history,
         # input shape, time steps, features etc.
     }
@@ -35,10 +35,10 @@ def save_model(model: BaseModel):
     with open(config_filepath, "w") as fp:
         json.dump(config, fp)
 
-    logger.info("Model saved successfully, let the AI takeover BEGIN!!! >:D")
+    logger.info("Model saved successfully.")
 
 
-def load_model(name: str) -> BaseModel | None:
+def load_model(name: str) -> tuple[BaseModel, dict[str, str]]:
     model_dir = os.path.join(MODELS_DIR, name)
     metadata_path = os.path.join(model_dir, "config.json")
     model_path = os.path.join(model_dir, "model.keras")
@@ -74,7 +74,7 @@ def get_all_models_str_list() -> list[str]:
     models_str_list = []
     os.makedirs(MODELS_DIR, exist_ok=True)
     for entry in os.listdir(MODELS_DIR):
-        if not (entry == "metadata.json" or entry == ".gitkeep"):
+        if entry not in {"metadata.json", ".gitkeep"}:
             models_str_list.append(entry)
 
     return models_str_list

@@ -1,6 +1,6 @@
 import json
-import os
 import logging
+import os
 from typing import Final
 
 from music_generation_lstm.config import TOKEN_MAPS_DIR
@@ -65,5 +65,41 @@ def save_token_maps(processed_dataset_id: str, token_maps: SixtupleTokenMaps):
     logger.info("Finished saving maps")
 
 
-def load_token_maps():
-    pass
+def load_token_maps(processed_dataset_id: str) -> dict:
+    """
+    Load token maps, metadata and reverse mapping for a processed dataset
+    """
+    token_maps_dir = os.path.join(TOKEN_MAPS_DIR, processed_dataset_id)
+
+    # Load metadata
+    metadata_path = os.path.join(token_maps_dir, "metadata.json")
+    if not os.path.exists(metadata_path):
+        raise FileNotFoundError(f"Token maps metadata not found: {metadata_path}")
+
+    with open(metadata_path) as f:
+        metadata = json.load(f)
+
+    # Load token maps
+    token_maps = {}
+    map_files = [
+        ("bar", "bar_map.json"),
+        ("position", "position_map.json"),
+        ("pitch", "pitch_map.json"),
+        ("duration", "duration_map.json"),
+        ("velocity", "velocity_map.json"),
+        ("tempo", "tempo_map.json"),
+    ]
+
+    for feature_name, filename in map_files:
+        map_path = os.path.join(token_maps_dir, filename)
+        if not os.path.exists(map_path):
+            raise FileNotFoundError(f"Token map not found: {map_path}")
+        with open(map_path) as f:
+            token_maps[feature_name] = json.load(f)
+
+    # Create reverse mappings
+    reverse_mappings = {}
+    for feature_name, token_map in token_maps.items():
+        reverse_mappings[feature_name] = {v: k for k, v in token_map.items()}
+
+    return token_maps  # , metadata, reverse_mappings

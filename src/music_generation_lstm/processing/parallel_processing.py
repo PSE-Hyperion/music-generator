@@ -1,13 +1,13 @@
-import logging
-
 from dataclasses import dataclass
+import logging
 from multiprocessing import Pool, cpu_count
+
+from music_generation_lstm.config import TOKENIZE_MODE, TokenizeMode
 
 from ..midi import parser
 from . import process, processed_io
 from .tokenization import token_map_io
 from .tokenization.tokenizer import Sixtuple, SixtupleTokenMaps, Tokenizer
-from music_generation_lstm.config import TOKENIZE_MODE, TokenizeMode
 
 logger = logging.getLogger(__name__)
 
@@ -84,11 +84,11 @@ def _parallel_process_worker(
     numeric_sixtuples = process.numerize(sixtuples, sixtuple_token_maps)
 
     # Sequenize + reshape
-    X, y = process.sequenize(numeric_sixtuples)
-    X = process.reshape_X(X)
+    x, y = process.sequenize(numeric_sixtuples)
+    x = process.reshape_X(x)
 
     # Save .npz
-    processed_io.save_processed_data(processed_dataset_id, midi_path, X, y)
+    processed_io.save_processed_data(processed_dataset_id, midi_path, x, y)
 
 
 def parallel_process(dataset_id: str, processed_dataset_id: str):

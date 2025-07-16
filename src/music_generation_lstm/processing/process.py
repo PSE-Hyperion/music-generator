@@ -1,10 +1,12 @@
-import numpy as np
 import logging
+
+import numpy as np
 
 from music_generation_lstm.config import SEQUENCE_LENGTH
 from music_generation_lstm.processing.tokenization.tokenizer import Sixtuple, SixtupleTokenMaps
 
 logger = logging.getLogger(__name__)
+
 
 class NumericSixtuple:
     def __init__(self, bar: int, position: int, pitch: int, duration: int, velocity: int, tempo: int):
@@ -80,7 +82,7 @@ def sequenize(numeric_sixtuples: list[NumericSixtuple]):
 
     logger.info("Start sequenizing...")
 
-    X, y = [], []
+    x, y = [], []
 
     if len(numeric_sixtuples) < SEQUENCE_LENGTH + 1:
         raise Exception("Skipped a score, since the song was shorter than the sequence length")
@@ -100,24 +102,43 @@ def sequenize(numeric_sixtuples: list[NumericSixtuple]):
             output_event.tempo,
         )
 
-        X.append(input_seq)
+        x.append(input_seq)
         y.append(output_tuple)
 
     logger.info("Finished sequenizing")
-    return X, y
+    return x, y
 
 
-def reshape_X(X):
+def sequence_to_model_input(sequence: list[tuple[int, int, int, int, int, int]]) -> dict[str, np.ndarray]:
+    """
+    Convert a sequence of numeric sixtuples to model input format
+    """
+
+    # Convert to numpy array
+    seq_array = np.array(sequence)
+
+    # Create input dictionary for the model
+    feature_names = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
+
+    model_input = {}
+    for i, feature_name in enumerate(feature_names):
+        # Add batch dimension (1, sequence_length)
+        model_input[feature_name] = seq_array[:, i].reshape(1, -1)
+
+    return model_input
+
+
+def reshape_X(x):
     #   reshapes X training data to numpy array (matrix) of shape (num_sequences, SEQUENCE_LENGTH, 6)
     #   embedding layers expect integers, so we dont need to normalize
     #
 
     logger.info("Started reshaping...")
 
-    X = np.array(X, dtype=np.int32)
+    x = np.array(x, dtype=np.int32)
 
     logger.info("Finished reshaping")
-    return X
+    return x
 
 
 def denumerize(numeric_sixtuples: list[NumericSixtuple], sixtuple_token_maps: SixtupleTokenMaps) -> list[Sixtuple]:
