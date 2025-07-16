@@ -65,7 +65,7 @@ def save_token_maps(processed_dataset_id: str, token_maps: SixtupleTokenMaps):
     logger.info("Finished saving maps")
 
 
-def load_token_maps(processed_dataset_id: str) -> dict:
+def load_token_maps(processed_dataset_id: str) -> tuple[dict, dict, dict]:
     """
     Load token maps, metadata and reverse mapping for a processed dataset
     """

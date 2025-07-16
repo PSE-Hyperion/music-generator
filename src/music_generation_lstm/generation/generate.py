@@ -38,7 +38,7 @@ class MusicGenerator:
 
         if temperature == 0:
             # Greedy sampling (deterministic)
-            return np.argmax(probabilities)
+            return int(np.argmax(probabilities))
 
         # Apply temperature scaling
         scaled_logits = np.log(probabilities + 1e-8) / temperature
