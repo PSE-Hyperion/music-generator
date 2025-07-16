@@ -6,6 +6,7 @@ from prompt_toolkit.completion import Completer, Completion
 
 from music_generation_lstm import controller, data_managment
 
+
 HELP_INSTRUCTIONS = "the following commands exists:"
 MIN_DELETE_COMMAND_PARTS = 2
 ARG_INDEX_RESULT_ID = 2
@@ -25,6 +26,7 @@ class Command(Enum):
     SHOW = "-show"
     DELETE = "-delete"
     EXIT = "-exit"
+
 
 
 ARGUMENTLENGTH_GENERATE = 3
@@ -51,14 +53,21 @@ def handle_process(args: list[str]):
 
 
 def handle_train(args: list[str]):
-    #   Handles the train command by calling corresponding controller function
-    #   "-train model_id(new) processed_id"
+    #   Handles the train command by calling the corresponding controller function
+    #   "-train [model_id(new)] [processed_dataset_id] [model_architecture_preset]"
     #
+
+    if len(args) != COMMAND_LENGTHS[Command.TRAIN]:
+        logger.error("Incorrect use of the 'train' command.")
+        logger.error(
+            "Please use the correct format:-train [model name] [processed dataset name] [model architecture preset]"
+        )
 
     model_id = args[0]
     processed_dataset_id = args[1]
+    preset_name = args[2] if len(args) > 2 else "light"  # For when variable length commands are implemented
 
-    controller.train(model_id, processed_dataset_id)
+    controller.train(model_id, processed_dataset_id, preset_name)
 
 
 def handle_generate(args: list[str]):
@@ -66,11 +75,8 @@ def handle_generate(args: list[str]):
     #   Usage: "-generate [model name] [input name] [desired output name]"
     #
 
-    if len(args) != ARGUMENTLENGTH_GENERATE:
-        logger.info("Incorrect use of the generate command.")
-        logger.info("Please use the correct format: -generate [model name] [input name] [desired output name]")
-    if len(args) != ARGUMENTLENGTH_GENERATE:
-        logger.error("Incorrect use of the generate command.")
+    if len(args) != COMMAND_LENGTHS[Command.GENERATE]:
+        logger.error("Incorrect use of the 'generate' command.")
         logger.error("Please use the correct format: -generate [model name] [input name] [desired output name]")
 
     model_name = args[0]
@@ -261,7 +267,7 @@ COMMAND_HANDLERS = {
 }
 COMMAND_LENGTHS = {
     Command.PROCESS: 2,  # -process dataset_id processed_id(new)
-    Command.TRAIN: 2,  # -train model_id(new) processed_id
+    Command.TRAIN: 3,  # -train [model_id(new)] [processed_dataset_id] [model_architecture_preset]
     Command.HELP: 0,
     Command.DELETE: 2,  # file/dataset/processed/model ids/all
     Command.GENERATE: 3,  # -generate model_id input result_id(new) (not implemented yet)
