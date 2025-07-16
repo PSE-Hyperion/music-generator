@@ -18,9 +18,11 @@ TRAINING_EPOCHS: Final = 50
 
 TRAINING_BATCH_SIZE: Final = 64
 
-# temp= 0 -> immer das was predicted wird
-# temp > 1 -> mehr random und unwahrscheinlicherere noten
-# temp < 1 -> wahrscheinliche noten aber trotzdem bissl random
+# Temperature controls randomness in music generation:
+# temp = 0   -> deterministic (always picks most likely token)
+# temp < 1   -> more conservative/predictable (favors likely tokens)
+# temp = 1   -> neutral sampling (uses original probabilities)
+# temp > 1   -> more creative/random (gives unlikely tokens more chance)
 GENERATION_TEMPERATURE: Final = 0.7
 
 ALLOWED_MUSIC_FILE_EXTENSIONS: Final = [".mid", ".midi"]
