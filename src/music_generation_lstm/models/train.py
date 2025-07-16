@@ -54,7 +54,8 @@ def train_model(model: BaseModel, file_paths: list):
 def train_model_eager(model: BaseModel, file_paths: list):
     """
     Loads all necessary data upfront.
-    This reduces the latency per sample. The model can take the samples directly from the RAM and doesn't have to load a file.
+    This reduces the latency per sample. The model can take the samples
+    directly from the RAM and doesn't have to load a file.
     It leads to better use of the computation units resources.
     It should be the most efficient way of training until the size of the dataset is at least 1 GB
     """

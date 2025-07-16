@@ -1,14 +1,8 @@
 import logging
 import os
+import shutil
 
-from music_generation_lstm.config import (
-    DATASETS_MIDI_DIR,
-    INPUT_MIDI_DIR,
-    MODELS_DIR,
-    RESULTS_MIDI_DIR,
-    TOKEN_MAPS_DIR,
-    PROCESSED_DIR,
-)
+from music_generation_lstm.config import DATASETS_MIDI_DIR, MODELS_DIR, PROCESSED_DIR, RESULTS_MIDI_DIR, TOKEN_MAPS_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -24,20 +18,16 @@ def delete_dataset_data(dataset_id: str):
     deletes the empty dataset folder.
     """
     dataset_path = os.path.join(DATASETS_MIDI_DIR, dataset_id)
-
-    _delete_folder_contents(dataset_path)
-    _delete_empty_folder(dataset_path)
+    shutil.rmtree(dataset_path)
 
 
-def delete_model(model_id: str):
+def delete_model_data(model_id: str):
     """
     Deletes model given trough its model_id, will delete in data-> models
     deletes the empty dataset folder.
     """
     model_path = os.path.join(MODELS_DIR, model_id)
-
-    _delete_folder_contents(model_path)
-    _delete_empty_folder(model_path)
+    shutil.rmtree(model_path)
 
 
 def delete_result_data(result_id: str):
@@ -48,17 +38,16 @@ def delete_result_data(result_id: str):
     _delete_file(result_path)
 
 
-def delete_existing_processed(processed_id: str):
+def delete_processed_data(processed_id: str):
     """
     Deletes the folder containing token maps and metadata for the given processed_dataset_id.
-    The folder path is TOKEN_MAPS_DIR/processed_dataset_id. And deletes the processed dataset given trough the id
+    And deletes the processed dataset given trough the id
     """
-    processed_path = os.path.join(INPUT_MIDI_DIR, processed_id)  # processed and map are deleted together
+    processed_path = os.path.join(PROCESSED_DIR, processed_id)  # processed and map are deleted together
     map_path = os.path.join(TOKEN_MAPS_DIR, processed_id)  # maybe should be possible to delete only one
 
     _delete_file(processed_path)
-    _delete_folder_contents(map_path)
-    _delete_empty_folder(map_path)
+    shutil.rmtree(map_path)
 
 
 def delete_all_results():
@@ -73,6 +62,10 @@ def delete_all_datasets():
     _delete_folder_contents(DATASETS_MIDI_DIR)
 
 
+def delete_all_processed():
+    _delete_folder_contents(PROCESSED_DIR)
+
+
 def _delete_file(file_path):
     """
     Deletes a file given trough the file ID
@@ -84,13 +77,13 @@ def _delete_file(file_path):
     try:
         os.remove(file_path)
     except Exception as e:
-        raise RuntimeError(f"Failed to delete file '{file_path}': {e}") from e
+        raise RuntimeError(f"Failed to delete file '{file_path}'") from e
 
 
 def _delete_folder_contents(folder_path):
     """
-    Deletes folder with contents
-    deletes the empty dataset folder.
+    Deletes folder with contents(files or more folders)
+    deletes not the empty folder
     """
     if not os.path.exists(folder_path):
         logger.info("Path does not exist.")
@@ -99,16 +92,15 @@ def _delete_folder_contents(folder_path):
     if not os.path.isdir(folder_path):
         logger.info(f"{folder_path} is not a directory.")
 
-    for file in os.listdir(folder_path):  # Delete all files
-        file_path = os.path.join(folder_path, file)
-        if os.path.isfile(file_path):
-            os.remove(file_path)
+    for content in os.listdir(folder_path):  # Delete all files
+        content_path = os.path.join(folder_path, content)
+        if os.path.isfile(content_path):
+            os.remove(content_path)
+
+        elif os.path.isdir(content_path):  # folder with folders inside
+            shutil.rmtree(content_path)
         else:
-            logger.info(f"Could not remove: {file_path}")
-
-
-def _delete_empty_folder(folder_path):
-    os.rmdir(folder_path)  # Delete empty folder
+            logger.info(f"Could not remove: {content_path}")
 
 
 def add_result_id(result_id: str):
@@ -125,7 +117,8 @@ def get_existing_result_ids():
 
 
 def get_existing_processed_ids():
-    for processed in os.listdir(PROCESSED_DIR):  # neede in case the programm got closed
+    # needed in case the programm got closed
+    for processed in os.listdir(PROCESSED_DIR):
         if processed != ".gitkeep":
             existing_dataset_ids.add(processed)
     return sorted(existing_dataset_ids)
@@ -137,14 +130,16 @@ def add_dataset_id(dataset_id: str):
 
 
 def get_existing_dataset_ids():
-    for dataset in os.listdir(DATASETS_MIDI_DIR):  # neede in case the programm got closed
+    # neede in case the programm got closed
+    for dataset in os.listdir(DATASETS_MIDI_DIR):
         if dataset != ".gitkeep":
             existing_dataset_ids.add(dataset)
     return sorted(existing_dataset_ids)
 
 
 def get_existing_model_ids():
-    for model in os.listdir(MODELS_DIR):  # neede in case the programm got closed
+    # neede in case the programm got closed
+    for model in os.listdir(MODELS_DIR):
         if model != ".gitkeep":
             existing_model_ids.add(model)
     return sorted(existing_model_ids)
