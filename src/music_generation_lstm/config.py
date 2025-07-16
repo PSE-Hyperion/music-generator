@@ -8,13 +8,13 @@ class TokenizeMode(Enum):
 
 # Hyperparameters
 
-SEQUENCE_LENGTH: Final = 8
+SEQUENCE_LENGTH: Final = 16
 
-GENERATION_LENGTH: Final = 50
+GENERATION_LENGTH: Final = 600
 
 TRAINING_EPOCHS: Final = 2
 
-TRAINING_BATCH_SIZE: Final = 12
+TRAINING_BATCH_SIZE: Final = 64
 
 ALLOWED_MUSIC_FILE_EXTENSIONS: Final = [".mid", ".midi"]
 
@@ -42,5 +42,5 @@ CREATE_SHEET_MUSIC: Final = False
 # choose how to transpose the data here. Set TOKENIZE_MODE to:
 # TokenizeMode.ORIGINAL   - if you want to keep the song's key intact.
 # TokenizeMode.ALL_KEYS   - if you want to create copies of the song in all 12 possible keys
-# TokenizeMode.C_MAJOR_A_MINOR  - if you want all songs to be in C major or A minor (Cmaj for major songs, Amin for minor songs) 
+# TokenizeMode.C_MAJOR_A_MINOR  - if you want all songs to be in C major or A minor (Cmaj for major songs, Amin for minor songs)
 TOKENIZE_MODE = TokenizeMode.ORIGINAL
