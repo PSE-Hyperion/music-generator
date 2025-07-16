@@ -198,8 +198,7 @@ def id_completion(existing_ids, word):
 
 
 def complete_help():
-    logger.info("I dont know, nothing to complete")
-    # should do nothing
+    pass  # should do nothing
 
 
 def parse_command(command: str):
@@ -280,7 +279,7 @@ COMMAND_COMMPLETERS = {
 
 
 class CommandCompleter(Completer):
-    def get_completions(self, document):
+    def get_completions(self, document, _event):
         text = document.text_before_cursor
         parts = text.split()
 
