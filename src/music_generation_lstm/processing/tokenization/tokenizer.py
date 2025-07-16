@@ -92,7 +92,7 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
 
         """
         Start collect all notes, playing at the same absolute offset, differentiating between
-        notes froming a chord and simultanious notes (of different duration)
+        notes fromage a chord and simultaneous notes (of different duration)
         """
         if abs_offset not in chords_and_notes:
             chords_and_notes[abs_offset] = {}
