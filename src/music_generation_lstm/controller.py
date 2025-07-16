@@ -14,7 +14,6 @@ from music_generation_lstm.midi.parser import parse_midi
 from music_generation_lstm.models import models, train as tr
 from music_generation_lstm.models.model_io import load_model, save_model
 from music_generation_lstm.processing import parallel_processing, processed_io
-from music_generation_lstm.processing.process import numerize
 from music_generation_lstm.processing.tokenization import token_map_io
 from music_generation_lstm.processing.tokenization.tokenizer import Tokenizer, detokenize
 
