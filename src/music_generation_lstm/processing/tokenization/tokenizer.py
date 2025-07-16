@@ -94,6 +94,12 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
             logger.error("Can't parse position token: %s", repr(event.position))
             raise
 
+        try:
+            duration = float(Fraction(event.duration.split("_", 1)[1]))
+        except Exception:
+            logger.error("Can't parse duration token: %s", repr(event.duration))
+            raise
+
         # Convert to absolute offset, assuming 4/4
         # Das ist so schön
         abs_offset = bar_num * 4.0 + position_16th / 4.0
