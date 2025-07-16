@@ -268,7 +268,7 @@ COMMAND_LENGTHS = {
     Command.SHOW: 0,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
 }
 
-COMMAND_COMMPLETERS = {
+COMMAND_COMPLETERS = {
     Command.PROCESS: complete_process,  # dataset_id processed_id(new)
     Command.TRAIN: complete_train,  # model_id, processed_id
     Command.DELETE: complete_delete,  # file/ dataset/processed/model, ids/all
@@ -298,7 +298,7 @@ class CommandCompleter(Completer):
                     yield Completion(command.value, start_position=-len(current_word))
             return
 
-        if command_enum in COMMAND_COMMPLETERS:  # arguments (ids, file, ...)
+        if command_enum in COMMAND_COMPLETERS:  # arguments (ids, file, ...)
             if text.endswith(" "):  # " " gedrückt zwischen argumenten
                 current_word = ""
                 arg_index = len(parts) - 1
@@ -306,7 +306,7 @@ class CommandCompleter(Completer):
                 current_word = parts[-1]
                 arg_index = len(parts) - 2
 
-            completer = COMMAND_COMMPLETERS[command_enum]
+            completer = COMMAND_COMPLETERS[command_enum]
             try:
                 yield from completer(arg_index, current_word, parts)
             except Exception as e:

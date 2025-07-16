@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 
 from music_generation_lstm.config import DATASETS_MIDI_DIR, MODELS_DIR, PROCESSED_DIR, RESULTS_MIDI_DIR, TOKEN_MAPS_DIR
 
@@ -17,9 +18,7 @@ def delete_dataset_data(dataset_id: str):
     deletes the empty dataset folder.
     """
     dataset_path = os.path.join(DATASETS_MIDI_DIR, dataset_id)
-
-    _delete_folder_contents(dataset_path)
-    _delete_empty_folder(dataset_path)
+    shutil.rmtree(dataset_path)
 
 
 def delete_model_data(model_id: str):
@@ -28,9 +27,7 @@ def delete_model_data(model_id: str):
     deletes the empty dataset folder.
     """
     model_path = os.path.join(MODELS_DIR, model_id)
-
-    _delete_folder_contents(model_path)
-    _delete_empty_folder(model_path)
+    shutil.rmtree(model_path)
 
 
 def delete_result_data(result_id: str):
@@ -50,8 +47,7 @@ def delete_processed_data(processed_id: str):
     map_path = os.path.join(TOKEN_MAPS_DIR, processed_id)  # maybe should be possible to delete only one
 
     _delete_file(processed_path)
-    _delete_folder_contents(map_path)
-    _delete_empty_folder(map_path)
+    shutil.rmtree(map_path)
 
 
 def delete_all_results():
@@ -84,7 +80,7 @@ def _delete_file(file_path):
         raise RuntimeError(f"Failed to delete file '{file_path}'") from e
 
 
-def _delete_folder_contents(folder_path):  # files or folders
+def _delete_folder_contents(folder_path):
     """
     Deletes folder with contents(files or more folders)
     deletes not the empty folder
@@ -102,11 +98,7 @@ def _delete_folder_contents(folder_path):  # files or folders
             os.remove(content_path)
 
         elif os.path.isdir(content_path):  # folder with folders inside
-            for file in os.listdir(content_path):
-                file_path = os.path.join(content_path, file)
-                if os.path.isfile(file_path):
-                    os.remove(file_path)
-            _delete_empty_folder(content_path)
+            shutil.rmtree(content_path)
         else:
             logger.info(f"Could not remove: {content_path}")
 
