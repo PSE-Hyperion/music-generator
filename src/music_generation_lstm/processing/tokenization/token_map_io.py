@@ -102,4 +102,4 @@ def load_token_maps(processed_dataset_id: str) -> dict:
     for feature_name, token_map in token_maps.items():
         reverse_mappings[feature_name] = {v: k for k, v in token_map.items()}
 
-    return token_maps  # , metadata, reverse_mappings
+    return token_maps, metadata, reverse_mappings

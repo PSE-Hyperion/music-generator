@@ -12,8 +12,7 @@ class TokenizeMode(Enum):
 
 SEQUENCE_LENGTH: Final = 16
 
-GENERATION_LENGTH: Final = 600
-
+GENERATION_LENGTH: Final = 400
 
 TRAINING_EPOCHS: Final = 50
 
@@ -26,7 +25,7 @@ GENERATION_TEMPERATURE: Final = 0.7
 
 ALLOWED_MUSIC_FILE_EXTENSIONS: Final = [".mid", ".midi"]
 
-
+FEATURE_NAMES: Final = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
 # Paths
 
 DATASETS_MIDI_DIR: Final = "data/midi/datasets"

@@ -4,7 +4,6 @@ import os
 
 import numpy as np
 
-from music_generation_lstm.data_managment import delete_dataset_data, delete_result_data
 from music_generation_lstm.config import ALLOWED_MUSIC_FILE_EXTENSIONS, GENERATION_TEMPERATURE
 from music_generation_lstm.data_managment import delete_dataset_data, delete_result_data
 from music_generation_lstm.generation.generate import MusicGenerator
@@ -104,7 +103,9 @@ def generate(model_name: str, input_name: str, output_name: str):
             "Please ensure the model was saved with the correct dataset reference."
         )
 
-    generator = MusicGenerator(model.model, processed_dataset_id, GENERATION_TEMPERATURE)
+    token_maps, metadata, reverse_mappings = token_map_io.load_token_maps(processed_dataset_id)
+
+    generator = MusicGenerator(model.model, token_maps, reverse_mappings, metadata, GENERATION_TEMPERATURE)
 
     # Load seed sequence from input MIDI file
     input_midi_path = None
@@ -118,13 +119,13 @@ def generate(model_name: str, input_name: str, output_name: str):
 
     print(f"Loading seed sequence from: {input_midi_path}")
 
-    token_maps = token_map_io.load_token_maps(processed_dataset_id)
     score = parse_midi(input_midi_path)
     tokenizer = Tokenizer(processed_dataset_id)
     sixtuples = tokenizer.tokenize(score)
 
     # Convert to numeric tuples
     seed_sequence = []
+    seed_sixtuple = []
     for sixtuple in sixtuples[: generator.sequence_length :]:
         numeric_tuple = (
             token_maps["bar"][sixtuple.bar],
@@ -135,10 +136,13 @@ def generate(model_name: str, input_name: str, output_name: str):
             token_maps["tempo"][sixtuple.tempo],
         )
         seed_sequence.append(numeric_tuple)
+        seed_sixtuple.append(sixtuple)
 
-    generated_sixtuples = generator.generate_sequence(seed_sequence)
     # Generate music stream
-    generated_stream = detokenize(generated_sixtuples)
+    generated_sixtuples = generator.generate_sequence(seed_sequence)
+
+    # Detokenize the seed sequence and generated sixtuples
+    generated_stream = detokenize(seed_sixtuple + generated_sixtuples)
 
     # Save the generated music
     writer.write_midi(output_name, generated_stream)
