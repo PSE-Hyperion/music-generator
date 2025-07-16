@@ -1,28 +1,27 @@
-# Set the base image for the project image
-ARG	    EDITION=latest
-FROM 	tensorflow/tensorflow:${EDITION} AS base
+# Stage 1: Build environment
+FROM python:3.11-slim AS builder
 
-# Stage 1: Building the image
-FROM	base AS builder
-
-RUN 	apt-get update && apt-get install -y --no-install-recommends \
-      	build-essential libxml2-dev libfreetype6-dev libpng-dev \
-    	&& rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y --no-install-recommends \
+    build-essential libxml2-dev libfreetype6-dev libpng-dev \
+ && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY	./ ./
+COPY ./ ./
 
-RUN 	--mount=type=cache,target=/root/.cache/pip \
-        pip install -U pip && \
-        pip install -r requirements.txt && \
-        pip install ./
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -U pip && \
+    pip install .[nogpu]
 
-# Staeg 2: Create clean image
-FROM 	base
+# Stage 2: Clean final image
+FROM python:3.11-slim
 
-WORKDIR	/app
+WORKDIR /app
 
-COPY	--from=builder /usr/local /usr/local
+# Copy python packages
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
-WORKDIR	/app
+COPY ./ ./
+
+CMD ["python", "your_script.py"]

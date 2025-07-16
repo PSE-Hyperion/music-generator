@@ -1,7 +1,5 @@
 #!/bin/bash
 
-sudo dockerd
-
 DOCKER_BUILDKIT=1
 CONFIG_PATH="${HOME}/music-generator/.docker/docker-compose.yml"
 SERVICE_NAME="app"
