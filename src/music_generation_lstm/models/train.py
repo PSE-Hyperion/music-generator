@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.callbacks import History  # type: ignore
 
-from music_generation_lstm.config import TRAINING_BATCH_SIZE, TRAINING_EPOCHS, FEATURE_NAMES
+from music_generation_lstm.config import FEATURE_NAMES, TRAINING_BATCH_SIZE, TRAINING_EPOCHS
 from music_generation_lstm.models import plot
 from music_generation_lstm.models.lazy_sequence_generator import LazySequenceGenerator
 from music_generation_lstm.models.models import BaseModel
@@ -63,15 +63,9 @@ def train_model_eager(model: BaseModel, file_paths: list):
     try:
         logger.info("Start gathering processed songs...")
         # Concatenates the sample seq["bar", "position", "pitch", "duration", "velocity", "tempo"])uences of all files into an array
-        full_array_x = np.concatenate([
-            (np.load(path))['X']
-            for path in file_paths
-        ])
+        full_array_x = np.concatenate([(np.load(path))["X"] for path in file_paths])
         # Concatenates the sample targets of all files into an array
-        full_array_y = np.concatenate([
-            (np.load(path))['y']
-            for path in file_paths
-        ])
+        full_array_y = np.concatenate([(np.load(path))["y"] for path in file_paths])
         # Ensures that the lengths of samples of targets match
         assert full_array_x.shape[0] == full_array_y.shape[0]
         dataset_size = full_array_x.shape[0]
@@ -84,13 +78,10 @@ def train_model_eager(model: BaseModel, file_paths: list):
         # Conversion for the model input layers
         # Iterating over the feature axis of the tensors
         x_dict = {
-            feature: full_array_x[:, :, idx] # take of each sample only the specified feature
+            feature: full_array_x[:, :, idx]  # take of each sample only the specified feature
             for idx, feature in enumerate(FEATURE_NAMES)
         }
-        y_output = tuple(
-            full_array_y[:, idx]
-            for idx, feature in enumerate(FEATURE_NAMES)
-        )
+        y_output = tuple(full_array_y[:, idx] for idx, feature in enumerate(FEATURE_NAMES))
         dataset = tf.data.Dataset.from_tensor_slices((x_dict, y_output))
 
         logger.info("Start shuffling...")
