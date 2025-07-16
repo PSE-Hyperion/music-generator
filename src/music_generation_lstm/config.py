@@ -12,9 +12,9 @@ class TokenizeMode(Enum):
 
 SEQUENCE_LENGTH: Final = 32  # Important to match processed dataset sequence length to model sequence length!!
 
-GENERATION_LENGTH: Final = 200
+GENERATION_LENGTH: Final = 400
 
-TRAINING_EPOCHS: Final = 25
+TRAINING_EPOCHS: Final = 50
 
 TRAINING_BATCH_SIZE: Final = 64
 
@@ -25,8 +25,7 @@ GENERATION_TEMPERATURE: Final = 0.7
 
 ALLOWED_MUSIC_FILE_EXTENSIONS: Final = [".mid", ".midi"]
 
-FEATURE_NAMES = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
-
+FEATURE_NAMES: Final = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
 # Paths
 
 DATASETS_MIDI_DIR: Final = "data/midi/datasets"
