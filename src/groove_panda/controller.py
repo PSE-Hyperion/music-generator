@@ -4,8 +4,8 @@ import os
 
 import numpy as np
 
-from music_generation_lstm.config import ALLOWED_MUSIC_FILE_EXTENSIONS, GENERATION_TEMPERATURE
-from music_generation_lstm.data_managment import (
+from groove_panda.config import ALLOWED_MUSIC_FILE_EXTENSIONS, GENERATION_TEMPERATURE
+from groove_panda.data_managment import (
     delete_all_datasets,
     delete_all_models,
     delete_all_processed,
@@ -15,14 +15,14 @@ from music_generation_lstm.data_managment import (
     delete_processed_data,
     delete_result_data,
 )
-from music_generation_lstm.generation.generate import MusicGenerator
-from music_generation_lstm.midi import writer
-from music_generation_lstm.midi.parser import parse_midi
-from music_generation_lstm.models import models, train as tr
-from music_generation_lstm.models.model_io import load_model, save_model
-from music_generation_lstm.processing import parallel_processing, processed_io
-from music_generation_lstm.processing.tokenization import token_map_io
-from music_generation_lstm.processing.tokenization.tokenizer import Tokenizer, detokenize
+from groove_panda.generation.generate import MusicGenerator
+from groove_panda.midi import writer
+from groove_panda.midi.parser import parse_midi
+from groove_panda.models import models, train as tr
+from groove_panda.models.model_io import load_model, save_model
+from groove_panda.processing import parallel_processing, processed_io
+from groove_panda.processing.tokenization import token_map_io
+from groove_panda.processing.tokenization.tokenizer import Tokenizer, detokenize
 
 logger = logging.getLogger(__name__)
 

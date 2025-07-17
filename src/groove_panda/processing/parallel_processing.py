@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import logging
 from multiprocessing import Pool, cpu_count
 
-from music_generation_lstm.config import TOKENIZE_MODE, TokenizeMode
+from groove_panda.config import TOKENIZE_MODE, TokenizeMode
 
 from ..midi import parser
 from . import process, processed_io

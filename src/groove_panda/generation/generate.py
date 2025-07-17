@@ -3,9 +3,9 @@ from dataclasses import dataclass
 import numpy as np
 from tensorflow.keras.models import Model  # type: ignore
 
-from music_generation_lstm.config import GENERATION_LENGTH
-from music_generation_lstm.processing.process import sequence_to_model_input
-from music_generation_lstm.processing.tokenization.tokenizer import Sixtuple
+from groove_panda.config import GENERATION_LENGTH
+from groove_panda.processing.process import sequence_to_model_input
+from groove_panda.processing.tokenization.tokenizer import Sixtuple
 
 
 @dataclass

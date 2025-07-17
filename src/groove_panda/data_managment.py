@@ -2,7 +2,7 @@ import logging
 import os
 import shutil
 
-from music_generation_lstm.config import DATASETS_MIDI_DIR, MODELS_DIR, PROCESSED_DIR, RESULTS_MIDI_DIR, TOKEN_MAPS_DIR
+from groove_panda.config import DATASETS_MIDI_DIR, MODELS_DIR, PROCESSED_DIR, RESULTS_MIDI_DIR, TOKEN_MAPS_DIR
 
 logger = logging.getLogger(__name__)
 

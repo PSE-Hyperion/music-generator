@@ -4,7 +4,7 @@ import os
 from matplotlib import pyplot as plt
 from tensorflow.keras.callbacks import History  # type: ignore
 
-from music_generation_lstm.config import PLOT_DIR, PLOT_TRAINING, SAVE_PLOT_TRAINING
+from groove_panda.config import PLOT_DIR, PLOT_TRAINING, SAVE_PLOT_TRAINING
 
 logger = logging.getLogger(__name__)
 

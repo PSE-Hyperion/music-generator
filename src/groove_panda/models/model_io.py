@@ -5,8 +5,8 @@ import shutil
 
 from tensorflow.keras.models import load_model as load_keras_model  # type: ignore
 
-from music_generation_lstm.config import MODELS_DIR
-from music_generation_lstm.models.models import BaseModel
+from groove_panda.config import MODELS_DIR
+from groove_panda.models.models import BaseModel
 
 logger = logging.getLogger(__name__)
 
