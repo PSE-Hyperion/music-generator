@@ -90,7 +90,7 @@ ignore = [
 combine-as-imports = true
 force-sort-within-sections = true
 known-first-party = ["music_generation_lstm"]
-lines-between-types = 1
+#lines-between-types = 1  # ignored when 'force-sort-within-sections=true'
 
 [tool.ruff.lint.pep8-naming]
 classmethod-decorators = ["classmethod", "pydantic.validator"]
