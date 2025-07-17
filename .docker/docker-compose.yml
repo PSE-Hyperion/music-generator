@@ -1,14 +1,17 @@
+x-default-service: &default-service
+  build:
+    context: ../
+    dockerfile: .docker/Dockerfile
+  image: music-gen:default
+  volumes:
+      - ../data/:/app/data:cached
+  working_dir: /app
+  user: "1000:1000"
+  stdin_open: true
+  tty: true
+  command: music-gen
+
 services:
   app:
-    build:
-      context: ../
-      dockerfile: .docker/Dockerfile
-      args:
-        - EDITION=nogpu
-    volumes:
-        - ../data/:/app/data:cached
-    working_dir: /app
-    user: "1000:1000"
-    stdin_open: true   # -i
-    tty: true
-    command: music-gen
+    <<: *default-service
+
