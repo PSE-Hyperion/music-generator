@@ -61,7 +61,7 @@ class Sixtuple:
         return self._tempo
 
 
-def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
+def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:  # noqa: PLR0912, PLR0915  #REVIEW for now it's ok
     """
     Reconstructs a Stream from a list of sixtuples
     Rests are reconstructed implicitly from position gaps between note events
