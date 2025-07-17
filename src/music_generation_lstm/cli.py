@@ -6,7 +6,7 @@ from prompt_toolkit.completion import Completer, Completion
 
 from music_generation_lstm import controller, data_managment
 
-HELP_INSTRUCTIONS = "the following commands exists:"
+HELP_INSTRUCTIONS = "The following commands exist:"
 
 logger = logging.getLogger(__name__)
 
@@ -23,9 +23,6 @@ class Command(Enum):
     SHOW = "-show"
     DELETE = "-delete"
     EXIT = "-exit"
-
-
-ARGUMENTLENGTH_GENERATE = 3
 
 
 def handle_help(args: list[str]):
@@ -49,14 +46,21 @@ def handle_process(args: list[str]):
 
 
 def handle_train(args: list[str]):
-    #   Handles the train command by calling corresponding controller function
-    #   "-train model_id(new) processed_id"
+    #   Handles the train command by calling the corresponding controller function
+    #   "-train [model_id(new)] [processed_dataset_id] [model_architecture_preset]"
     #
+
+    if len(args) != COMMAND_LENGTHS[Command.TRAIN]:
+        logger.error("Incorrect use of the 'train' command.")
+        logger.error(
+            "Please use the correct format:-train [model name] [processed dataset name] [model architecture preset]"
+        )
 
     model_id = args[0]
     processed_dataset_id = args[1]
+    preset_name = args[2] if len(args) > 2 else "light"  # For when variable length commands are implemented
 
-    controller.train(model_id, processed_dataset_id)
+    controller.train(model_id, processed_dataset_id, preset_name)
 
 
 def handle_generate(args: list[str]):
@@ -64,11 +68,8 @@ def handle_generate(args: list[str]):
     #   Usage: "-generate [model name] [input name] [desired output name]"
     #
 
-    if len(args) != ARGUMENTLENGTH_GENERATE:
-        logger.info("Incorrect use of the generate command.")
-        logger.info("Please use the correct format: -generate [model name] [input name] [desired output name]")
-    if len(args) != ARGUMENTLENGTH_GENERATE:
-        logger.error("Incorrect use of the generate command.")
+    if len(args) != COMMAND_LENGTHS[Command.GENERATE]:
+        logger.error("Incorrect use of the 'generate' command.")
         logger.error("Please use the correct format: -generate [model name] [input name] [desired output name]")
 
     model_name = args[0]
@@ -253,14 +254,14 @@ COMMAND_HANDLERS = {
 }
 COMMAND_LENGTHS = {
     Command.PROCESS: 2,  # -process dataset_id processed_id(new)
-    Command.TRAIN: 2,  # -train model_id(new) processed_id
+    Command.TRAIN: 3,  # -train [model_id(new)] [processed_dataset_id] [model_architecture_preset]
     Command.HELP: 0,
     Command.DELETE: 2,  # file/dataset/processed/model ids
     Command.GENERATE: 3,  # -generate model_id input result_id(new) (not implemented yet)
     Command.SHOW: 0,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
 }
 
-COMMAND_COMMPLETERS = {
+COMMAND_COMPLETERS = {
     Command.PROCESS: complete_process,  # dataset_id processed_id(new)
     Command.TRAIN: complete_train,  # model_id, processed_id
     Command.DELETE: complete_delete,  # file/ dataset/processed/model, ids
@@ -290,7 +291,7 @@ class CommandCompleter(Completer):
                     yield Completion(command.value, start_position=-len(current_word))
             return
 
-        if command_enum in COMMAND_COMMPLETERS:  # arguments (ids, file, ...)
+        if command_enum in COMMAND_COMPLETERS:  # arguments (ids, file, ...)
             if text.endswith(" "):  # " " gedrückt zwischen argumenten
                 current_word = ""
                 arg_index = len(parts) - 1
@@ -298,7 +299,7 @@ class CommandCompleter(Completer):
                 current_word = parts[-1]
                 arg_index = len(parts) - 2
 
-            completer = COMMAND_COMMPLETERS[command_enum]
+            completer = COMMAND_COMPLETERS[command_enum]
             try:
                 yield from completer(arg_index, current_word, parts)
             except Exception as e:
