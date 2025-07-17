@@ -4,7 +4,7 @@ import logging
 from music21 import chord, interval, key, note, pitch, stream
 from music21.tempo import MetronomeMark, TempoIndication
 
-from music_generation_lstm.config import CREATE_SHEET_MUSIC
+from music_generation_lstm.config import CREATE_SHEET_MUSIC, TEMPO_ERROR_TOLERANCE
 from music_generation_lstm.midi.sheet_music_generator import generate_sheet_music
 
 logger = logging.getLogger(__name__)
@@ -365,7 +365,7 @@ class Tokenizer:
         for event in flat:
             abs_offset = float(event.offset)
 
-            while tempo_idx < len(tempo_changes) and abs(tempo_changes[tempo_idx][0] - abs_offset) < 0.01:
+            while tempo_idx < len(tempo_changes) and abs(tempo_changes[tempo_idx][0] - abs_offset) < TEMPO_ERROR_TOLERANCE:
                 current_tempo = tempo_changes[tempo_idx][1]
                 tempo_idx += 1
 

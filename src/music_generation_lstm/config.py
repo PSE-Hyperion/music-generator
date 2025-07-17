@@ -18,6 +18,9 @@ TRAINING_EPOCHS: Final = 1
 
 TRAINING_BATCH_SIZE: Final = 64
 
+# for the tokenizer: values smaller than this won't be recognized as tempo changes
+TEMPO_ERROR_TOLERANCE: Final = 0.01
+
 # Temperature controls randomness in music generation:
 # temp = 0   -> deterministic (always picks most likely token)
 # temp < 1   -> more conservative/predictable (favors likely tokens)
