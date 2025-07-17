@@ -2,6 +2,7 @@
 requires = ["setuptools","wheel"]
 build-backend = "setuptools.build_meta"
 
+
 [project]
 name = "music-generator"
 version = "0.1.0"
@@ -17,11 +18,11 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent"
 ]
-
 dependencies = [
   "matplotlib>=3.10",
   "music21>=9.7",
-  "prompt-toolkit>=3.0"
+  "prompt-toolkit>=3.0",
+  "colorama>=0.4"
 ]
 
 
@@ -33,6 +34,7 @@ gpu = ["tensorflow>=2.19"]
 [project.scripts]
 music-gen = "music_generation_lstm.main:main"
 
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
@@ -41,8 +43,6 @@ where = ["src"]
 src = ["src"]
 target-version = "py311"
 #fixable = [] # problems to fix automatically with --fix flag
-fixable = ["ALL"] # problems to fix automatically with --fix flag
-unfixable = []
 line-length = 120
 exclude = [
     "data",
@@ -54,6 +54,11 @@ exclude = [
     ".mypy_cache",
     ".ruff_cache"
 ]
+
+
+[tool.ruff.lint]
+fixable = ["ALL"] # problems to fix automatically with --fix flag
+unfixable = []
 
 select = [
     "E",    # pycodestyle (Style errors)
@@ -73,7 +78,6 @@ select = [
     "PLR",  # Pylint-refactor
     "PLW",  # Pylint-warnings
 ]
-
 ignore = [
   "PLR0913"  # too many function arguments
 ]
@@ -82,12 +86,12 @@ ignore = [
 #  "C901",  # too complex functions
 
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 combine-as-imports = true
 force-sort-within-sections = true
 known-first-party = ["music_generation_lstm"]
 lines-between-types = 1
 
-[tool.ruff.pep8-naming]
+[tool.ruff.lint.pep8-naming]
 classmethod-decorators = ["classmethod", "pydantic.validator"]
 staticmethod-decorators = ["staticmethod"]

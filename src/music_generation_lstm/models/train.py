@@ -1,5 +1,4 @@
 import logging
-from pyexpat import features
 
 import numpy as np
 import tensorflow as tf

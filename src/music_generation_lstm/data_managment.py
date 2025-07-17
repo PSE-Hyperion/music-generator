@@ -5,9 +5,9 @@ from music_generation_lstm.config import (
     DATASETS_MIDI_DIR,
     INPUT_MIDI_DIR,
     MODELS_DIR,
+    PROCESSED_DIR,
     RESULTS_MIDI_DIR,
     TOKEN_MAPS_DIR,
-    PROCESSED_DIR,
 )
 
 logger = logging.getLogger(__name__)

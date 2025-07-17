@@ -4,7 +4,6 @@ import os
 
 import numpy as np
 
-from music_generation_lstm.data_managment import delete_dataset_data, delete_result_data
 from music_generation_lstm.config import ALLOWED_MUSIC_FILE_EXTENSIONS, GENERATION_TEMPERATURE
 from music_generation_lstm.data_managment import delete_dataset_data, delete_result_data
 from music_generation_lstm.generation.generate import MusicGenerator
