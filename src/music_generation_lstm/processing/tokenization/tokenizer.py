@@ -4,8 +4,8 @@ import logging
 from music21 import chord, interval, key, note, pitch, stream
 from music21.tempo import MetronomeMark, TempoIndication
 
-from music_generation_lstm.config import CREATE_SHEET_MUSIC
-from music_generation_lstm.sheet_music_generator.sheet_music_generator import generate_sheet_music
+from music_generation_lstm.config import CREATE_SHEET_MUSIC, DEFAULT_TEMPO, TEMPO_TOLERANCE
+from music_generation_lstm.midi.sheet_music_generator import generate_sheet_music
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +61,7 @@ class Sixtuple:
         return self._tempo
 
 
-def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
+def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:  # noqa: PLR0912, PLR0915  #REVIEW for now it's ok
     """
     Reconstructs a Stream from a list of sixtuples
     Rests are reconstructed implicitly from position gaps between note events
@@ -331,7 +331,7 @@ class Tokenizer:
         # Two classes could contain this data, so we have to check both
         tempo_indications = flat.getElementsByClass("TempoIndication")
         metronome_marks = flat.getElementsByClass("MetronomeMark")
-        current_tempo = 120
+        current_tempo = DEFAULT_TEMPO
 
         # Set first tempo
         if tempo_indications:
@@ -365,7 +365,7 @@ class Tokenizer:
         for event in flat:
             abs_offset = float(event.offset)
 
-            while tempo_idx < len(tempo_changes) and abs(tempo_changes[tempo_idx][0] - abs_offset) < 0.01:
+            while tempo_idx < len(tempo_changes) and abs(tempo_changes[tempo_idx][0] - abs_offset) < TEMPO_TOLERANCE:
                 current_tempo = tempo_changes[tempo_idx][1]
                 tempo_idx += 1
 
