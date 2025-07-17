@@ -5,7 +5,7 @@ from music21 import chord, interval, key, note, pitch, stream
 from music21.tempo import MetronomeMark, TempoIndication
 
 from music_generation_lstm.config import CREATE_SHEET_MUSIC
-from music_generation_lstm.sheet_music_generator.sheet_music_generator import generate_sheet_music
+from music_generation_lstm.midi.sheet_music_generator import generate_sheet_music
 
 logger = logging.getLogger(__name__)
 
