@@ -4,13 +4,8 @@ import logging
 from music21 import chord, interval, key, note, pitch, stream
 from music21.tempo import MetronomeMark, TempoIndication
 
-<<<<<<< HEAD:src/groove_panda/processing/tokenization/tokenizer.py
-from groove_panda.config import CREATE_SHEET_MUSIC
+from groove_panda.config import CREATE_SHEET_MUSIC, DEFAULT_TEMPO, TEMPO_TOLERANCE
 from groove_panda.sheet_music_generator.sheet_music_generator import generate_sheet_music
-=======
-from music_generation_lstm.config import CREATE_SHEET_MUSIC, DEFAULT_TEMPO, TEMPO_TOLERANCE
-from music_generation_lstm.midi.sheet_music_generator import generate_sheet_music
->>>>>>> development:src/music_generation_lstm/processing/tokenization/tokenizer.py
 
 logger = logging.getLogger(__name__)
 
