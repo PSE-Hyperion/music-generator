@@ -4,8 +4,7 @@ services:
       context: ../
       dockerfile: .docker/Dockerfile
       args:
-        - EDITION=2.19.0
-#       - EDITION=2.19.0-gpu
+        - EDITION=nogpu
     volumes:
         - ../data/:/app/data:cached
     working_dir: /app
