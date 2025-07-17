@@ -19,10 +19,10 @@ def init_envs():
     """ Setting up environment variables for parts of the program """
 
     # Log level for compiled operations of TensorFlow
-    os.putenv("TF_CPP_MIN_LOG_LEVEL", 2)
+    os.putenv('TF_CPP_MIN_LOG_LEVEL', '2')
     # TensorFlow options for more performance but less reproducibility
-    os.putenv("TF_ENABLE_ONEDNN_OPTS", 1)
-    os.putenv("TF_USE_CUDNN", 1)
+    os.putenv('TF_ENABLE_ONEDNN_OPTS', '1')
+    os.putenv('TF_USE_CUDNN', '1')
 
 
 # entry point for  script execution
