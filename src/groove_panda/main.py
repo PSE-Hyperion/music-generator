@@ -10,7 +10,7 @@ def main():
     """
 
     setup_logging(level="INFO")
-    logging.getLogger(__name__).info("Starting CLI")
+    logging.getLogger("main").info("Starting CLI")
 
     cli.start_session()
 
