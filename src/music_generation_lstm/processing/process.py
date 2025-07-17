@@ -130,7 +130,7 @@ def sequence_to_model_input(sequence: list[tuple[int, int, int, int, int, int]])
     return model_input
 
 
-def reshape_X(x):
+def reshape_x(x):
     #   reshapes X training data to numpy array (matrix) of shape (num_sequences, SEQUENCE_LENGTH, 6)
     #   embedding layers expect integers, so we dont need to normalize
     #
@@ -143,8 +143,9 @@ def reshape_X(x):
     return x
 
 
-def denumerize(numeric_sixtuples: list[NumericSixtuple], sixtuple_token_maps: SixtupleTokenMaps) -> list[Sixtuple]:
-    #   Turns list of embedded numeric events into list of embedded token events, by using the maps provided by the given tokenizer instance
+def denumerize(_numeric_sixtuples: list[NumericSixtuple], _sixtuple_token_maps: SixtupleTokenMaps) -> list[Sixtuple]:
+    #   Turns list of embedded numeric events into list of embedded token events,
+    #   by using the maps provided by the given tokenizer instance
     #
     #
 
