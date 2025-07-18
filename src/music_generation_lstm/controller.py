@@ -1,0 +1,190 @@
+import json
+import logging
+import os
+
+import numpy as np
+
+from groove_panda.config import ALLOWED_MUSIC_FILE_EXTENSIONS, GENERATION_TEMPERATURE
+from groove_panda.data_managment import (
+    delete_all_datasets,
+    delete_all_models,
+    delete_all_processed,
+    delete_all_results,
+    delete_dataset_data,
+    delete_model_data,
+    delete_processed_data,
+    delete_result_data,
+)
+from groove_panda.generation.generate import MusicGenerator
+from groove_panda.midi import writer
+from groove_panda.midi.parser import parse_midi
+from groove_panda.models import models, train as tr
+from groove_panda.models.model_io import load_model, save_model
+from groove_panda.processing import parallel_processing, processed_io
+from groove_panda.processing.tokenization import token_map_io
+from groove_panda.processing.tokenization.tokenizer import Tokenizer, detokenize
+
+logger = logging.getLogger(__name__)
+
+
+def process(dataset_id: str, processed_dataset_id: str):
+    #   parses midi file(s) to music21.stream.Score
+    #   tokenize score(s)
+    #   numerize tokens
+    #   save processed data (ready for training data)
+
+    parallel_processing.parallel_process(dataset_id, processed_dataset_id)
+
+
+def train(model_id: str, processed_dataset_id: str, preset_name: str):
+    """
+    Step 1:   Get processed datasets .npz file paths via provided processed_dataset_id
+
+    Step 2:   Build LSTM model architecture
+
+    Step 3:   Train model using lazy loading for memory-efficient training on large datasets (also plots training data)
+
+    Step 4:   Save model weights as model_id
+    """
+
+    # Get file paths for all processed data files
+    file_paths = processed_io.get_processed_file_paths(processed_dataset_id)
+
+    # Load metadata for vocab sizes
+    # bad shouldn't be in here
+
+    token_maps_dir = os.path.join("data/token_maps", processed_dataset_id)
+    with open(os.path.join(token_maps_dir, "metadata.json")) as f:
+        metadata = json.load(f)
+
+    vocab_sizes = {
+        "bar": metadata[token_map_io.TOTAL_UNIQUE_BAR_TOKENS],
+        "position": metadata[token_map_io.TOTAL_UNIQUE_POSITION_TOKENS],
+        "pitch": metadata[token_map_io.TOTAL_UNIQUE_PITCH_TOKENS],
+        "duration": metadata[token_map_io.TOTAL_UNIQUE_DURATION_TOKENS],
+        "velocity": metadata[token_map_io.TOTAL_UNIQUE_VELOCITY_TOKENS],
+        "tempo": metadata[token_map_io.TOTAL_UNIQUE_TEMPO_TOKENS],
+    }
+
+    # Get input shape from first file
+    with np.load(file_paths[0]) as data:
+        input_shape = data["x"].shape[1:]  # Remove batch dimension
+
+    model = models.LSTMModel(model_id, input_shape)
+    model.build(vocab_sizes=vocab_sizes, preset_name=preset_name)
+
+    tr.train_model_eager(model, file_paths)
+
+    # Save model with dataset ID for generation
+    save_model(model, processed_dataset_id)
+
+
+def delete_dataset(dataset_id: str):
+    """Deletes a dataset given trough its dataset_id, will delete in data-> midi-> datasets"""
+    if dataset_id == "all":
+        delete_all_datasets()
+    else:
+        delete_dataset_data(dataset_id)
+
+
+def delete_result(result_id: str):
+    """Deletes a file given trough the result_id, will delete in data -> midi -> results"""
+    if result_id == "all":
+        delete_all_results()
+    else:
+        delete_result_data(result_id)
+
+
+def delete_processed(processed_id: str):
+    """Deletes a processed given trough the processed_id, will delete in data -> processed"""
+    if processed_id == "all":
+        delete_all_processed()
+    else:
+        delete_processed_data(processed_id)
+
+
+def delete_model(model_id: str):
+    """Deletes a model given trough the model_id, will delete in data -> models"""
+    if model_id == "all":
+        delete_all_models()
+    else:
+        delete_model_data(model_id)
+
+
+def generate(model_name: str, input_name: str, output_name: str):
+    """
+    Generate music using a trained model
+    """
+
+    print(f"Starting music generation with model: {model_name}")
+
+    # Load the trained model
+    model, config = load_model(model_name)
+
+    # Get the processed dataset ID from the model config
+    processed_dataset_id = config.get("processed_dataset_id")
+    if not processed_dataset_id:
+        raise ValueError(
+            "The loaded model config does not contain a 'processed_dataset_id'. "
+            "Please ensure the model was saved with the correct dataset reference."
+        )
+
+    token_maps, metadata, reverse_mappings = token_map_io.load_token_maps(processed_dataset_id)
+
+    generator = MusicGenerator(model.model, token_maps, reverse_mappings, metadata, GENERATION_TEMPERATURE)
+
+    # Load seed sequence from input MIDI file
+    input_midi_path = None
+    for ext in ALLOWED_MUSIC_FILE_EXTENSIONS:
+        candidate = os.path.join("data/midi/input", f"{input_name}{ext}")
+        if os.path.exists(candidate):
+            input_midi_path = candidate
+            break
+    if input_midi_path is None:
+        raise FileNotFoundError(f"Input MIDI file not found: {input_name}")
+
+    print(f"Loading seed sequence from: {input_midi_path}")
+
+    score = parse_midi(input_midi_path)
+    tokenizer = Tokenizer(processed_dataset_id)
+    sixtuples = tokenizer.tokenize(score)
+
+    # Convert to numeric tuples
+    seed_sequence = []
+    seed_sixtuple = []
+    for sixtuple in sixtuples[: generator.sequence_length :]:
+        numeric_tuple = (
+            token_maps["bar"][sixtuple.bar],
+            token_maps["position"][sixtuple.position],
+            token_maps["pitch"][sixtuple.pitch],
+            token_maps["duration"][sixtuple.duration],
+            token_maps["velocity"][sixtuple.velocity],
+            token_maps["tempo"][sixtuple.tempo],
+        )
+        seed_sequence.append(numeric_tuple)
+        seed_sixtuple.append(sixtuple)
+
+    # Generate music stream
+    generated_sixtuples = generator.generate_sequence(seed_sequence)
+
+    # Detokenize the seed sequence and generated sixtuples
+    generated_stream = detokenize(seed_sixtuple + generated_sixtuples)
+
+    # Save the generated music
+    writer.write_midi(output_name, generated_stream)
+
+    print(f"Music generation completed! Output saved as: {output_name}")
+
+
+def show():
+    #   get model via label
+    #   get midi
+    #   get start sequence from midi
+    #   generate with model using start sequence
+    #   write result in folder
+
+    logger.info("show")
+
+
+def exit():
+    logger.info("You've exited the program.")
