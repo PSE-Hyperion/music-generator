@@ -4,7 +4,7 @@ import os
 
 from music21 import converter, stream
 
-from music_generation_lstm.config import ALLOWED_MUSIC_FILE_EXTENSIONS, DATASETS_MIDI_DIR
+from groove_panda.config import ALLOWED_MUSIC_FILE_EXTENSIONS, DATASETS_MIDI_DIR
 
 logger = logging.getLogger(__name__)
 

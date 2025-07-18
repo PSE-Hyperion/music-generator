@@ -4,7 +4,7 @@ from tensorflow.keras.layers import LSTM, Concatenate, Dense, Dropout, Embedding
 from tensorflow.keras.models import Model  # type: ignore
 from tensorflow.keras.optimizers import Adam  # type: ignore
 
-from music_generation_lstm.config import MODEL_PRESETS
+from groove_panda.config import MODEL_PRESETS
 
 logger = logging.getLogger(__name__)
 

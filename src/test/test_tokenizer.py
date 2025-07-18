@@ -1,8 +1,8 @@
 import os
 
-from music_generation_lstm.config import DATASETS_MIDI_DIR
-from music_generation_lstm.midi import parser, writer
-from music_generation_lstm.processing.tokenization import tokenizer as t
+from groove_panda.config import DATASETS_MIDI_DIR
+from groove_panda.midi import parser, writer
+from groove_panda.processing.tokenization import tokenizer as t
 
 
 def test_tokenize_detokenize(midi_file: str):

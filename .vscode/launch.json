@@ -2,10 +2,10 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run music_generation_lstm",
+      "name": "Run groove_panda",
       "type": "debugpy",
       "request": "launch",
-      "module": "music_generation_lstm.main",
+      "module": "groove_panda.main",
       "console": "integratedTerminal",
       "env": {
         "PYTHONPATH": "${workspaceFolder}/src",

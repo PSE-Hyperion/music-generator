@@ -4,11 +4,11 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.callbacks import History  # type: ignore
 
-from music_generation_lstm.config import FEATURE_NAMES, TRAINING_BATCH_SIZE, TRAINING_EPOCHS
-from music_generation_lstm.models import plot
-from music_generation_lstm.models.lazy_sequence_generator import LazySequenceGenerator
-from music_generation_lstm.models.models import BaseModel
-from music_generation_lstm.models.training_callback import TrainingCallback
+from groove_panda.config import FEATURE_NAMES, TRAINING_BATCH_SIZE, TRAINING_EPOCHS
+from groove_panda.models import plot
+from groove_panda.models.lazy_sequence_generator import LazySequenceGenerator
+from groove_panda.models.models import BaseModel
+from groove_panda.models.training_callback import TrainingCallback
 
 logger = logging.getLogger(__name__)
 

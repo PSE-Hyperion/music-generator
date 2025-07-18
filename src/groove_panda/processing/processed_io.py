@@ -6,7 +6,7 @@ from typing import Final
 
 import numpy as np
 
-from music_generation_lstm.config import PROCESSED_DIR
+from groove_panda.config import PROCESSED_DIR
 
 logger = logging.getLogger(__name__)
 

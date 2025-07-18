@@ -3,7 +3,7 @@ import logging
 import numpy as np
 from tensorflow.keras.utils import Sequence  # type: ignore - IGNORE ERROR, NOT ACTUAL ERROR
 
-from music_generation_lstm.config import FEATURE_NAMES
+from groove_panda.config import FEATURE_NAMES
 
 logger = logging.getLogger(__name__)
 

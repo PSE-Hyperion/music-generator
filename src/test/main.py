@@ -1,6 +1,6 @@
 import logging
 
-from music_generation_lstm.logging_config import setup_logging
+from groove_panda.logging_config import setup_logging
 from test.test_tokenizer import test_tokenize_detokenize
 
 

@@ -1,7 +1,7 @@
 import logging
 
-from music_generation_lstm import cli
-from music_generation_lstm.logging_config import setup_logging
+from groove_panda import cli
+from groove_panda.logging_config import setup_logging
 
 
 def main():

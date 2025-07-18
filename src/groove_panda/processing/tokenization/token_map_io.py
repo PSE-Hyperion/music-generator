@@ -3,8 +3,8 @@ import logging
 import os
 from typing import Final
 
-from music_generation_lstm.config import TOKEN_MAPS_DIR
-from music_generation_lstm.processing.tokenization.tokenizer import SixtupleTokenMaps
+from groove_panda.config import TOKEN_MAPS_DIR
+from groove_panda.processing.tokenization.tokenizer import SixtupleTokenMaps
 
 logger = logging.getLogger(__name__)
 

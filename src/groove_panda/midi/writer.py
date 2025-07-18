@@ -3,8 +3,8 @@ import os
 
 from music21.stream import Stream
 
-from music_generation_lstm import data_managment
-from music_generation_lstm.config import RESULTS_MIDI_DIR
+from groove_panda import data_managment
+from groove_panda.config import RESULTS_MIDI_DIR
 
 logger = logging.getLogger(__name__)
 

@@ -4,7 +4,7 @@ import logging
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
 
-from music_generation_lstm import controller, data_managment
+from groove_panda import controller, data_managment
 
 HELP_INSTRUCTIONS = "the following commands exists:"
 MIN_DELETE_COMMAND_PARTS = 2

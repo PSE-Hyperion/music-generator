@@ -6,7 +6,7 @@ import os
 
 from music21 import stream
 
-from music_generation_lstm.config import CREATE_SHEET_MUSIC, OUTPUT_SHEET_MUSIC_DIR
+from groove_panda.config import CREATE_SHEET_MUSIC, OUTPUT_SHEET_MUSIC_DIR
 
 logger = logging.getLogger(__name__)
 

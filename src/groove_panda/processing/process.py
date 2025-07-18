@@ -2,8 +2,8 @@ import logging
 
 import numpy as np
 
-from music_generation_lstm.config import SEQUENCE_LENGTH
-from music_generation_lstm.processing.tokenization.tokenizer import Sixtuple, SixtupleTokenMaps
+from groove_panda.config import SEQUENCE_LENGTH
+from groove_panda.processing.tokenization.tokenizer import Sixtuple, SixtupleTokenMaps
 
 logger = logging.getLogger(__name__)
 
