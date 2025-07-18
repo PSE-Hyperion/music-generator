@@ -1,17 +1,17 @@
+x-default-service: &default-service
+  build:
+    context: ../
+    dockerfile: .docker/Dockerfile
+  image: music-gen:default
+  volumes:
+      - ../data/:/app/data:cached
+  working_dir: /app
+  user: "1000:1000"
+  stdin_open: true
+  tty: true
+  command: music-gen
+
 services:
   app:
-    build:
-      context: ../
-      dockerfile: .docker/Dockerfile
-      args:
-        - EDiITION=2.19.0
-#       - EDITION=2.19.0-gpu
-    volumes:
-        - ../data/:/app/data:cached
-    working_dir: /app
-    environment:
-      - TF_ENABLE_ONEDNN_OPTS=0
-      - TF_CPP_MIN_LOG_LEVEL=2
-    stdin_open: true   # -i
-    tty: true
-    command: music-gen
+    <<: *default-service
+

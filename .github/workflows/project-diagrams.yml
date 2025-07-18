@@ -1,0 +1,41 @@
+name: Create UML Diagrams
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  generate-uml:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install tools
+        run: |
+          pip install pylint graphviz
+          sudo apt-get update
+          sudo apt-get install -y graphviz
+
+      - name: Generate UML diagram
+        run: |
+          pyreverse -o svg src/music_generation_lstm
+          mkdir uml_output
+          mv classes.svg uml_output/
+          mv packages.svg uml_output/
+
+      - name: Upload diagram as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: uml-diagram
+          path: uml_output/
