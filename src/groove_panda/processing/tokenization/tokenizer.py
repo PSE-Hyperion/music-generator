@@ -8,6 +8,7 @@ from groove_panda.config import CREATE_SHEET_MUSIC, DEFAULT_TEMPO, TEMPO_TOLERAN
 from groove_panda.sheet_music_generator.sheet_music_generator import generate_sheet_music
 
 logger = logging.getLogger(__name__)
+ROUND_VALUE = 10
 
 
 class Sixtuple:
@@ -128,6 +129,7 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:  # noqa: PLR0912, PL
             # Check if tempo has changed at this position
             if events_same_duration:
                 tempo_value = int(events_same_duration[0].tempo.split("_")[1])
+                tempo_value = round_tempo_to_nearest_10(tempo_value)
                 if current_tempo != tempo_value:
                     current_tempo = tempo_value
                     s.insert(abs_offset, TempoIndication(number=current_tempo))
@@ -331,14 +333,14 @@ class Tokenizer:
         # Two classes could contain this data, so we have to check both
         tempo_indications = flat.getElementsByClass("TempoIndication")
         metronome_marks = flat.getElementsByClass("MetronomeMark")
-        current_tempo = DEFAULT_TEMPO
+        current_tempo = round_tempo_to_nearest_10(DEFAULT_TEMPO)
 
         # Set first tempo
         if tempo_indications:
-            current_tempo = int(tempo_indications[0].number)
+            current_tempo = round_tempo_to_nearest_10(int(tempo_indications[0].number))
             # logger.info("TempoIndication found: %s ", current_tempo)
         elif metronome_marks:
-            current_tempo = int(metronome_marks[0].number)
+            current_tempo = round_tempo_to_nearest_10(int(metronome_marks[0].number))
             # logger.info("MetronomeMark found: %s",current_tempo)
         else:
             pass
@@ -348,8 +350,8 @@ class Tokenizer:
         beats_per_bar = 4
 
         tempo_changes = sorted(
-            [(ti.offset, int(ti.number)) for ti in tempo_indications]
-            + [(mm.offset, int(mm.number)) for mm in metronome_marks]
+            [(ti.offset, round_tempo_to_nearest_10(int(ti.number))) for ti in tempo_indications]
+            + [(mm.offset, round_tempo_to_nearest_10(int(mm.number))) for mm in metronome_marks]
         )
 
         # Use an index to track which tempo is active
@@ -454,3 +456,7 @@ class Tokenizer:
 
             raise Exception("Transposition of score was unsuccessful and returned null.")
         raise Exception("Analyzing of score was unsuccessful and didn't return a key.")
+
+
+def round_tempo_to_nearest_10(self: int) -> int:
+    return round(self / ROUND_VALUE) * ROUND_VALUE
