@@ -2,8 +2,6 @@ from dataclasses import dataclass
 import logging
 from multiprocessing import Pool, cpu_count
 
-from groove_panda.config import TOKENIZE_MODE, TokenizeMode
-
 from ..midi import parser
 from . import process, processed_io
 from .tokenization import token_map_io
@@ -33,22 +31,10 @@ def _parallel_tokenize_worker(midi_path: str, processed_dataset_id: str) -> tupl
     tokenizer = Tokenizer(processed_dataset_id)
 
     # Parse
-    score = parser.parse_midi(midi_path)
+    parsed_midi = parser.parse_midi(midi_path)
 
-    # Tokenize according to mode
-    if TOKENIZE_MODE is TokenizeMode.ORIGINAL:
-        sixtuples = tokenizer.tokenize_original_key(score)
-
-    elif TOKENIZE_MODE is TokenizeMode.ALL_KEYS:
-        sixtuples = tokenizer.tokenize_all_keys(score)
-        # token_result is now a dict[int, list[Sixtuple]]
-
-    elif TOKENIZE_MODE is TokenizeMode.C_MAJOR_A_MINOR:
-        sixtuples = tokenizer.tokenize_cmajor_aminor(score)
-        # token_result is now a dict[str, list[Sixtuple]]
-
-    else:
-        raise ValueError(f"Unsupported TOKENIZE_MODE: {TOKENIZE_MODE!r}")
+    # Tokenize according to mode and type of parser
+    sixtuples = tokenizer.tokenize(parsed_midi)
 
     # Create sets of unique tokens (per feature)
     bar_set = set()
@@ -94,10 +80,15 @@ def _parallel_process_worker(
 def parallel_process(dataset_id: str, processed_dataset_id: str):
     """
     Finds all midi paths in dataset
+
     Start worker pool for tokenization (heavy task)
+
     Each worker does tokenization of a single score at the given midi path
+
     Collect worker sixtuples and create a complete sixtuple token maps instance
+
     Start worker pool for processing
+
     Each worker does processing and saving the processed result of a single sixtuple list
     """
 

@@ -145,9 +145,9 @@ def generate(model_name: str, input_name: str, output_name: str):
 
     print(f"Loading seed sequence from: {input_midi_path}")
 
-    score = parse_midi(input_midi_path)
+    parsed_midi = parse_midi(input_midi_path)
     tokenizer = Tokenizer(processed_dataset_id)
-    sixtuples = tokenizer.tokenize(score)
+    sixtuples = tokenizer.tokenize(parsed_midi)
 
     # Convert to numeric tuples
     seed_sequence = []
