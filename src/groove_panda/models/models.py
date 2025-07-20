@@ -5,6 +5,7 @@ from tensorflow.keras.models import Model  # type: ignore
 from tensorflow.keras.optimizers import Adam  # type: ignore
 
 from groove_panda.config import MODEL_PRESETS
+from groove_panda.models.tf_utils.tf_utils import NuclearRegularizer
 
 logger = logging.getLogger(__name__)
 
@@ -142,3 +143,63 @@ class LSTMModel(BaseModel):
 
         # Assign model to this Model object's LSTM model.
         self.model = built_model
+
+class EmbeddingExperimentModel(BaseModel):
+    def __init__(self, model_id: str, input_shape: tuple[int, int]):
+        super().__init__(model_id=model_id, input_shape=input_shape)
+
+    def build(self, vocab_sizes: dict[str, int], preset_name: str = "basic"):
+        input_layers = {
+            feature_name: Input(
+                shape=(64,),  # -> Ex: (32,)
+                name=feature_name
+            )
+            for feature_name in vocab_sizes
+        }
+
+        embedding_layers = {
+            'bar': Embedding(input_dim=vocab_sizes['bar'], output_dim=8, name='bar_embedding')(input_layers['bar']),
+            'position': Embedding(input_dim=vocab_sizes['position'], output_dim=16, name='position_embedding')(input_layers['position']),
+            'pitch': Embedding(input_dim=vocab_sizes['pitch'], output_dim=48, name='pitch_embedding')(input_layers['pitch']),
+            'duration': Embedding(input_dim=vocab_sizes['duration'], output_dim=16, name='duration_embedding')(input_layers['duration']),
+            'velocity': Embedding(input_dim=vocab_sizes['velocity'], output_dim=16, name='velocity_embedding')(input_layers['velocity']),
+            'tempo': Embedding(input_dim=vocab_sizes['tempo'], output_dim=8, name='tempo_embedding')(input_layers['tempo']),
+        }
+        x = Concatenate(name="concat_all_embeddings")(list(embedding_layers.values()))
+
+        x = LSTM(units=256, return_sequences=True, name="lstm_1", recurrent_dropout=0.075)(x)
+        x = Dropout(rate=0.1)(x)
+        x = LSTM(units=256, return_sequences=True, name="lstm_2", recurrent_dropout=0.075)(x)
+        x = Dropout(rate=0.15)(x)
+        x = LSTM(units=128, return_sequences=False, name="lstm_3", recurrent_dropout=0.05)(x)
+        x = Dropout(rate=0.2)(x)
+
+        dense_output = [
+            Dense(
+                units=vocab_sizes[feature_name],
+                activation="softmax",
+                name=f"{feature_name}_output"
+            )(x)
+            for feature_name in vocab_sizes
+        ]
+        optimizer = Adam(learning_rate=1.5e-3)
+        loss_dict = {f"{feature_name}_output": "sparse_categorical_crossentropy" for feature_name in vocab_sizes}
+        loss_weights_dict = {
+            'bar_output': 0.2,
+            'position_output': 0.6,
+            'pitch_output': 0.8,
+            'duration_output': 0.4,
+            'velocity_output': 0.6,
+            'tempo_output': 0.2
+        }
+        metric_dict = {f"{feature_name}_output": "accuracy" for feature_name in vocab_sizes}
+
+        model = Model(inputs=input_layers, outputs=dense_output, name=f"{self.model_id}_midi_lstm")
+        model.compile(
+            optimizer=optimizer,
+            loss=loss_dict,
+            loss_weights=loss_weights_dict,
+            metrics=metric_dict
+        )
+
+        self.model = model

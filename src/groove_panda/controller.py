@@ -70,8 +70,8 @@ def train(model_id: str, processed_dataset_id: str, preset_name: str):
     with np.load(file_paths[0]) as data:
         input_shape = data["x"].shape[1:]  # Remove batch dimension
 
-    model = models.LSTMModel(model_id, input_shape)
-    model.build(vocab_sizes=vocab_sizes, preset_name=preset_name)
+    model = models.EmbeddingExperimentModel(model_id, input_shape)
+    model.build(vocab_sizes=vocab_sizes)
 
     tr.train_model_eager(model, file_paths)
 
@@ -166,6 +166,8 @@ def generate(model_name: str, input_name: str, output_name: str):
 
     # Generate music stream
     generated_sixtuples = generator.generate_sequence(seed_sequence)
+    for sixtuple in generated_sixtuples:
+        print(sixtuple)
 
     # Detokenize the seed sequence and generated sixtuples
     generated_stream = detokenize(seed_sixtuple + generated_sixtuples)

@@ -8,7 +8,8 @@ from groove_panda.config import FEATURE_NAMES, TRAINING_BATCH_SIZE, TRAINING_EPO
 from groove_panda.models import plot
 from groove_panda.models.lazy_sequence_generator import LazySequenceGenerator
 from groove_panda.models.models import BaseModel
-from groove_panda.models.training_callback import TrainingCallback
+from groove_panda.models.tf_utils.embedding_dim_callback import EmbeddingSVDLogger
+from groove_panda.models.tf_utils.training_callback import TrainingCallback
 
 logger = logging.getLogger(__name__)
 
@@ -102,8 +103,17 @@ def train_model_eager(model: BaseModel, file_paths: list):
 
         training_callback = TrainingCallback()
 
+        log_dir = "data/logs/embedding_experiment"
+        svd_callback = EmbeddingSVDLogger(log_dir=log_dir, layer_name='pitch_embedding', threshold=0.95)
+
+        tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir='data/logs/embedding_experiment', histogram_freq=1)
+
         # verbose set to 0, since we use custom callbacks instead
-        history = model.model.fit(dataset, epochs=TRAINING_EPOCHS, verbose=0, callbacks=[training_callback])
+        history = model.model.fit(dataset, epochs=TRAINING_EPOCHS, verbose=0, callbacks=[
+            training_callback,
+            tensorboard_cb,
+            svd_callback
+        ])
 
         logger.info("Finished training %s", model.model_id)
 

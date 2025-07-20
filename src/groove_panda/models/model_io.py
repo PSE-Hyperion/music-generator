@@ -7,6 +7,7 @@ from tensorflow.keras.models import load_model as load_keras_model  # type: igno
 
 from groove_panda.config import MODELS_DIR
 from groove_panda.models.models import BaseModel
+from groove_panda.models.tf_utils.tf_utils import NuclearRegularizer
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +55,7 @@ def load_model(name: str) -> tuple[BaseModel, dict[str, str]]:
     input_shape = config["input shape"]
     model = BaseModel(name, input_shape)
 
-    keras_model = load_keras_model(model_path)
+    keras_model = load_keras_model(model_path, custom_objects={"NuclearRegularizer": NuclearRegularizer})
 
     model.set_model(keras_model)
 
