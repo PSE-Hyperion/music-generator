@@ -121,8 +121,12 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
 
         # Big if single note or chord, consisting of multiple notes
         # Single note:
-        if len(events_at_position) == 1:
-            event = events_at_position[0]
+        # Initialize event duration before loop.
+        event_duration: float = 0
+
+        # Add each event at the given position to the stream. There is no differentiation between notes and chords.
+        # Chords are implicitly included in the form of several individual notes starting at the same position.
+        for event in events_at_position:
             pitch_midi = int(event.pitch.split("_")[1])
             duration = float(Fraction(event.duration.split("_")[1]))
             velocity = int(event.velocity.split("_")[1])
@@ -131,25 +135,12 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
             n.volume.velocity = velocity
             s.insert(abs_offset, n)
 
-        else:
-            # Chord:
-            pitches = []
-            duration = None
-            velocity = None
-
-            for event in events_at_position:
-                pitch_midi = int(event.pitch.split("_")[1])
-                pitches.append(pitch_midi)
-                if duration is None:
-                    duration = float(Fraction(event.duration.split("_")[1]))
-                    velocity = int(event.velocity.split("_")[1])
-
-            c = chord.Chord(pitches, quarterLength=duration)
-            c.volume.velocity = velocity
-            s.insert(abs_offset, c)
+            # event_duration is used to calculate rests in between notes.
+            # In the case of several notes in one position, the rest should only start
+            # after the longest note has ended, since only then will there be silence.
+            event_duration = max(event_duration, duration)
 
         # Update current offset to the end of this event
-        event_duration = float(Fraction(events_at_position[0].duration.split("_")[1]))
         current_offset = abs_offset + event_duration
 
     logger.info("Finished detokenizing.")
