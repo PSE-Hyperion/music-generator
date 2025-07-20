@@ -1,11 +1,11 @@
 import logging
 
-import tensorflow as tf
 from tensorflow.keras.layers import LSTM, Concatenate, Dense, Dropout, Embedding, Input  # type: ignore
 from tensorflow.keras.models import Model  # type: ignore
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam  # type: ignore
 
 from music_generation_lstm.config import MODEL_PRESETS
+from music_generation_lstm.models.lazy_sequence_generator import LazySequenceGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -143,3 +143,21 @@ class LSTMModel(BaseModel):
 
         # Assign model to this Model object's LSTM model.
         self.model = built_model
+
+    def train(self, train_generator: LazySequenceGenerator, epochs: int, steps_per_epoch: int):
+        try:
+            # fit() will automatically call on_epoch_end of lazy sequence generator, to get new samples
+            history = self.model.fit(
+                train_generator,
+                epochs=epochs,
+                steps_per_epoch=steps_per_epoch,
+                verbose=2,  # type: ignore
+                # callbacks=[TrainingCallback()],
+                # Note: validation_split doesn't work with generators,
+                # you'd need a separate validation generator (or other solution)
+            )
+
+        except Exception as e:
+            raise Exception(f"Training failed: {e}") from e
+
+        return history
