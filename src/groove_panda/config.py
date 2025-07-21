@@ -99,6 +99,7 @@ PROCESSED_DIR: Final[str] = "data/processed"
 TOKEN_MAPS_DIR: Final[str] = "data/token_maps"
 PLOT_DIR: Final[str] = "data/plots"
 OUTPUT_SHEET_MUSIC_DIR: Final[str] = "data/sheet_music"
+LOG_DIR: Final[str] = "data/logs"
 
 
 """ Debugging or diagnostics """

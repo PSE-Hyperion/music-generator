@@ -76,7 +76,7 @@ class LSTMModel(BaseModel):
         input_layers = {
             feature_name: Input(
                 shape=(sequence_length,),  # -> Ex: (32,)
-                name=feature_name,
+                name=f"input_{feature_name}",
             )
             for feature_name in vocab_sizes
         }
@@ -92,7 +92,7 @@ class LSTMModel(BaseModel):
                 input_dim=vocab_size,  # Size of this feature's vocabulary.
                 # Embedding matrix has [vocab_size] rows to choose from for each feature
                 output_dim=feature_embedding_dim,  # Ex: Pitch -> 128, Bar -> 8, etc.
-                name=f"{feature_name}_emb",  # Helps with debugging & saving
+                name=f"embedding_{feature_name}",  # Helps with debugging & saving
             )(input_layers[feature_name])  # Apply embedding to the corresponding Input()
             embedding_layers[feature_name] = embedded_tensor
 
@@ -117,24 +117,24 @@ class LSTMModel(BaseModel):
             x = Dropout(rate=dropout_rate, name=f"dropout_after_lstm_{layer_index + 1}")(x)
 
             # Add a per feature dense layer
-        output_tensors = []
+        output_tensors = {}
         for feature_name, vocab_size in vocab_sizes.items():
             # Build a Dense softmax head for this feature
             dense_output = Dense(
                 units=vocab_size,  # Number of classes for this feature
                 activation="softmax",  # We want a probability distribution
-                name=f"{feature_name}_output",
+                name=f"output_{feature_name}",
             )(x)  # apply to the last LSTM/Dropout output
-            output_tensors.append(dense_output)
+            output_tensors[feature_name] = dense_output
 
         # Create the model object
         built_model = Model(
-            inputs=list(input_layers.values()), outputs=output_tensors, name=f"{self.model_id}_midi_lstm"
+            inputs=list(input_layers.values()), outputs=list(output_tensors.values()), name=f"{self.model_id}_midi_lstm"
         )
 
         # Prepare and set the loss function and metrics for each output
-        loss_dict = {f"{feature_name}_output": "sparse_categorical_crossentropy" for feature_name in vocab_sizes}
-        metric_dict = {f"{feature_name}_output": "accuracy" for feature_name in vocab_sizes}
+        loss_dict = {f"output_{feature_name}": "sparse_categorical_crossentropy" for feature_name in vocab_sizes}
+        metric_dict = {f"output_{feature_name}": "accuracy" for feature_name in vocab_sizes}
 
         # Compile model using the specified learning rate
         optimizer = Adam(learning_rate=learning_rate)
@@ -142,3 +142,4 @@ class LSTMModel(BaseModel):
 
         # Assign model to this Model object's LSTM model.
         self.model = built_model
+

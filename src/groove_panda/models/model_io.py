@@ -7,6 +7,9 @@ from tensorflow.keras.models import load_model as load_keras_model  # type: igno
 
 from groove_panda.config import MODELS_DIR
 from groove_panda.models.models import BaseModel
+from groove_panda.models.tf_custom.regularizers import (
+    NuclearRegularizer,  # noqa: F401 # May be necessary for Keras when loading a model with this regularizer.
+)
 
 logger = logging.getLogger(__name__)
 
