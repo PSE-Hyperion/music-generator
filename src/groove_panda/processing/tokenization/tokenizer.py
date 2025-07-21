@@ -559,9 +559,11 @@ class Tokenizer:
         """
         Tokenizes mido MidiFile object to a list of sixtuples.
 
-         and all valuable data is extracted and saved in sixtuples, which represent a note event
+        First calls _read_and_merge_events to get all valuable information from the MidiFile.
 
-        Rests are encoded implicitly
+        Then translates the returned result to a list of Sixtuple.
+
+        Rests are encoded implicitly.
         """
 
         logger.info("Start encoding to tokens...")
@@ -617,6 +619,9 @@ def _read_and_merge_events(midi: MidiFile) -> tuple[list[dict], int]:
     """
     Merge tempo, time signature, note, and pedal (control change 64,66,67) events
     from all tracks into a global, time sorted list with absolute ticks.
+
+    This is an unchanged version of this method from the first mido implementation branch.
+    It gathers all important information in a MidiFile and constructs a list of tracks
     """
 
     ppq = midi.ticks_per_beat
