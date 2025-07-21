@@ -9,6 +9,7 @@ from groove_panda import controller, data_managment
 HELP_INSTRUCTIONS = "the following commands exists:"
 MIN_DELETE_COMMAND_PARTS = 2
 ARG_INDEX_RESULT_ID = 2
+ARG_MODEL_PRESET = 2
 
 logger = logging.getLogger(__name__)
 
@@ -164,6 +165,10 @@ def complete_train(arg_index, word, _parts):
         yield Completion("new_model_id", start_position=-len(word))
     if arg_index == 1:
         yield from id_completion(data_managment.get_existing_processed_ids(), word)
+    if arg_index == ARG_MODEL_PRESET:
+        for option in ["basic", "light", "advanced"]:
+            if option.startswith(word):
+                yield Completion(option, start_position=-len(word))
 
 
 def complete_generate(arg_index, word, _parts):
@@ -249,7 +254,7 @@ def process_input(input: str):
 
 COMMAND_HANDLERS = {
     Command.PROCESS: handle_process,  # -process dataset_id processed_id(new)
-    Command.TRAIN: handle_train,  # -train model_id(new) processed_id
+    Command.TRAIN: handle_train,  # -train model_id(new) processed_id model_architecture_preset
     Command.HELP: handle_help,  # -help
     Command.DELETE: handle_delete,  # -delete file/dataset/processed/model ids/all
     Command.GENERATE: handle_generate,  # -generate model_id input result_id(new) (not implemented yet)
@@ -266,7 +271,7 @@ COMMAND_LENGTHS = {
 
 COMMAND_COMPLETERS = {
     Command.PROCESS: complete_process,  # dataset_id processed_id(new)
-    Command.TRAIN: complete_train,  # model_id, processed_id
+    Command.TRAIN: complete_train,  # model_id, processed_id, model_architecture_preset
     Command.DELETE: complete_delete,  # file/ dataset/processed/model, ids/all
     Command.HELP: complete_help,  # needs no completion
     Command.GENERATE: complete_generate,  # model_id, input, result_id(new)
