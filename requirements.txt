@@ -4,3 +4,4 @@ music21==9.7.1
 tensorflow_cpu==2.19.0
 prompt-toolkit==3.0.51
 mido==1.3.3
+pip-licenses==5.0.0
