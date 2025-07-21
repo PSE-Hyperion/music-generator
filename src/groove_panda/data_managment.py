@@ -17,8 +17,11 @@ def delete_dataset_data(dataset_id: str):
     Deletes a dataset given trough its dataset_id, will delete in data-> midi-> datasets
     deletes the empty dataset folder.
     """
-    dataset_path = os.path.join(DATASETS_MIDI_DIR, dataset_id)
-    shutil.rmtree(dataset_path)
+    if dataset_id == "all":
+        _delete_all_datasets()
+    else:
+        dataset_path = os.path.join(DATASETS_MIDI_DIR, dataset_id)
+        shutil.rmtree(dataset_path)
 
 
 def delete_model_data(model_id: str):
@@ -26,16 +29,22 @@ def delete_model_data(model_id: str):
     Deletes model given trough its model_id, will delete in data-> models
     deletes the empty dataset folder.
     """
-    model_path = os.path.join(MODELS_DIR, model_id)
-    shutil.rmtree(model_path)
+    if model_id == "all":
+        _delete_all_models()
+    else:
+        model_path = os.path.join(MODELS_DIR, model_id)
+        shutil.rmtree(model_path)
 
 
 def delete_result_data(result_id: str):
     """
     Deletes a result given trough the result ID, will delete in data -> midi -> results
     """
-    result_path = os.path.join(RESULTS_MIDI_DIR, result_id)
-    _delete_file(result_path)
+    if result_id == "all":
+        _delete_all_results()
+    else:
+        result_path = os.path.join(RESULTS_MIDI_DIR, result_id)
+        _delete_file(result_path)
 
 
 def delete_processed_data(processed_id: str):
@@ -43,26 +52,29 @@ def delete_processed_data(processed_id: str):
     Deletes the folder containing token maps and metadata for the given processed_dataset_id.
     And deletes the processed dataset given trough the id
     """
-    processed_path = os.path.join(PROCESSED_DIR, processed_id)  # processed and map are deleted together
-    map_path = os.path.join(TOKEN_MAPS_DIR, processed_id)  # maybe should be possible to delete only one
+    if processed_id == "all":
+        _delete_all_processed()
+    else:
+        processed_path = os.path.join(PROCESSED_DIR, processed_id)  # processed and map are deleted together
+        map_path = os.path.join(TOKEN_MAPS_DIR, processed_id)  # maybe should be possible to delete only one
 
-    _delete_file(processed_path)
-    shutil.rmtree(map_path)
+        _delete_file(processed_path)
+        shutil.rmtree(map_path)
 
 
-def delete_all_results():
+def _delete_all_results():
     _delete_folder_contents(RESULTS_MIDI_DIR)
 
 
-def delete_all_models():
+def _delete_all_models():
     _delete_folder_contents(MODELS_DIR)
 
 
-def delete_all_datasets():
+def _delete_all_datasets():
     _delete_folder_contents(DATASETS_MIDI_DIR)
 
 
-def delete_all_processed():
+def _delete_all_processed():
     _delete_folder_contents(PROCESSED_DIR)
 
 
