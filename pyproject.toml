@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 
 [project]
-name = "music-generator"
+name = "groove-panda"
 version = "0.1.0"
 description = "Generates music with ML using LSTM"
 readme = "README.md"
@@ -32,7 +32,7 @@ gpu = ["tensorflow>=2.19"]
 
 
 [project.scripts]
-music-gen = "music_generation_lstm.main:main"
+groove-panda = "groove_panda.main:main"
 
 
 [tool.setuptools.packages.find]
@@ -89,7 +89,7 @@ ignore = [
 [tool.ruff.lint.isort]
 combine-as-imports = true
 force-sort-within-sections = true
-known-first-party = ["music_generation_lstm"]
+known-first-party = ["groove_panda"]
 #lines-between-types = 1  # ignored when 'force-sort-within-sections=true'
 
 [tool.ruff.lint.pep8-naming]
