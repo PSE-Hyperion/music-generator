@@ -43,6 +43,7 @@ PROCESSED_DIR: Final = "data/processed"
 TOKEN_MAPS_DIR: Final = "data/token_maps"
 PLOT_DIR: Final = "data/plots"
 OUTPUT_SHEET_MUSIC_DIR: Final = "data/detokenized_sheet_music"
+LOG_DIR: Final = "data/logs"
 
 # Debugging or diagnostics
 

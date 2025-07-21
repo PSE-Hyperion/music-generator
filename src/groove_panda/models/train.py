@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.callbacks import History  # type: ignore
 
-from groove_panda.config import FEATURE_NAMES, TRAINING_BATCH_SIZE, TRAINING_EPOCHS
+from groove_panda.config import FEATURE_NAMES, LOG_DIR, TRAINING_BATCH_SIZE, TRAINING_EPOCHS
 from groove_panda.models import plot
 from groove_panda.models.lazy_sequence_generator import LazySequenceGenerator
 from groove_panda.models.models import BaseModel
@@ -106,11 +106,10 @@ def train_model_eager(model: BaseModel, file_paths: list):
 
         training_callback = TerminalPrettyCallback()
 
-        log_dir = "data/logs/embedding_experiment"
+        tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR, histogram_freq=1)
+        # Other callbacks can be added here for specific purposes
 
-        tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir='data/logs/embedding_experiment', histogram_freq=1)
-
-        # verbose set to 0, since we use custom callbacks instead
+        # verbose set to 0, since we use cuembeddingstom callbacks instead
         history = model.model.fit(dataset, epochs=TRAINING_EPOCHS, verbose=0, callbacks=[
             training_callback,
             tensorboard_cb
