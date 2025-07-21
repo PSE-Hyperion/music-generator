@@ -23,6 +23,9 @@ TEMPO_TOLERANCE: Final = 0.01
 
 DEFAULT_TEMPO: Final = 120
 
+# rounds all tempo values
+TEMPO_ROUND_VALUE = 10
+
 # Temperature controls randomness in music generation:
 # temp = 0   -> deterministic (always picks most likely token)
 # temp < 1   -> more conservative/predictable (favors likely tokens)
