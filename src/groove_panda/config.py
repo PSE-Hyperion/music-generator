@@ -42,7 +42,7 @@ MODELS_DIR: Final = "data/models"
 PROCESSED_DIR: Final = "data/processed"
 TOKEN_MAPS_DIR: Final = "data/token_maps"
 PLOT_DIR: Final = "data/plots"
-OUTPUT_SHEET_MUSIC_DIR: Final = "data/detokenized_sheet_music"
+OUTPUT_SHEET_MUSIC_DIR: Final = "data/sheet_music"
 
 # Debugging or diagnostics
 
