@@ -75,7 +75,7 @@ class LSTMModel(BaseModel):
         # Create one Input() per feature, each taking a sequence of tokens
         input_layers = {
             feature_name: Input(
-                shape=(32,),  # -> Ex: (32,)
+                shape=(sequence_length,),  # -> Ex: (32,)
                 name=f"input_{feature_name}",
             )
             for feature_name in vocab_sizes
