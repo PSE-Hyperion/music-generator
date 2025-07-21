@@ -308,6 +308,10 @@ class SixtupleTokenMaps:
         self._tempo_map = {token: idx for idx, token in enumerate(tempo_set)}
 
 
+def round_tempo(tempo: int) -> int:
+    return round(tempo / TEMPO_ROUND_VALUE) * TEMPO_ROUND_VALUE
+
+
 class Tokenizer:
     def __init__(self, processed_dataset_id: str = "EMPTY"):
         self.processed_dataset_id = processed_dataset_id
@@ -455,7 +459,3 @@ class Tokenizer:
 
             raise Exception("Transposition of score was unsuccessful and returned null.")
         raise Exception("Analyzing of score was unsuccessful and didn't return a key.")
-
-
-def round_tempo(self: int) -> int:
-    return round(self / TEMPO_ROUND_VALUE) * TEMPO_ROUND_VALUE
