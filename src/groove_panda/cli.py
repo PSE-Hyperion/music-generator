@@ -9,6 +9,7 @@ from groove_panda import controller, data_managment
 HELP_INSTRUCTIONS = "the following commands exists:"
 MIN_DELETE_COMMAND_PARTS = 2
 ARG_INDEX_RESULT_ID = 2
+ARG_MODEL_PRESET = 2
 
 logger = logging.getLogger(__name__)
 
@@ -55,17 +56,12 @@ def handle_train(args: list[str]):
     #   "-train [model_id(new)] [processed_dataset_id] [model_architecture_preset]"
     #
 
-    if len(args) != COMMAND_LENGTHS[Command.TRAIN]:
-        logger.error("Incorrect use of the 'train' command.")
-        logger.error(
-            "Please use the correct format:-train [model name] [processed dataset name] [model architecture preset]"
-        )
-
     model_id = args[0]
     processed_dataset_id = args[1]
+
     preset_name = (
-        args[2] if len(args) > COMMAND_LENGTHS[Command.TRAIN] else "light"
-    )  # For when variable length commands are implemented
+        args[2] if len(args) >= COMMAND_LENGTHS[Command.TRAIN] else "light"
+    )  # For when variable length commands are implemented, does nothing right now
 
     controller.train(model_id, processed_dataset_id, preset_name)
 
@@ -74,10 +70,6 @@ def handle_generate(args: list[str]):
     #   Handles the generate command by calling corresponding controller function
     #   Usage: "-generate [model name] [input name] [desired output name]"
     #
-
-    if len(args) != COMMAND_LENGTHS[Command.GENERATE]:
-        logger.error("Incorrect use of the 'generate' command.")
-        logger.error("Please use the correct format: -generate [model name] [input name] [desired output name]")
 
     model_name = args[0]
     input_name = args[1]
@@ -174,6 +166,10 @@ def complete_train(arg_index, word, _parts):
         yield Completion("new_model_id", start_position=-len(word))
     if arg_index == 1:
         yield from id_completion(data_managment.get_existing_processed_ids(), word)
+    if arg_index == ARG_MODEL_PRESET:
+        for option in ["basic", "light", "advanced"]:
+            if option.startswith(word):
+                yield Completion(option, start_position=-len(word))
 
 
 def complete_generate(arg_index, word, _parts):
@@ -259,7 +255,7 @@ def process_input(input: str):
 
 COMMAND_HANDLERS = {
     Command.PROCESS: handle_process,  # -process dataset_id processed_id(new)
-    Command.TRAIN: handle_train,  # -train model_id(new) processed_id
+    Command.TRAIN: handle_train,  # -train model_id(new) processed_id model_architecture_preset
     Command.HELP: handle_help,  # -help
     Command.DELETE: handle_delete,  # -delete file/dataset/processed/model ids/all
     Command.GENERATE: handle_generate,  # -generate model_id input result_id(new) (not implemented yet)
@@ -276,7 +272,7 @@ COMMAND_LENGTHS = {
 
 COMMAND_COMPLETERS = {
     Command.PROCESS: complete_process,  # dataset_id processed_id(new)
-    Command.TRAIN: complete_train,  # model_id, processed_id
+    Command.TRAIN: complete_train,  # model_id, processed_id, model_architecture_preset
     Command.DELETE: complete_delete,  # file/ dataset/processed/model, ids/all
     Command.HELP: complete_help,  # needs no completion
     Command.GENERATE: complete_generate,  # model_id, input, result_id(new)

@@ -125,7 +125,7 @@ def sequence_to_model_input(sequence: list[tuple[int, int, int, int, int, int]])
     model_input = {}
     for i, feature_name in enumerate(feature_names):
         # Add batch dimension (1, sequence_length)
-        model_input[feature_name] = seq_array[:, i].reshape(1, -1)
+        model_input[f"input_{feature_name}"] = seq_array[:, i].reshape(1, -1)
 
     return model_input
 
