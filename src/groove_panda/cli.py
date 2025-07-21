@@ -234,9 +234,7 @@ def process_input(input: str):
         logger.error("Command has no length assigned.")
         return
 
-    logger.info("hier")
     if length != (len(parts) - 1):
-        logger.info("innen")
         logger.info(f"Command should get {length} arguments, but got {len(parts) - 1}")
         return
 
