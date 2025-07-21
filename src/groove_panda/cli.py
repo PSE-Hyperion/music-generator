@@ -58,9 +58,10 @@ def handle_train(args: list[str]):
 
     model_id = args[0]
     processed_dataset_id = args[1]
+
     preset_name = (
-        args[2] if len(args) > COMMAND_LENGTHS[Command.TRAIN] else "light"
-    )  # For when variable length commands are implemented
+        args[2] if len(args) >= COMMAND_LENGTHS[Command.TRAIN] else "light"
+    )  # For when variable length commands are implemented, does nothing right now
 
     controller.train(model_id, processed_dataset_id, preset_name)
 
