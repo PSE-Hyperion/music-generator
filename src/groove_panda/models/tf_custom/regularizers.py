@@ -1,5 +1,5 @@
-import tensorflow as tf
 from keras.src.saving import register_keras_serializable
+import tensorflow as tf
 
 from groove_panda.models.tf_custom.math_utils import nuclear_norm
 
@@ -7,6 +7,7 @@ from groove_panda.models.tf_custom.math_utils import nuclear_norm
 Regularizers are used to influence the way the parameters of a model evolve during the training.
 """
 
+# Registering for keras, otherwise it has problems with models that use this regularizer, e.g. when loading a config
 @register_keras_serializable(package="Custom", name="NuclearRegularizer")
 class NuclearRegularizer(tf.keras.regularizers.Regularizer):
     """
