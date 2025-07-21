@@ -1,4 +1,5 @@
 import os
+
 from groove_panda.config import ALLOWED_MUSIC_FILE_EXTENSIONS, GENERATION_TEMPERATURE
 from groove_panda.generation.generate import MusicGenerator
 from groove_panda.midi import writer
@@ -6,6 +7,7 @@ from groove_panda.midi.parser import parse_midi
 from groove_panda.models.model_io import load_model
 from groove_panda.processing.tokenization import token_map_io
 from groove_panda.processing.tokenization.tokenizer import Tokenizer, detokenize
+
 
 def generate_music(model_name: str, input_name: str, output_name: str):
     """
@@ -45,7 +47,7 @@ def generate_music(model_name: str, input_name: str, output_name: str):
     # Convert to numeric tuples
     seed_sequence = []
     seed_sixtuple = []
-    for sixtuple in sixtuples[:generator.sequence_length]:
+    for sixtuple in sixtuples[: generator.sequence_length]:
         numeric_tuple = (
             token_maps["bar"][sixtuple.bar],
             token_maps["position"][sixtuple.position],

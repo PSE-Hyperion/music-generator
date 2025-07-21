@@ -24,7 +24,6 @@ def process(dataset_id: str, processed_dataset_id: str):
     numerize tokens
     save processed data (ready for training data)
     """
-
     parallel_processing.parallel_process(dataset_id, processed_dataset_id)
 
 
@@ -33,6 +32,7 @@ def train(model_id: str, processed_dataset_id: str, preset_name: str):
     train a model using the processed dataset
     """
     train_model(model_id, processed_dataset_id, preset_name)
+
 
 def delete_dataset(dataset_id: str):
     """Deletes a dataset given trough its dataset_id, will delete in data-> midi-> datasets"""
@@ -81,7 +81,6 @@ def show():
     generate with model using start sequence
     write result in folder
     """
-
     logger.info("show")
 
 
