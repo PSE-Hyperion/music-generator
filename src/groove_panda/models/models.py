@@ -5,7 +5,6 @@ from tensorflow.keras.models import Model  # type: ignore
 from tensorflow.keras.optimizers import Adam  # type: ignore
 
 from groove_panda.config import MODEL_PRESETS
-from groove_panda.models.tf_custom.regularizers import NuclearRegularizer
 
 logger = logging.getLogger(__name__)
 
@@ -144,7 +143,10 @@ class LSTMModel(BaseModel):
         # Assign model to this Model object's LSTM model.
         self.model = built_model
 
-class EmbeddingExperimentModel(BaseModel):
+class ExperimentModel(BaseModel):
+    """
+    This class allows to set all parameters individually. It should only be used when you want to try out some custom architectures.
+    """
     def __init__(self, model_id: str, input_shape: tuple[int, int]):
         super().__init__(model_id=model_id, input_shape=input_shape)
 
