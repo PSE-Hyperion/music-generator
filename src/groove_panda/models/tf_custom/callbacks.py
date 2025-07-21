@@ -4,7 +4,6 @@ import time
 
 import numpy as np
 import tensorflow as tf
-
 from tensorflow.keras import callbacks  # type: ignore
 
 logger = logging.getLogger(__name__)
@@ -101,7 +100,12 @@ class TerminalPrettyCallback(callbacks.Callback):
         print(" | ".join(values))
 
 
-class EmbeddingSVDLogger(tf.keras.callbacks.Callback):
+class EmbeddingPropertiesCallback(tf.keras.callbacks.Callback):
+    """
+    This is a custom callback for e.g. Tensorboard.
+    It gives helpful information about a specified embedding layer for experiments and analysis of an architecture.
+    Is not intended to be a default callback for all trainings.
+    """
     def __init__(self, log_dir, layer_name='embedding', threshold=0.99):
         super().__init__()
         self.log_dir = log_dir
@@ -112,7 +116,6 @@ class EmbeddingSVDLogger(tf.keras.callbacks.Callback):
     def log_singular_values(self, weights, step_label, step):
         u, s, vh = np.linalg.svd(weights, full_matrices=False)
 
-        # Effektiver Rang berechnen (PCA-Kriterium)
         squared_s = s ** 2
         total_energy = np.sum(squared_s)
         energy_ratio = np.cumsum(squared_s) / total_energy
@@ -122,7 +125,6 @@ class EmbeddingSVDLogger(tf.keras.callbacks.Callback):
         entropy = -np.sum(p * np.log(p + eps))
         entropy_rank = np.exp(entropy)
 
-        # Statistiken
         spectral_norm = s[0]  # Größter Singulärwert
         nuclear_norm = np.sum(s)  # Summe aller Singulärwerte
         num_above_thresh = np.sum(s > 0.1)

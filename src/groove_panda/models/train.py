@@ -8,7 +8,7 @@ from groove_panda.config import FEATURE_NAMES, TRAINING_BATCH_SIZE, TRAINING_EPO
 from groove_panda.models import plot
 from groove_panda.models.lazy_sequence_generator import LazySequenceGenerator
 from groove_panda.models.models import BaseModel
-from groove_panda.models.tf_custom.callbacks import TerminalPrettyCallback, EmbeddingSVDLogger
+from groove_panda.models.tf_custom.callbacks import TerminalPrettyCallback
 
 logger = logging.getLogger(__name__)
 
