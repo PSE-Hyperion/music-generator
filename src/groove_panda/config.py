@@ -72,6 +72,9 @@ DEFAULT_TEMPO: Final[int] = 120
 
 """ Generation """
 
+# rounds all tempo values
+TEMPO_ROUND_VALUE = 10
+
 # Temperature controls randomness in music generation:
 # temp = 0   -> deterministic (always picks most likely token)
 # temp < 1   -> more conservative/predictable (favors likely tokens)
