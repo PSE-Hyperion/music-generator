@@ -24,4 +24,4 @@ COPY    --from=builder /usr/local/ /usr/local/
 
 RUN     useradd -mu 1000 app
 
-CMD     ["music-gen"]
+CMD     ["groove-panda"]

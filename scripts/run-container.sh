@@ -12,5 +12,5 @@ else
     echo "Run docker program with GPU"
     shift
     docker build -f ${DOCKERFILE_GPU_PATH} -t "music-gen:gpu" ${PROJECT_PATH}
-    docker run --gpus all -u 1000:1000 --rm -it music-gen:gpu
+    docker run --gpus all -u 1000:1000 --rm -it groove-panda:gpu
 fi

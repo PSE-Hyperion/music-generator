@@ -8,9 +8,7 @@
       "module": "groove_panda.main",
       "console": "integratedTerminal",
       "env": {
-        "PYTHONPATH": "${workspaceFolder}/src",
-        "TF_ENABLE_ONEDNN_OPTS": "0",
-        "TF_CPP_MIN_LOG_LEVEL": "2"
+        "PYTHONPATH": "${workspaceFolder}/src"
       }
     },
     {
@@ -20,9 +18,7 @@
       "module": "test.main",
       "console": "integratedTerminal",
       "env": {
-        "PYTHONPATH": "${workspaceFolder}/src",
-        "TF_ENABLE_ONEDNN_OPTS": "0",
-        "TF_CPP_MIN_LOG_LEVEL": "2"
+        "PYTHONPATH": "${workspaceFolder}/src"
       }
     }
   ]
