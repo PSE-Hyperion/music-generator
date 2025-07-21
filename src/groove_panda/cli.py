@@ -55,12 +55,6 @@ def handle_train(args: list[str]):
     #   "-train [model_id(new)] [processed_dataset_id] [model_architecture_preset]"
     #
 
-    if len(args) != COMMAND_LENGTHS[Command.TRAIN]:
-        logger.error("Incorrect use of the 'train' command.")
-        logger.error(
-            "Please use the correct format:-train [model name] [processed dataset name] [model architecture preset]"
-        )
-
     model_id = args[0]
     processed_dataset_id = args[1]
     preset_name = (
@@ -74,10 +68,6 @@ def handle_generate(args: list[str]):
     #   Handles the generate command by calling corresponding controller function
     #   Usage: "-generate [model name] [input name] [desired output name]"
     #
-
-    if len(args) != COMMAND_LENGTHS[Command.GENERATE]:
-        logger.error("Incorrect use of the 'generate' command.")
-        logger.error("Please use the correct format: -generate [model name] [input name] [desired output name]")
 
     model_name = args[0]
     input_name = args[1]
@@ -244,7 +234,9 @@ def process_input(input: str):
         logger.error("Command has no length assigned.")
         return
 
+    logger.info("hier")
     if length != (len(parts) - 1):
+        logger.info("innen")
         logger.info(f"Command should get {length} arguments, but got {len(parts) - 1}")
         return
 
