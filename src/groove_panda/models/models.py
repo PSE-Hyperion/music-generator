@@ -145,12 +145,13 @@ class LSTMModel(BaseModel):
 
 class ExperimentModel(BaseModel):
     """
-    This class allows to set all parameters individually. It should only be used when you want to try out some custom architectures.
+    This class allows to set all parameters individually.
+    It should only be used when you want to try out some custom architectures.
     """
     def __init__(self, model_id: str, input_shape: tuple[int, int]):
         super().__init__(model_id=model_id, input_shape=input_shape)
 
-    def build(self, vocab_sizes: dict[str, int], preset_name: str = "basic", sequence_length: int = 32):
+    def build(self, vocab_sizes: dict[str, int], sequence_length: int = 32):
         input_layers = {
             'bar': Input(shape=(sequence_length,), name='input_bar'),
             'position': Input(shape=(sequence_length,), name='input_position'),
@@ -161,12 +162,18 @@ class ExperimentModel(BaseModel):
         }
 
         embedding_layers = {
-            'bar': Embedding(input_dim=vocab_sizes['bar'], output_dim=8, name='embedding_bar')(input_layers['bar']),
-            'position': Embedding(input_dim=vocab_sizes['position'], output_dim=16, name='embedding_position')(input_layers['position']),
-            'pitch': Embedding(input_dim=vocab_sizes['pitch'], output_dim=48, name='pitch_embedding_pitch')(input_layers['pitch']),
-            'duration': Embedding(input_dim=vocab_sizes['duration'], output_dim=16, name='embedding_duration')(input_layers['duration']),
-            'velocity': Embedding(input_dim=vocab_sizes['velocity'], output_dim=16, name='embedding_velocity')(input_layers['velocity']),
-            'tempo': Embedding(input_dim=vocab_sizes['tempo'], output_dim=8, name='embedding_tempo')(input_layers['tempo']),
+            'bar': Embedding(input_dim=vocab_sizes['bar'], output_dim=8, name='embedding_bar')
+                (input_layers['bar']),
+            'position': Embedding(input_dim=vocab_sizes['position'], output_dim=16, name='embedding_position')
+                (input_layers['position']),
+            'pitch': Embedding(input_dim=vocab_sizes['pitch'], output_dim=48, name='pitch_embedding_pitch')
+                (input_layers['pitch']),
+            'duration': Embedding(input_dim=vocab_sizes['duration'], output_dim=16, name='embedding_duration')
+                (input_layers['duration']),
+            'velocity': Embedding(input_dim=vocab_sizes['velocity'], output_dim=16, name='embedding_velocity')
+                (input_layers['velocity']),
+            'tempo': Embedding(input_dim=vocab_sizes['tempo'], output_dim=8, name='embedding_tempo')
+                (input_layers['tempo'])
         }
 
         x = Concatenate(name="concat_all_embeddings")(list(embedding_layers.values()))

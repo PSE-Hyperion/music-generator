@@ -12,8 +12,10 @@ Regularizers are used to influence the way the parameters of a model evolve duri
 class NuclearRegularizer(tf.keras.regularizers.Regularizer):
     """
     This is an unusual regularizer for experimenting purposes.
-    It is based on the nuclear norm (aka. shadow-1-norm or trace norm). It urges the parameter matrix to have small singular values.
-    This norm has a stronger bias on smaller singular values (compared to e.g. Spectral Norm or Frobenius Norm (sqrt of the l2 norm in keras)),
+    It is based on the nuclear norm (aka. shadow-1-norm or trace norm).
+    It urges the parameter matrix to have small singular values.
+    This norm has a stronger bias on smaller singular values
+    (compared to e.g. Spectral Norm or Frobenius Norm (sqrt of the l2 norm in keras)),
     so it leads to a smaller rank of the matrix.
     This is especially helpful to analyze the actually used dimensions of layers, e.g. the embedding layer.
     """

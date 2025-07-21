@@ -76,7 +76,7 @@ class TerminalPrettyCallback(callbacks.Callback):
         values = [
             f"{epoch + 1:<{TerminalPrettyCallback.EPOCH_COLUMN_WIDTH}}",
             f"{f'{int(mins)}m {int(secs)}s':<{TerminalPrettyCallback.TIME_COLUMN_WIDTH}}",
-            f"{logs.get('loss', 0):<{TerminalPrettyCallback.LOSS_COLUMN_WIDTH}.{TerminalPrettyCallback.FLOAT_PRECISION}f}",
+            f"{logs.get('loss', 0):<{TerminalPrettyCallback.LOSS_COLUMN_WIDTH}.{TerminalPrettyCallback.FLOAT_PRECISION}f}"  # noqa: E501    idk how to split it #REVIEW
         ]
         for output in outputs:
             loss_key = f"{output}_output_loss"
@@ -87,7 +87,8 @@ class TerminalPrettyCallback(callbacks.Callback):
             loss = logs.get(loss_key, 0.0)
             acc = logs.get(acc_key, 0.0)
             values.append(
-                f"{loss:.{TerminalPrettyCallback.FLOAT_PRECISION}f}, {acc:.{TerminalPrettyCallback.FLOAT_PRECISION}f}".ljust(
+                f"{loss:.{TerminalPrettyCallback.FLOAT_PRECISION}f}, "
+                f"{acc:.{TerminalPrettyCallback.FLOAT_PRECISION}f}".ljust(
                     TerminalPrettyCallback.COLUMN_WIDTH
                 )
             )
@@ -102,9 +103,9 @@ class TerminalPrettyCallback(callbacks.Callback):
 
 class EmbeddingPropertiesCallback(tf.keras.callbacks.Callback):
     """
-    This is a custom callback for e.g. Tensorboard.
-    It gives helpful information about a specified embedding layer for experiments and analysis of an architecture.
-    Is not intended to be a default callback for all trainings.
+    This callback can be used to track properties of a specified embedding layer during training,
+    e.g. the dimensionality for better architecture design and exploration.
+    It's not intended to be used in regular trainings
     """
     def __init__(self, log_dir, layer_name='embedding', threshold=0.99):
         super().__init__()
@@ -122,12 +123,13 @@ class EmbeddingPropertiesCallback(tf.keras.callbacks.Callback):
         effective_rank = np.searchsorted(energy_ratio, self.threshold) + 1
         p = squared_s / total_energy
         eps = 1e-12
+        threshold = 0.1
         entropy = -np.sum(p * np.log(p + eps))
         entropy_rank = np.exp(entropy)
 
         spectral_norm = s[0]  # Größter Singulärwert
         nuclear_norm = np.sum(s)  # Summe aller Singulärwerte
-        num_above_thresh = np.sum(s > 0.1)
+        num_above_thresh = np.sum(s > threshold)
 
         with self.writer.as_default():
             tf.summary.scalar(f"{step_label}/EffectiveRank", effective_rank, step=step)
@@ -138,21 +140,21 @@ class EmbeddingPropertiesCallback(tf.keras.callbacks.Callback):
             tf.summary.scalar(f"{step_label}/NumSingularValues>0.1", num_above_thresh, step=step)
         self.writer.flush()
 
-    def on_train_begin(self, logs=None):
+    def on_train_begin(self, logs=None):  # noqa: ARG002    Logs not needed, but required in the signature
         layer = self._get_embedding_layer()
         if layer is not None:
             weights = layer.get_weights()[0]
             self.log_singular_values(weights, "BeforeTraining", step=0)
 
-    def on_epoch_end(self, epoch, logs=None):
+    def on_epoch_end(self, epoch, logs=None):  # noqa: ARG002   Logs not needed, but required in the signature
         layer = self._get_embedding_layer()
         if layer is not None:
             weights = layer.get_weights()[0]
             self.log_singular_values(weights, "Epoch", step=epoch)
 
     def _get_embedding_layer(self):
-        for l in self.model.layers:
-            if self.layer_name in l.name:
-                return l
-        print(f"[SVD Callback] Layer '{self.layer_name}' not found.")
+        for layer in self.model.layers:
+            if self.layer_name in layer.name:
+                return layer
+        logger.info(f"Could not find {self.layer_name} layer")
         return None
