@@ -10,13 +10,13 @@ class TokenizeMode(Enum):
 
 # Hyperparameters
 
-SEQUENCE_LENGTH: Final = 64  # Important to match processed dataset sequence length to model sequence length!!
+SEQUENCE_LENGTH: Final = 32  # Important to match processed dataset sequence length to model sequence length!!
 
-GENERATION_LENGTH: Final = 1000
+GENERATION_LENGTH: Final = 400
 
-TRAINING_EPOCHS: Final = 4
+TRAINING_EPOCHS: Final = 1
 
-TRAINING_BATCH_SIZE: Final = 128
+TRAINING_BATCH_SIZE: Final = 64
 
 # for the tokenizer: values smaller than this won't be recognized as tempo changes
 TEMPO_TOLERANCE: Final = 0.01
@@ -59,7 +59,7 @@ CREATE_SHEET_MUSIC: Final = False
 
 # TokenizeMode.C_MAJOR_A_MINOR  - if you want all songs to be in C major or A minor
 # (Cmaj for major songs, Amin for minor songs)
-TOKENIZE_MODE = TokenizeMode.ALL_KEYS
+TOKENIZE_MODE = TokenizeMode.ORIGINAL
 
 # Model architecture presets as a mapping from preset name to its hyperparameter configuration
 
