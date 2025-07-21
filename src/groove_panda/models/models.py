@@ -5,7 +5,7 @@ from tensorflow.keras.models import Model  # type: ignore
 from tensorflow.keras.optimizers import Adam  # type: ignore
 
 from groove_panda.config import MODEL_PRESETS
-from groove_panda.models.tf_utils.tf_utils import NuclearRegularizer
+from groove_panda.models.tf_custom.regularizers import NuclearRegularizer
 
 logger = logging.getLogger(__name__)
 
@@ -76,8 +76,8 @@ class LSTMModel(BaseModel):
         # Create one Input() per feature, each taking a sequence of tokens
         input_layers = {
             feature_name: Input(
-                shape=(sequence_length,),  # -> Ex: (32,)
-                name=feature_name,
+                shape=(32,),  # -> Ex: (32,)
+                name=f"input_{feature_name}",
             )
             for feature_name in vocab_sizes
         }
@@ -93,7 +93,7 @@ class LSTMModel(BaseModel):
                 input_dim=vocab_size,  # Size of this feature's vocabulary.
                 # Embedding matrix has [vocab_size] rows to choose from for each feature
                 output_dim=feature_embedding_dim,  # Ex: Pitch -> 128, Bar -> 8, etc.
-                name=f"{feature_name}_emb",  # Helps with debugging & saving
+                name=f"embedding_{feature_name}",  # Helps with debugging & saving
             )(input_layers[feature_name])  # Apply embedding to the corresponding Input()
             embedding_layers[feature_name] = embedded_tensor
 
@@ -118,24 +118,24 @@ class LSTMModel(BaseModel):
             x = Dropout(rate=dropout_rate, name=f"dropout_after_lstm_{layer_index + 1}")(x)
 
             # Add a per feature dense layer
-        output_tensors = []
+        output_tensors = {}
         for feature_name, vocab_size in vocab_sizes.items():
             # Build a Dense softmax head for this feature
             dense_output = Dense(
                 units=vocab_size,  # Number of classes for this feature
                 activation="softmax",  # We want a probability distribution
-                name=f"{feature_name}_output",
+                name=f"output_{feature_name}",
             )(x)  # apply to the last LSTM/Dropout output
-            output_tensors.append(dense_output)
+            output_tensors[feature_name] = dense_output
 
         # Create the model object
         built_model = Model(
-            inputs=list(input_layers.values()), outputs=output_tensors, name=f"{self.model_id}_midi_lstm"
+            inputs=list(input_layers.values()), outputs=list(output_tensors.values()), name=f"{self.model_id}_midi_lstm"
         )
 
         # Prepare and set the loss function and metrics for each output
-        loss_dict = {f"{feature_name}_output": "sparse_categorical_crossentropy" for feature_name in vocab_sizes}
-        metric_dict = {f"{feature_name}_output": "accuracy" for feature_name in vocab_sizes}
+        loss_dict = {f"output_{feature_name}": "sparse_categorical_crossentropy" for feature_name in vocab_sizes}
+        metric_dict = {f"output_{feature_name}": "accuracy" for feature_name in vocab_sizes}
 
         # Compile model using the specified learning rate
         optimizer = Adam(learning_rate=learning_rate)
@@ -148,58 +148,86 @@ class EmbeddingExperimentModel(BaseModel):
     def __init__(self, model_id: str, input_shape: tuple[int, int]):
         super().__init__(model_id=model_id, input_shape=input_shape)
 
-    def build(self, vocab_sizes: dict[str, int], preset_name: str = "basic"):
+    def build(self, vocab_sizes: dict[str, int], preset_name: str = "basic", sequence_length: int = 32):
         input_layers = {
-            feature_name: Input(
-                shape=(64,),  # -> Ex: (32,)
-                name=feature_name
-            )
-            for feature_name in vocab_sizes
+            'bar': Input(shape=(sequence_length,), name='input_bar'),
+            'position': Input(shape=(sequence_length,), name='input_position'),
+            'pitch': Input(shape=(sequence_length,), name='input_pitch'),
+            'duration': Input(shape=(sequence_length,), name='input_duration'),
+            'velocity': Input(shape=(sequence_length,), name='input_velocity'),
+            'tempo': Input(shape=(sequence_length,), name='input_tempo')
         }
 
         embedding_layers = {
-            'bar': Embedding(input_dim=vocab_sizes['bar'], output_dim=8, name='bar_embedding')(input_layers['bar']),
-            'position': Embedding(input_dim=vocab_sizes['position'], output_dim=16, name='position_embedding')(input_layers['position']),
-            'pitch': Embedding(input_dim=vocab_sizes['pitch'], output_dim=48, name='pitch_embedding')(input_layers['pitch']),
-            'duration': Embedding(input_dim=vocab_sizes['duration'], output_dim=16, name='duration_embedding')(input_layers['duration']),
-            'velocity': Embedding(input_dim=vocab_sizes['velocity'], output_dim=16, name='velocity_embedding')(input_layers['velocity']),
-            'tempo': Embedding(input_dim=vocab_sizes['tempo'], output_dim=8, name='tempo_embedding')(input_layers['tempo']),
+            'bar': Embedding(input_dim=vocab_sizes['bar'], output_dim=8, name='embedding_bar')(input_layers['bar']),
+            'position': Embedding(input_dim=vocab_sizes['position'], output_dim=16, name='embedding_position')(input_layers['position']),
+            'pitch': Embedding(input_dim=vocab_sizes['pitch'], output_dim=48, name='pitch_embedding_pitch')(input_layers['pitch']),
+            'duration': Embedding(input_dim=vocab_sizes['duration'], output_dim=16, name='embedding_duration')(input_layers['duration']),
+            'velocity': Embedding(input_dim=vocab_sizes['velocity'], output_dim=16, name='embedding_velocity')(input_layers['velocity']),
+            'tempo': Embedding(input_dim=vocab_sizes['tempo'], output_dim=8, name='embedding_tempo')(input_layers['tempo']),
         }
+
         x = Concatenate(name="concat_all_embeddings")(list(embedding_layers.values()))
 
-        x = LSTM(units=256, return_sequences=True, name="lstm_1", recurrent_dropout=0.075)(x)
+        x = LSTM(units=128, return_sequences=True, name="lstm_1", recurrent_dropout=0.075)(x)
         x = Dropout(rate=0.1)(x)
-        x = LSTM(units=256, return_sequences=True, name="lstm_2", recurrent_dropout=0.075)(x)
+        x = LSTM(units=64, return_sequences=False, name="lstm_2", recurrent_dropout=0.075)(x)
         x = Dropout(rate=0.15)(x)
-        x = LSTM(units=128, return_sequences=False, name="lstm_3", recurrent_dropout=0.05)(x)
-        x = Dropout(rate=0.2)(x)
 
-        dense_output = [
-            Dense(
-                units=vocab_sizes[feature_name],
-                activation="softmax",
-                name=f"{feature_name}_output"
-            )(x)
-            for feature_name in vocab_sizes
-        ]
-        optimizer = Adam(learning_rate=1.5e-3)
-        loss_dict = {f"{feature_name}_output": "sparse_categorical_crossentropy" for feature_name in vocab_sizes}
-        loss_weights_dict = {
-            'bar_output': 0.2,
-            'position_output': 0.6,
-            'pitch_output': 0.8,
-            'duration_output': 0.4,
-            'velocity_output': 0.6,
-            'tempo_output': 0.2
+
+        output_layers = {
+            'bar': Dense(units=vocab_sizes['bar'], activation='softmax', name='output_bar')(x),
+            'position': Dense(units=vocab_sizes['position'], activation='softmax', name='output_position')(x),
+            'pitch': Dense(units=vocab_sizes['pitch'], activation='softmax', name='output_pitch')(x),
+            'duration': Dense(units=vocab_sizes['duration'], activation='softmax', name='output_duration')(x),
+            'velocity': Dense(units=vocab_sizes['velocity'], activation='softmax', name='output_velocity')(x),
+            'tempo': Dense(units=vocab_sizes['tempo'], activation='softmax', name='output_tempo')(x)
         }
-        metric_dict = {f"{feature_name}_output": "accuracy" for feature_name in vocab_sizes}
 
-        model = Model(inputs=input_layers, outputs=dense_output, name=f"{self.model_id}_midi_lstm")
+        model = Model(
+            inputs=list(input_layers.values()),
+            outputs=list(output_layers.values()),
+            name=f"{self.model_id}_midi_lstm"
+        )
+
+        # The keys in this dict are not the keys o the output dict, but the layer names.
+        loss_functions = {
+            'output_bar': 'sparse_categorical_crossentropy',
+            'output_position': 'sparse_categorical_crossentropy',
+            'output_pitch': 'sparse_categorical_crossentropy',
+            'output_duration': 'sparse_categorical_crossentropy',
+            'output_velocity': 'sparse_categorical_crossentropy',
+            'output_tempo': 'sparse_categorical_crossentropy'
+        }
+
+        loss_weights = {
+            'output_bar': 0.2,
+            'output_position': 0.6,
+            'output_pitch': 0.8,
+            'output_duration': 0.4,
+            'output_velocity': 0.6,
+            'output_tempo': 0.2
+        }
+
+        # Also the layer names as keys
+        metric_functions = {
+            'output_bar': 'accuracy',
+            'output_position': 'accuracy',
+            'output_pitch': 'accuracy',
+            'output_duration': 'accuracy',
+            'output_velocity': 'accuracy',
+            'output_tempo': 'accuracy'
+        }
+
+
+
+        optimizer = Adam(learning_rate=1e-3)
+
         model.compile(
             optimizer=optimizer,
-            loss=loss_dict,
-            loss_weights=loss_weights_dict,
-            metrics=metric_dict
+            loss=loss_functions,
+            loss_weights=loss_weights,
+            metrics=metric_functions
         )
 
         self.model = model

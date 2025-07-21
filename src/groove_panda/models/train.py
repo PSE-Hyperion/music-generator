@@ -8,8 +8,7 @@ from groove_panda.config import FEATURE_NAMES, TRAINING_BATCH_SIZE, TRAINING_EPO
 from groove_panda.models import plot
 from groove_panda.models.lazy_sequence_generator import LazySequenceGenerator
 from groove_panda.models.models import BaseModel
-from groove_panda.models.tf_utils.embedding_dim_callback import EmbeddingSVDLogger
-from groove_panda.models.tf_utils.training_callback import TrainingCallback
+from groove_panda.models.tf_custom.callbacks import TerminalPrettyCallback, EmbeddingSVDLogger
 
 logger = logging.getLogger(__name__)
 
@@ -80,11 +79,15 @@ def train_model_eager(model: BaseModel, file_paths: list):
         # Conversion for the model input layers
         # Iterating over the feature axis of the tensors
         x_dict = {
-            feature: full_array_x[:, :, idx]  # take of each sample only the specified feature
+            f"input_{feature}": full_array_x[:, :, idx]  # take of each sample only the specified feature
             for idx, feature in enumerate(FEATURE_NAMES)
         }
-        y_output = tuple(full_array_y[:, idx] for idx, feature in enumerate(FEATURE_NAMES))
-        dataset = tf.data.Dataset.from_tensor_slices((x_dict, y_output))
+        y_dict = {
+            f"output_{feature}": full_array_y[:, idx]  # take of each sample only the specified feature
+            for idx, feature in enumerate(FEATURE_NAMES)
+        }
+
+        dataset = tf.data.Dataset.from_tensor_slices((x_dict, y_dict))
 
         logger.info("Start shuffling...")
         # Providing input for the model is now handled by Tensorflow since it's maximally optimized
@@ -101,18 +104,16 @@ def train_model_eager(model: BaseModel, file_paths: list):
 
         logger.info("Start training...")
 
-        training_callback = TrainingCallback()
+        training_callback = TerminalPrettyCallback()
 
         log_dir = "data/logs/embedding_experiment"
-        svd_callback = EmbeddingSVDLogger(log_dir=log_dir, layer_name='pitch_embedding', threshold=0.95)
 
         tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir='data/logs/embedding_experiment', histogram_freq=1)
 
         # verbose set to 0, since we use custom callbacks instead
         history = model.model.fit(dataset, epochs=TRAINING_EPOCHS, verbose=0, callbacks=[
             training_callback,
-            tensorboard_cb,
-            svd_callback
+            tensorboard_cb
         ])
 
         logger.info("Finished training %s", model.model_id)
