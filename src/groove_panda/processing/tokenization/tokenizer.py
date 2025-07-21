@@ -60,6 +60,8 @@ class Sixtuple:
     def tempo(self):
         return self._tempo
 
+    def __repr__(self):
+        return self.bar + self.position + self.pitch + self.duration + self.velocity + self.tempo
 
 def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:  # noqa: PLR0912, PLR0915  #REVIEW for now it's ok
     """
