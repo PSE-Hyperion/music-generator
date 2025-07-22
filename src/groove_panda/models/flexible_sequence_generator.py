@@ -38,8 +38,7 @@ class FlexibleSequenceGenerator(Sequence):
         """Build deterministic index of all possible subsequences"""
         self.sample_map = []
 
-        for song_idx, song_data in enumerate(self.song_data):
-            continuous_seq = song_data[0]  # Only get the sequence, ignore possible_samples
+        for song_idx, continuous_seq in enumerate(self.song_data):
             max_start_idx = len(continuous_seq) - self.sequence_length - 1
             max_start_steps = max_start_idx // self.stride
 
@@ -52,7 +51,6 @@ class FlexibleSequenceGenerator(Sequence):
         Load all continuous sequences and calculate total possible samples
         """
         self.song_data = []
-        self.total_samples = 0
 
         for file_path in self.file_paths:
             with np.load(file_path) as data:
@@ -62,11 +60,7 @@ class FlexibleSequenceGenerator(Sequence):
 
                 continuous_seq = data["continuous_sequence"]
                 if len(continuous_seq) >= self.sequence_length + 1:
-                    # Calculate possible samples with stride
-                    max_start_idx = len(continuous_seq) - self.sequence_length - 1  # -1 for the target y
-                    possible_samples = (max_start_idx // self.stride) + 1
-                    self.song_data.append((continuous_seq, possible_samples))
-                    self.total_samples += possible_samples
+                    self.song_data.append(continuous_seq)  # Store just the sequence
                 else:
                     logger.warning(
                         "Sequence in %s too short: %d < %d", file_path, len(continuous_seq), self.sequence_length + 1
@@ -86,7 +80,7 @@ class FlexibleSequenceGenerator(Sequence):
 
         for sample_idx in batch_indices:
             song_idx, start_idx = self.sample_map[sample_idx]
-            continuous_seq, _ = self.song_data[song_idx]
+            continuous_seq = self.song_data[song_idx]
 
             x, y = self._extract_subsequence(continuous_seq, start_idx)
             batch_x.append(x)

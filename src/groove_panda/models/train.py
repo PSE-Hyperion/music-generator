@@ -26,7 +26,7 @@ def train_model(model: BaseModel, train_generator):
         logger.info(
             "Training with %s files, containing %s total samples",
             len(train_generator.file_paths),
-            train_generator.total_samples,
+            len(train_generator.sample_map),
         )
         logger.info("Sequence length: %s, Stride: %s", train_generator.sequence_length, train_generator.stride)
         logger.info("Steps per epoch: %s, Batch size: %s", steps_per_epoch, train_generator.batch_size)
