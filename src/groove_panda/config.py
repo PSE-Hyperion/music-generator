@@ -80,6 +80,7 @@ TOKENIZE_MODE = TokenizeMode.ORIGINAL
 MODEL_PRESETS = {
     "light": {
         "sequence_length": 16,
+        "stride": 1,
         "lstm_units": 64,
         "num_lstm_layers": 1,
         "dropout_rate": 0.1,
@@ -95,6 +96,7 @@ MODEL_PRESETS = {
     },
     "basic": {
         "sequence_length": 32,
+        "stride": 1,
         "lstm_units": 128,
         "num_lstm_layers": 2,
         "dropout_rate": 0.2,
@@ -110,6 +112,7 @@ MODEL_PRESETS = {
     },
     "advanced": {
         "sequence_length": 64,
+        "stride": 1,
         "lstm_units": 512,
         "num_lstm_layers": 3,
         "dropout_rate": 0.3,

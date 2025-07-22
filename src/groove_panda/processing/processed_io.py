@@ -39,6 +39,38 @@ def save_processed_data(processed_dataset_id: str, music_path: str, x, y):
     logger.info("Input Shape: %s", x.shape)
 
 
+def save_continuous_data(processed_dataset_id: str, music_path: str, continuous_sequence):
+    """
+    Save continuous sequence data instead of pre-chunked sequences
+    """
+    music_file_name = os.path.splitext(os.path.basename(music_path))[0]
+    target_folder_path = os.path.join(PROCESSED_DIR, processed_dataset_id, music_file_name)
+    os.makedirs(target_folder_path, exist_ok=False)
+
+    try:
+        logger.info("Start saving continuous sequence as %s...", processed_dataset_id)
+
+        # Save .npz file with continuous sequence
+        np.savez_compressed(os.path.join(target_folder_path, music_file_name), continuous_sequence=continuous_sequence)
+
+        metadata = {
+            JSON_METADATA_SHAPE: f"{continuous_sequence.shape}",
+            JSON_METADATA_MAP_ID: f"{processed_dataset_id}",
+            "data_type": "continuous_sequence",
+        }
+
+        metadata_path = os.path.join(target_folder_path, "metadata.json")
+        with open(metadata_path, "w") as f:
+            json.dump(metadata, f, indent=4)
+
+    except Exception as e:
+        shutil.rmtree(target_folder_path)
+        raise Exception(f"Failed to save continuous sequence data: {e}") from e
+
+    logger.info("Finished saving continuous sequence as %s", processed_dataset_id)
+    logger.info("Sequence Shape: %s", continuous_sequence.shape)
+
+
 # Loads tokenized dataset and associated metadata for a given processed_dataset_id.
 def load_tokenized_data(processed_dataset_id: str):
     logger.info("Enter tokenized data getter")

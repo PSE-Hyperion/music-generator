@@ -1,9 +1,9 @@
 import json
 import os
 
-import numpy as np
-
+from groove_panda.config import MODEL_PRESETS
 from groove_panda.models import models, train as tr
+from groove_panda.models.flexible_sequence_generator import FlexibleSequenceGenerator
 from groove_panda.models.model_io import save_model
 from groove_panda.processing import processed_io
 from groove_panda.processing.tokenization import token_map_io
@@ -34,12 +34,22 @@ def train_model(model_id: str, processed_dataset_id: str, preset_name: str):
         "tempo": metadata[token_map_io.TOTAL_UNIQUE_TEMPO_TOKENS],
     }
 
-    # Get input shape from first file
-    with np.load(file_paths[0]) as data:
-        input_shape = data["x"].shape[1:]
+    # Get preset config
+    preset = MODEL_PRESETS[preset_name]
+    sequence_length = preset["sequence_length"]
+    stride = preset.get("stride", 1)
 
-    model = models.LSTMModel(model_id, input_shape)
+    model = models.LSTMModel(model_id, (sequence_length, 6))
     model.build(vocab_sizes=vocab_sizes, preset_name=preset_name)
 
-    tr.train_model_eager(model, file_paths)
+    # Use flexible sequence generator instead of loading all data
+    train_generator = FlexibleSequenceGenerator(
+        file_paths=file_paths,
+        sequence_length=sequence_length,
+        stride=stride,
+        batch_size=preset.get("batch_size", 32),
+        shuffle=True,
+    )
+
+    tr.train_model(model, train_generator)
     save_model(model, processed_dataset_id)

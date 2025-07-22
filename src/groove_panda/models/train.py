@@ -6,30 +6,30 @@ from tensorflow.keras.callbacks import History  # type: ignore
 
 from groove_panda.config import FEATURE_NAMES, LOG_DIR, TRAINING_BATCH_SIZE, TRAINING_EPOCHS
 from groove_panda.models import plot
-from groove_panda.models.lazy_sequence_generator import LazySequenceGenerator
 from groove_panda.models.models import BaseModel
 from groove_panda.models.tf_custom.callbacks import TerminalPrettyCallback
 
 logger = logging.getLogger(__name__)
 
 
-def train_model(model: BaseModel, file_paths: list):
+def train_model(model: BaseModel, train_generator):
     """
-    Train model using LazySequenceGenerator for memory-efficient training on large datasets.
-
-    File paths contain the paths to .npz files. Needed to create a lazy sequence generator, that will lazily load
-    samples in batches (and random samples and shuffles)
+    Train model using sequence generator for memory-efficient training on large datasets.
+    Supports both LazySequenceGenerator (legacy) and FlexibleSequenceGenerator (new).
     """
 
-    logger.info("Start training with lazy loading...")
+    logger.info("Start training with sequence generator...")
 
     try:
-        train_generator = LazySequenceGenerator(file_paths=file_paths, batch_size=TRAINING_BATCH_SIZE, shuffle=True)
-
         steps_per_epoch = len(train_generator)
 
-        logger.info("Training with %s files, containing %s total samples", len(file_paths), train_generator.n_samples)
-        logger.info("Steps per epoch: %s, Batch size: %s", steps_per_epoch, TRAINING_BATCH_SIZE)
+        logger.info(
+            "Training with %s files, containing %s total samples",
+            len(train_generator.file_paths),
+            train_generator.total_samples,
+        )
+        logger.info("Sequence length: %s, Stride: %s", train_generator.sequence_length, train_generator.stride)
+        logger.info("Steps per epoch: %s, Batch size: %s", steps_per_epoch, train_generator.batch_size)
 
         # fit() will automatically call on_epoch_end of lazy sequence generator, to get new samples
         history = model.model.fit(
@@ -37,7 +37,7 @@ def train_model(model: BaseModel, file_paths: list):
             epochs=TRAINING_EPOCHS,
             steps_per_epoch=steps_per_epoch,
             verbose=2,  # type: ignore
-            # callbacks=[TrainingCallback()],
+            callbacks=[TerminalPrettyCallback()],
             # Note: validation_split doesn't work with generators,
             # you'd need a separate validation generator (or other solution)
         )
@@ -106,14 +106,13 @@ def train_model_eager(model: BaseModel, file_paths: list):
 
         training_callback = TerminalPrettyCallback()
 
-        tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR, histogram_freq=1)
+        tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR, histogram_freq=1)  # type: ignore
         # Other callbacks can be added here for specific purposes
 
         # verbose set to 0, since we use cuembeddingstom callbacks instead
-        history = model.model.fit(dataset, epochs=TRAINING_EPOCHS, verbose=0, callbacks=[
-            training_callback,
-            tensorboard_cb
-        ])
+        history = model.model.fit(
+            dataset, epochs=TRAINING_EPOCHS, verbose=0, callbacks=[training_callback, tensorboard_cb]
+        )
 
         logger.info("Finished training %s", model.model_id)
 
