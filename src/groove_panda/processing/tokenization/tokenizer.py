@@ -1,6 +1,7 @@
 from fractions import Fraction
 import logging
 
+import midi_file_utils
 from mido import MidiFile
 from music21 import chord, interval, key, note, pitch, stream
 from music21.tempo import MetronomeMark, TempoIndication
@@ -432,16 +433,12 @@ class Tokenizer:
 
         all_tokens: list[Sixtuple] = []
 
-        if isinstance(parsed_midi, stream.Score):
-            for semitone_shift in range(12):
-                transposed_midi = parsed_midi.transpose(semitone_shift)
-                if transposed_midi:
-                    all_tokens.extend(self.tokenize(transposed_midi))
-                else:
-                    raise Exception("Couldn't transpose score to semitone shift")
-            return all_tokens
-
-        # TODO Implement semitone shift for MidiFile
+        for semitone_shift in range(12):
+            transposed_midi = midi_file_utils.transpose(parsed_midi, semitone_shift)
+            if transposed_midi:
+                all_tokens.extend(self.tokenize(transposed_midi))
+            else:
+                raise Exception("Couldn't transpose MIDI to semitone shift")
         return all_tokens
 
     def _tokenize_cmajor_aminor_midi_file(self, parsed_midi: MidiFile) -> list[Sixtuple]:
@@ -466,7 +463,7 @@ class Tokenizer:
                 raise Exception("Transposition of score was unsuccessful and returned null.")
             raise Exception("Analyzing of score was unsuccessful and didn't return a key.")
 
-        # TODO Implement minor/major transposition for MidiFile
+        # TODO Implement minor/major transposition for MidiFile. There seems to be no analyze aquivalent in mido
         return []
 
     def _tokenize_score(self, score: stream.Score) -> list[Sixtuple]:
@@ -574,7 +571,7 @@ class Tokenizer:
         """
         Tokenizes mido MidiFile object to a list of sixtuples.
 
-        First calls _read_and_merge_events to get all valuable information from the MidiFile.
+        First calls read_and_merge_events to get all valuable information from the MidiFile.
 
         Then translates the returned result to a list of Sixtuple.
 
@@ -583,8 +580,7 @@ class Tokenizer:
 
         logger.info("Start encoding to tokens...")
 
-        ppq = midi_file.ticks_per_beat
-        merged_events, _ = _read_and_merge_events(midi_file)
+        merged_events, ppq = midi_file_utils.read_and_merge_events(midi_file)
 
         sixtuples: list[Sixtuple] = []
         active_notes: dict = {}
@@ -628,50 +624,3 @@ class Tokenizer:
                 )
 
         return sixtuples
-
-
-def _read_and_merge_events(midi: MidiFile) -> tuple[list[dict], int]:
-    """
-    Merge tempo, time signature, note, and pedal (control change 64,66,67) events
-    from all tracks into a global, time sorted list with absolute ticks.
-
-    This is an unchanged version of this method from the first mido implementation branch.
-    It gathers all important information in a MidiFile and constructs a list of tracks
-    """
-
-    ppq = midi.ticks_per_beat
-    merged: list[dict] = []
-
-    # Meta events (tempo, time_signature) from track 0
-    abs_tick = 0
-    for msg in midi.tracks[0]:
-        abs_tick += msg.time
-        if msg.is_meta and msg.type in ("set_tempo", "time_signature"):
-            entry = {"abs_tick": abs_tick, "type": msg.type}
-            if msg.type == "set_tempo":
-                entry["tempo"] = msg.tempo
-            else:
-                entry["numerator"] = msg.numerator
-                entry["denominator"] = msg.denominator
-            merged.append(entry)
-
-    # Note and pedal events from every track
-    for track in midi.tracks:
-        abs_tick = 0
-        for msg in track:
-            abs_tick += msg.time
-            # Pedal CC: 64 = sustain, 66 = sostenuto, 67 = soft
-            if msg.type == "control_change" and msg.control in (64, 66, 67):
-                merged.append(
-                    {"abs_tick": abs_tick, "type": "control_change", "control": msg.control, "value": msg.value}
-                )
-            # Note on
-            elif msg.type == "note_on" and msg.velocity > 0:
-                merged.append({"abs_tick": abs_tick, "type": "note_on", "note": msg.note, "velocity": msg.velocity})
-            # Note off (or on with zero velocity)
-            elif msg.type == "note_off" or (msg.type == "note_on" and msg.velocity == 0):
-                merged.append({"abs_tick": abs_tick, "type": "note_off", "note": msg.note, "velocity": 0})
-
-    # Sort globally by absolute tick
-    merged.sort(key=lambda e: e["abs_tick"])
-    return merged, ppq
