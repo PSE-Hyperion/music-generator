@@ -28,9 +28,24 @@ class FlexibleSequenceGenerator(Sequence):
         self.shuffle = shuffle
 
         self._load_continuous_data()
+        self._build_sample_index()
+        self.on_epoch_end()
 
         # Call super().__init__ to avoid a warning
         super().__init__()
+
+    def _build_sample_index(self):
+        """Build deterministic index of all possible subsequences"""
+        self.sample_map = []
+
+        for song_idx, song_data in enumerate(self.song_data):
+            continuous_seq = song_data[0]  # Only get the sequence, ignore possible_samples
+            max_start_idx = len(continuous_seq) - self.sequence_length - 1
+            max_start_steps = max_start_idx // self.stride
+
+            for start_step in range(max_start_steps + 1):
+                start_idx = start_step * self.stride
+                self.sample_map.append((song_idx, start_idx))
 
     def _load_continuous_data(self):
         """
@@ -64,24 +79,14 @@ class FlexibleSequenceGenerator(Sequence):
         return self.total_samples // self.batch_size
 
     def __getitem__(self, index):
-        """
-        Extract subsequences of the configured length
-        """
+        """Extract subsequences deterministically"""
         batch_x, batch_y = [], []
 
-        for _ in range(self.batch_size):
-            # Randomly select a song weighted by number of possible samples
-            song_weights = [samples for _, samples in self.song_data]
-            total_weight = sum(song_weights)
-            song_idx = np.random.choice(len(self.song_data), p=np.array(song_weights) / total_weight)
+        batch_indices = self.indexes[index * self.batch_size : (index + 1) * self.batch_size]
 
-            continuous_seq, max_samples = self.song_data[song_idx]
-
-            # Random start index respecting stride
-            max_start_idx = len(continuous_seq) - self.sequence_length - 1  # -1 for target y
-            max_start_steps = max_start_idx // self.stride
-            start_step = np.random.randint(0, max_start_steps + 1)
-            start_idx = start_step * self.stride
+        for sample_idx in batch_indices:
+            song_idx, start_idx = self.sample_map[sample_idx]
+            continuous_seq, _ = self.song_data[song_idx]
 
             x, y = self._extract_subsequence(continuous_seq, start_idx)
             batch_x.append(x)
@@ -111,3 +116,9 @@ class FlexibleSequenceGenerator(Sequence):
         y_outputs = tuple(y_array[:, i] for i in range(6))
 
         return x_dict, y_outputs
+
+    def on_epoch_end(self):
+        """Shuffle sample indices at epoch end"""
+        self.indexes = np.arange(len(self.sample_map))
+        if self.shuffle:
+            np.random.shuffle(self.indexes)

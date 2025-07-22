@@ -37,7 +37,6 @@ def train_model(model_id: str, processed_dataset_id: str, preset_name: str):
     # Get preset config
     preset = MODEL_PRESETS[preset_name]
     sequence_length = preset["sequence_length"]
-    stride = preset.get("stride", 1)
 
     model = models.LSTMModel(model_id, (sequence_length, 6))
     model.build(vocab_sizes=vocab_sizes, preset_name=preset_name)
@@ -46,7 +45,7 @@ def train_model(model_id: str, processed_dataset_id: str, preset_name: str):
     train_generator = FlexibleSequenceGenerator(
         file_paths=file_paths,
         sequence_length=sequence_length,
-        stride=stride,
+        stride=preset["stride"],
         batch_size=preset.get("batch_size", 32),
         shuffle=True,
     )

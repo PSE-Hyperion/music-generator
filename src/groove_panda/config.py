@@ -85,6 +85,7 @@ MODEL_PRESETS = {
         "num_lstm_layers": 1,
         "dropout_rate": 0.1,
         "learning_rate": 1e-3,  # This is the default for ADAM
+        "batch_size": 32,
         "embedding_dims": {
             "pitch": 16,
             "duration": 8,
@@ -101,6 +102,7 @@ MODEL_PRESETS = {
         "num_lstm_layers": 2,
         "dropout_rate": 0.2,
         "learning_rate": 1e-3,
+        "batch_size": 64,
         "embedding_dims": {
             "pitch": 32,
             "duration": 16,
@@ -117,6 +119,7 @@ MODEL_PRESETS = {
         "num_lstm_layers": 3,
         "dropout_rate": 0.3,
         "learning_rate": 5e-4,
+        "batch_size": 64,
         "embedding_dims": {
             "pitch": 128,
             "duration": 64,

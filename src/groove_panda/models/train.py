@@ -31,13 +31,16 @@ def train_model(model: BaseModel, train_generator):
         logger.info("Sequence length: %s, Stride: %s", train_generator.sequence_length, train_generator.stride)
         logger.info("Steps per epoch: %s, Batch size: %s", steps_per_epoch, train_generator.batch_size)
 
+        training_callback = TerminalPrettyCallback()
+        tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR, histogram_freq=1)  # type: ignore
+
         # fit() will automatically call on_epoch_end of lazy sequence generator, to get new samples
         history = model.model.fit(
             train_generator,
             epochs=TRAINING_EPOCHS,
             steps_per_epoch=steps_per_epoch,
             verbose=2,  # type: ignore
-            callbacks=[TerminalPrettyCallback()],
+            callbacks=[training_callback, tensorboard_cb],
             # Note: validation_split doesn't work with generators,
             # you'd need a separate validation generator (or other solution)
         )
