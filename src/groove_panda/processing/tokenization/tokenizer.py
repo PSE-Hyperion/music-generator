@@ -13,7 +13,7 @@ from groove_panda.config import (
     TOKENIZE_MODE,
     TokenizeMode,
 )
-from groove_panda.sheet_music_generator.sheet_music_generator import generate_sheet_music
+from groove_panda.midi.sheet_music_generator import generate_sheet_music
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +70,7 @@ class Sixtuple:
 
     def __repr__(self):
         return self.bar + self.position + self.pitch + self.duration + self.velocity + self.tempo
+
 
 def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:  # noqa: PLR0912, PLR0915  #REVIEW for now it's ok
     """
