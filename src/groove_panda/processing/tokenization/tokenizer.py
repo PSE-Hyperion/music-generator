@@ -464,6 +464,10 @@ class Tokenizer:
             raise Exception("Analyzing of score was unsuccessful and didn't return a key.")
 
         # TODO Implement minor/major transposition for MidiFile. There seems to be no analyze aquivalent in mido
+        logger.warning(
+            "Tokenizer mode: C_MAJOR_A_MINOR, doesn't work with parser: MIDO. For more information "
+            "read TODO in tokenizer.py _tokenize_cmajor_aminor_midi_file()"
+        )
         return []
 
     def _tokenize_score(self, score: stream.Score) -> list[Sixtuple]:
