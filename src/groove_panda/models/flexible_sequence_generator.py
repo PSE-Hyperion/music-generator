@@ -70,7 +70,7 @@ class FlexibleSequenceGenerator(Sequence):
         """
         Returns how many batches exist per epoch
         """
-        return self.total_samples // self.batch_size
+        return len(self.sample_map) // self.batch_size
 
     def __getitem__(self, index):
         """Extract subsequences deterministically"""
