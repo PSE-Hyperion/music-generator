@@ -4,6 +4,7 @@ import numpy as np
 from tensorflow.keras.utils import Sequence  # type: ignore - IGNORE ERROR, NOT ACTUAL ERROR
 
 from groove_panda.config import FEATURE_NAMES
+from groove_panda.processing.process import extract_subsequence
 
 logger = logging.getLogger(__name__)
 
@@ -82,19 +83,11 @@ class FlexibleSequenceGenerator(Sequence):
             song_idx, start_idx = self.sample_map[sample_idx]
             continuous_seq = self.song_data[song_idx]
 
-            x, y = self._extract_subsequence(continuous_seq, start_idx)
+            x, y = extract_subsequence(continuous_seq, self.sequence_length, stride=self.stride, start_idx=start_idx)
             batch_x.append(x)
             batch_y.append(y)
 
         return self._format_batch(batch_x, batch_y)
-
-    def _extract_subsequence(self, sequence: np.ndarray, start_idx: int) -> tuple[np.ndarray, np.ndarray]:
-        """
-        Extract subsequence starting at given index
-        """
-        x = sequence[start_idx : start_idx + self.sequence_length]
-        y = sequence[start_idx + self.sequence_length]
-        return x, y
 
     def _format_batch(self, batch_x: list, batch_y: list) -> tuple[dict, tuple]:
         """
