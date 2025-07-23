@@ -10,11 +10,11 @@ class TokenizeMode(Enum):
 
 # Hyperparameters
 
-SEQUENCE_LENGTH: Final = 32  # Important to match processed dataset sequence length to model sequence length!!
+SEQUENCE_LENGTH: Final = 32
 
 GENERATION_LENGTH: Final = 400
 
-TRAINING_EPOCHS: Final = 1
+TRAINING_EPOCHS: Final = 10
 
 TRAINING_BATCH_SIZE: Final = 64
 
@@ -69,6 +69,7 @@ TOKENIZE_MODE = TokenizeMode.ORIGINAL
 
 # Each config dict includes:
 #   - sequence_length: int
+#   - stride: int
 #   - lstm_units: int
 #   - num_lstm_layers: int
 #   - dropout_rate: float
