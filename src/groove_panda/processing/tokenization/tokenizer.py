@@ -403,14 +403,14 @@ class Tokenizer:
         and return the tokens from that single transposition as a list.
         """
 
-        ks = parsed_midi.analyze("key")
-        if isinstance(ks, key.Key):
-            tonic: pitch.Pitch = ks.tonic
+        analyzed_key = parsed_midi.analyze("key")
+        if isinstance(analyzed_key, key.Key):
+            tonic: pitch.Pitch = analyzed_key.tonic
 
-            target_tonic = pitch.Pitch("C") if ks.mode == "major" else pitch.Pitch("A")
+            target_tonic = pitch.Pitch("C") if analyzed_key.mode == "major" else pitch.Pitch("A")
 
-            iv = interval.Interval(tonic, target_tonic)
-            transposed_midi = parsed_midi.transpose(iv)
+            transposition_interval = interval.Interval(tonic, target_tonic)
+            transposed_midi = parsed_midi.transpose(transposition_interval)
 
             if transposed_midi:
                 return self._tokenize_score(transposed_midi)
@@ -448,14 +448,14 @@ class Tokenizer:
         """
 
         if isinstance(parsed_midi, stream.Score):
-            ks = parsed_midi.analyze("key")
-            if isinstance(ks, key.Key):
-                tonic: pitch.Pitch = ks.tonic
+            analyzed_key = parsed_midi.analyze("key")
+            if isinstance(analyzed_key, key.Key):
+                tonic: pitch.Pitch = analyzed_key.tonic
 
-                target_tonic = pitch.Pitch("C") if ks.mode == "major" else pitch.Pitch("A")
+                target_tonic = pitch.Pitch("C") if analyzed_key.mode == "major" else pitch.Pitch("A")
 
-                iv = interval.Interval(tonic, target_tonic)
-                transposed_midi = parsed_midi.transpose(iv)
+                transposition_interval = interval.Interval(tonic, target_tonic)
+                transposed_midi = parsed_midi.transpose(transposition_interval)
 
                 if transposed_midi:
                     return self.tokenize(transposed_midi)
