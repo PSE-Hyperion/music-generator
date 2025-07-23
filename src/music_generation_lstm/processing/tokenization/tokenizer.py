@@ -90,7 +90,7 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
             raise
 
         # Convert to absolute offset, assuming 4/4
-        # Das ist so schön
+        # This is so cool
         abs_offset = bar_num * 4.0 + position_16th / 4.0
 
         # Collect all notes, playing at the same absolute offset
@@ -98,7 +98,7 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
             pending_notes[abs_offset] = []
         pending_notes[abs_offset].append(event)
 
-    # Sort dictionary by it's absolute offset keys, to iterate in correct order
+    # Sort dictionary by its absolute offset keys, to iterate in correct order
     sorted_offsets = sorted(pending_notes.keys())
 
     # Big loop, inserting multiple events, if needed, per iteration into the stream

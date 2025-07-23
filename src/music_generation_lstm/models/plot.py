@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 
 from matplotlib import pyplot as plt
 from tensorflow.keras.callbacks import History  # type: ignore
@@ -16,6 +17,11 @@ logger = logging.getLogger(__name__)
 def plot_training(history: History, model_name: str):
     if PLOT_TRAINING:
         dir_path = os.path.join(PLOT_DIR, f"training_{model_name}")
+
+        # If the dir exists, it's an old version. Delete it so the new version can be written.
+        if os.path.exists(dir_path):
+            shutil.rmtree(dir_path)
+
         os.makedirs(dir_path, exist_ok=False)
         _plot_training_history(history, model_name, dir_path)
         _plot_training_metrics_separate(history, model_name, dir_path)

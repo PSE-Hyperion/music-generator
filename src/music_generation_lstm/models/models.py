@@ -1,11 +1,13 @@
 import logging
 
+import tensorflow as tf
+from tensorflow.keras.callbacks import History  # type: ignore
 from tensorflow.keras.layers import LSTM, Concatenate, Dense, Dropout, Embedding, Input  # type: ignore
 from tensorflow.keras.models import Model  # type: ignore
 from tensorflow.keras.optimizers import Adam  # type: ignore
 
 from music_generation_lstm.config import MODEL_PRESETS
-from music_generation_lstm.models.lazy_sequence_generator import LazySequenceGenerator
+from music_generation_lstm.models.training_callback import TrainingCallback
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +21,9 @@ class BaseModel:
         self.model_id = model_id
         self.input_shape = input_shape
         self.model: Model
+        self.epochs_trained: int = 0
+        self.history: History = History()  # Initialises an empty History attribute, populated after training
+        self.version: int = 1
 
     def build(self):
         #   Should define the architecture of a model
@@ -27,8 +32,31 @@ class BaseModel:
 
         raise NotImplementedError
 
+    def train(self, dataset, epochs, callbacks):
+        raise NotImplementedError
+
     def set_model(self, model: Model):
         self.model = model
+
+    def setup(self, history: History, version: int, epochs_trained: int):
+        """
+        Sets this model's internal configurations to match those it had after being last trained.
+        This includes its history as well as the epochs the model has previously been trained on.
+        Also increments the model's version counter.
+        """
+        self.history = history
+        self.version = version + 1
+        self.add_epochs(epochs_trained)
+
+    def set_history(self, history: History):
+        """
+        Sets this model's history to the given argument, including the epochs
+        this model was trained on in previous sessions.
+        """
+        self.history = history
+
+    def add_epochs(self, new_epochs: int):
+        self.epochs_trained += new_epochs
 
     def get_input_shape(self) -> tuple[int, int]:
         return self.input_shape
@@ -144,20 +172,31 @@ class LSTMModel(BaseModel):
         # Assign model to this Model object's LSTM model.
         self.model = built_model
 
-    def train(self, train_generator: LazySequenceGenerator, epochs: int, steps_per_epoch: int):
+    def train(self, dataset: tf.data.Dataset, epochs: int, callbacks: TrainingCallback):
+        """
+        Trains the model using the provided sequence generator for the provided number of epochs
+        """
+        # Train the model for the specified number of epochs
         try:
-            # fit() will automatically call on_epoch_end of lazy sequence generator, to get new samples
+            # Verbose set to 0, since we use custom callbacks instead
+            total_epochs = self.epochs_trained + epochs
             history = self.model.fit(
-                train_generator,
-                epochs=epochs,
-                steps_per_epoch=steps_per_epoch,
-                verbose=2,  # type: ignore
-                # callbacks=[TrainingCallback()],
-                # Note: validation_split doesn't work with generators,
-                # you'd need a separate validation generator (or other solution)
+                dataset, epochs=total_epochs, initial_epoch=self.epochs_trained, verbose=0, callbacks=[callbacks]
             )
+            self.add_epochs(epochs)
 
         except Exception as e:
             raise Exception(f"Training failed: {e}") from e
 
-        return history
+        # Rebuild history (connecting it to previous histories)
+        new_history = history
+
+        if self.history.history:  # If this model has been trained before, combine the histories.
+            combined_history = {
+                key: self.history.history[key] + new_history.history[key] for key in new_history.history
+            }
+            new_history.history = combined_history
+
+        self.set_history(new_history)
+
+        return new_history

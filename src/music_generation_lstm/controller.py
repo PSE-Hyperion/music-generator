@@ -12,7 +12,7 @@ from music_generation_lstm.generation.generate import MusicGenerator
 from music_generation_lstm.midi import writer
 from music_generation_lstm.midi.parser import parse_midi
 from music_generation_lstm.models import models, train as tr
-from music_generation_lstm.models.model_io import load_model, save_model
+from music_generation_lstm.models.model_io import get_model_path, load_model, save_model
 from music_generation_lstm.processing import parallel_processing, processed_io
 from music_generation_lstm.processing.tokenization import token_map_io
 from music_generation_lstm.processing.tokenization.tokenizer import Tokenizer, detokenize
@@ -63,8 +63,14 @@ def train(model_id: str, processed_dataset_id: str, preset_name: str):
     with np.load(file_paths[0]) as data:
         input_shape = data["x"].shape[1:]  # Remove batch dimension
 
-    model = models.LSTMModel(model_id, input_shape)
-    model.build(vocab_sizes=vocab_sizes, preset_name=preset_name)
+    model_path = get_model_path(model_id)
+
+    # Keep training if model exists, otherwise create new model
+    if os.path.exists(model_path):
+        model = load_model(model_id)[0]  # Get the model, discard the config
+    else:
+        model = models.LSTMModel(model_id, input_shape)
+        model.build(vocab_sizes=vocab_sizes, preset_name=preset_name)
 
     tr.train_model_eager(model, file_paths)
 

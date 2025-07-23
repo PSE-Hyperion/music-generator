@@ -10,11 +10,11 @@ class TokenizeMode(Enum):
 
 # Hyperparameters
 
-SEQUENCE_LENGTH: Final = 32  # Important to match processed dataset sequence length to model sequence length!!
+SEQUENCE_LENGTH: Final = 16  # Important to match processed dataset sequence length to model sequence length!!
 
-GENERATION_LENGTH: Final = 400
+GENERATION_LENGTH: Final = 500
 
-TRAINING_EPOCHS: Final = 1
+TRAINING_EPOCHS: Final = 2
 
 TRAINING_BATCH_SIZE: Final = 64
 
@@ -113,6 +113,44 @@ MODEL_PRESETS = {
             "bar": 32,
             "tempo": 64,
         },
+    },
+    "lightplus": {  # Takes about 1:42 per epoch on kpop16
+        "sequence_length": 16,
+        "lstm_units": 64,
+        "num_lstm_layers": 2,
+        "dropout_rate": 0.1,
+        "learning_rate": 1e-3,
+        "embedding_dims": {
+            "pitch": 16,
+            "duration": 8,
+            "velocity": 8,
+            "position": 8,
+            "bar": 4,
+            "tempo": 8,
+        },
+    },
+    "lightadjust": {
+        "sequence_length": 32,
+        "lstm_units": 128,
+        "num_lstm_layers": 3,
+        "dropout_rate": 0.2,
+        "learning_rate": 1e-3,
+        "embedding_dims": {
+            "pitch": 64,
+            "duration": 8,
+            "velocity": 8,
+            "position": 8,
+            "bar": 2,
+            "tempo": 8,
+        },
+    },
+    "test": {  # Terrible but fast architecture. Use just for program testing/debugging.
+        "sequence_length": 16,
+        "lstm_units": 1,
+        "num_lstm_layers": 1,
+        "dropout_rate": 0.1,
+        "learning_rate": 1e-3,
+        "embedding_dims": 1,
     },
     # Further presets can be added here
 }

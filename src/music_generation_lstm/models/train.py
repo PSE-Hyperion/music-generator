@@ -1,5 +1,4 @@
 import logging
-from pyexpat import features
 
 import numpy as np
 import tensorflow as tf
@@ -102,7 +101,7 @@ def train_model_eager(model: BaseModel, file_paths: list):
         training_callback = TrainingCallback()
 
         # verbose set to 0, since we use custom callbacks instead
-        history = model.model.fit(dataset, epochs=TRAINING_EPOCHS, verbose=0, callbacks=[training_callback])
+        history = model.train(dataset, epochs=TRAINING_EPOCHS, callbacks=training_callback)
 
         logger.info("Finished training %s", model.model_id)
 
