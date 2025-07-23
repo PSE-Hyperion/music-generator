@@ -584,14 +584,13 @@ class Tokenizer:
 
         logger.info("Start encoding to tokens...")
 
-        merged_events, ppq = midi_file_utils.read_and_merge_events(midi_file)
+        merged_events, ticks_per_beat = midi_file_utils.read_and_merge_events(midi_file)
 
         sixtuples: list[Sixtuple] = []
         active_notes: dict = {}
 
         current_tempo = 500000  # microseconds per beat, default = 120bpm
         qn_per_bar = 4  # quarter notes per bar
-        ticks_per_qn = ppq
 
         for event in merged_events:
             tick = event["abs_tick"]
@@ -608,8 +607,8 @@ class Tokenizer:
             elif event["type"] == "note_off" and active_notes[event["note"]]:
                 start_tick, velocity, tempo = active_notes[event["note"]].pop(0)
                 duration_ticks = tick - start_tick
-                duration_qn = duration_ticks / ticks_per_qn
-                start_qn = start_tick / ticks_per_qn
+                duration_qn = duration_ticks / ticks_per_beat
+                start_qn = start_tick / ticks_per_beat
 
                 # Bar and position
                 bar = int(start_qn // qn_per_bar)

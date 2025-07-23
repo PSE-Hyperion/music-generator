@@ -36,16 +36,17 @@ def read_and_merge_events(midi: MidiFile) -> tuple[list[dict], int]:
     from all tracks into a global, time sorted list with absolute ticks.
 
     Returns a list of dictionaries (key: event type, value: event value) sorted by absolute ticks
-    and the ticks per beat (ppq)
+    and the ticks per beat
 
     Dev: This is an unchanged version of this method from the first mido implementation branch.
     """
 
-    ppq = midi.ticks_per_beat
+    ticks_per_beat = midi.ticks_per_beat
     merged: list[dict] = []
 
     # Meta events (tempo, time_signature) from track 0
     abs_tick = 0
+    # msg is message
     for msg in midi.tracks[0]:
         abs_tick += msg.time
         if msg.is_meta and msg.type in ("set_tempo", "time_signature"):
@@ -76,4 +77,4 @@ def read_and_merge_events(midi: MidiFile) -> tuple[list[dict], int]:
 
     # Sort globally by absolute tick
     merged.sort(key=lambda e: e["abs_tick"])
-    return merged, ppq
+    return merged, ticks_per_beat
