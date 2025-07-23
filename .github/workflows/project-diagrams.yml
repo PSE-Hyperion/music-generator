@@ -29,7 +29,7 @@ jobs:
 
       - name: Generate UML diagram
         run: |
-          pyreverse -o svg src/music_generation_lstm
+          pyreverse -o svg src/groove_panda
           mkdir uml_output
           mv classes.svg uml_output/
           mv packages.svg uml_output/
