@@ -2,15 +2,23 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run Our Project",
+      "name": "Run groove_panda",
       "type": "debugpy",
       "request": "launch",
-      "module": "music_generation_lstm.main",
+      "module": "groove_panda.main",
       "console": "integratedTerminal",
       "env": {
-        "PYTHONPATH": "${workspaceFolder}/src",
-        "TF_ENABLE_ONEDNN_OPTS": "0",
-        "TF_CPP_MIN_LOG_LEVEL": "2"
+        "PYTHONPATH": "${workspaceFolder}/src"
+      }
+    },
+    {
+      "name": "Run test",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "test.main",
+      "console": "integratedTerminal",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/src"
       }
     }
   ]

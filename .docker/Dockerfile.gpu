@@ -1,5 +1,5 @@
 # Stage 1: Build environment
-FROM    python:3.11-slim AS builder
+FROM    tensorflow/tensorflow:latest-gpu AS builder
 
 RUN     apt-get update && apt-get install -y --no-install-recommends \
         build-essential libxml2-dev libfreetype6-dev libpng-dev \
@@ -12,16 +12,15 @@ COPY    ./pyproject.toml ./
 
 RUN     --mount=type=cache,target=/root/.cache/pip \
         pip install -U pip && \
-        pip install .[nogpu]
+        pip install .
 
 # Stage 2: Clean final image
-FROM    python:3.11-slim
+FROM    tensorflow/tensorflow:latest-gpu
 
 WORKDIR /app
 
 # Copy python packages
-COPY    --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY    --from=builder /usr/local/bin /usr/local/bin
+COPY    --from=builder /usr/local/ /usr/local/
 
 RUN     useradd -mu 1000 app
 
