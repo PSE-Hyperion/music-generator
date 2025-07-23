@@ -392,7 +392,7 @@ class Tokenizer:
         for semitone_shift in range(12):
             transposed_midi = score.transpose(semitone_shift)
             if transposed_midi:
-                all_tokens.extend(self.tokenize(transposed_midi))
+                all_tokens.extend(self._tokenize_score(transposed_midi))
             else:
                 raise Exception("Couldn't transpose score to semitone shift")
         return all_tokens
@@ -413,7 +413,7 @@ class Tokenizer:
             transposed_midi = parsed_midi.transpose(iv)
 
             if transposed_midi:
-                return self.tokenize(transposed_midi)
+                return self._tokenize_score(transposed_midi)
 
             raise Exception("Transposition of score was unsuccessful and returned null.")
         raise Exception("Analyzing of score was unsuccessful and didn't return a key.")
@@ -436,7 +436,7 @@ class Tokenizer:
         for semitone_shift in range(12):
             transposed_midi = midi_file_utils.transpose(parsed_midi, semitone_shift)
             if transposed_midi:
-                all_tokens.extend(self.tokenize(transposed_midi))
+                all_tokens.extend(self._tokenize_midi_file(transposed_midi))
             else:
                 raise Exception("Couldn't transpose MIDI to semitone shift")
         return all_tokens
