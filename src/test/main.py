@@ -1,7 +1,7 @@
 import logging
 
 from groove_panda.logging_config import setup_logging
-from test.test_tokenizer import test_tokenize_detokenize
+from test.test_mido_tokenizer import test_tokenize_detokenize
 
 
 def main():
@@ -12,7 +12,9 @@ def main():
     setup_logging(level="INFO")
     logging.getLogger(__name__).info("Starting test")
 
-    test_tokenize_detokenize("CHORDS_AND_SIMULTANIOUS_NOTES.mid")
+    test_tokenize_detokenize("111.mid")
+
+    logging.getLogger(__name__).info("Ending test")
 
 
 # entry point for script execution
