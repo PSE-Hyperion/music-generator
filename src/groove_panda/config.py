@@ -1,27 +1,76 @@
-from enum import Enum
+from enum import Enum, auto
 from typing import Final
+
+""" Enum Defenitions """
 
 
 class TokenizeMode(Enum):
-    ORIGINAL = 1
-    ALL_KEYS = 2
-    C_MAJOR_A_MINOR = 3
+    """
+    The available modes for tokenization.
+    """
+
+    ORIGINAL = auto()
+    ALL_KEYS = auto()
+    C_MAJOR_A_MINOR = auto()
 
 
-# Hyperparameters
+class Parser(Enum):
+    """
+    The available modes for parsing.
+    """
 
-SEQUENCE_LENGTH: Final = 32  # Important to match processed dataset sequence length to model sequence length!!
+    MUSIC21 = auto()
+    MIDO = auto()
 
-GENERATION_LENGTH: Final = 400
 
-TRAINING_EPOCHS: Final = 1
+""" Hyperparameters """
 
-TRAINING_BATCH_SIZE: Final = 64
+SEQUENCE_LENGTH: Final[int] = 32  # Important to match processed dataset sequence length to model sequence length!!
+
+GENERATION_LENGTH: Final[int] = 400
+
+TRAINING_EPOCHS: Final[int] = 1
+
+TRAINING_BATCH_SIZE: Final[int] = 64
+
+
+""" Parsing """
+
+"""
+The parser variable sets which parser is used during both:
+    - processing (parsing of datasets) and
+    - generation (parsing of input song/sequence and parsing of generated content)
+
+Since the parser only controls the quality of the parsed information and has no affect on the
+tokenization, the program should still function, even when different parsers are used for the
+same process-train-generate pipeline (should still be avoided).
+
+CAUTION: In the current implementation, music21 converter is always used to parse the output, since the information
+loss, which was the reason why we implemented mido as an alternate parser, only happens during parsing midi from the
+datasets, not the when creating new midi files.
+"""
+PARSER: Final[Parser] = Parser.MUSIC21
+
+
+""" Tokenization """
+
+"""
+Choose how to transpose the data here. Set TOKENIZE_MODE to:
+    TokenizeMode.ORIGINAL   - if you want to keep the song's key intact.
+    TokenizeMode.ALL_KEYS   - if you want to create copies of the song in all 12 possible keys
+
+TokenizeMode.C_MAJOR_A_MINOR  - if you want all songs to be in C major or A minor
+(Cmaj for major songs, Amin for minor songs)
+"""
+TOKENIZE_MODE: Final[TokenizeMode] = TokenizeMode.ORIGINAL
 
 # for the tokenizer: values smaller than this won't be recognized as tempo changes
-TEMPO_TOLERANCE: Final = 0.01
+TEMPO_TOLERANCE: Final[float] = 0.01
 
-DEFAULT_TEMPO: Final = 120
+DEFAULT_TEMPO: Final[int] = 120
+
+
+""" Generation """
 
 # rounds all tempo values
 TEMPO_ROUND_VALUE = 10
@@ -31,39 +80,36 @@ TEMPO_ROUND_VALUE = 10
 # temp < 1   -> more conservative/predictable (favors likely tokens)
 # temp = 1   -> neutral sampling (uses original probabilities)
 # temp > 1   -> more creative/random (gives unlikely tokens more chance)
-GENERATION_TEMPERATURE: Final = 0.7
+GENERATION_TEMPERATURE: Final[float] = 0.7
 
-ALLOWED_MUSIC_FILE_EXTENSIONS: Final = [".mid", ".midi"]
+""" Misc """
 
-FEATURE_NAMES: Final = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
-# Paths
+ALLOWED_MUSIC_FILE_EXTENSIONS: Final[list[str]] = [".mid", ".midi"]
 
-DATASETS_MIDI_DIR: Final = "data/midi/datasets"
-INPUT_MIDI_DIR: Final = "data/midi/input"
-RESULTS_MIDI_DIR: Final = "data/midi/results"
-MODELS_DIR: Final = "data/models"
-PROCESSED_DIR: Final = "data/processed"
-TOKEN_MAPS_DIR: Final = "data/token_maps"
-PLOT_DIR: Final = "data/plots"
-OUTPUT_SHEET_MUSIC_DIR: Final = "data/sheet_music"
-LOG_DIR: Final = "data/logs"
+FEATURE_NAMES: Final[list[str]] = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
 
-# Debugging or diagnostics
 
-PLOT_TRAINING: Final = True
-SAVE_PLOT_TRAINING: Final = True
+""" Directories """
 
-# Optional Settings
+DATASETS_MIDI_DIR: Final[str] = "data/midi/datasets"
+INPUT_MIDI_DIR: Final[str] = "data/midi/input"
+RESULTS_MIDI_DIR: Final[str] = "data/midi/results"
+MODELS_DIR: Final[str] = "data/models"
+PROCESSED_DIR: Final[str] = "data/processed"
+TOKEN_MAPS_DIR: Final[str] = "data/token_maps"
+PLOT_DIR: Final[str] = "data/plots"
+OUTPUT_SHEET_MUSIC_DIR: Final[str] = "data/sheet_music"
+LOG_DIR: Final[str] = "data/logs"
 
-CREATE_SHEET_MUSIC: Final = False
 
-# choose how to transpose the data here. Set TOKENIZE_MODE to:
-# TokenizeMode.ORIGINAL   - if you want to keep the song's key intact.
-# TokenizeMode.ALL_KEYS   - if you want to create copies of the song in all 12 possible keys
+""" Debugging or diagnostics """
 
-# TokenizeMode.C_MAJOR_A_MINOR  - if you want all songs to be in C major or A minor
-# (Cmaj for major songs, Amin for minor songs)
-TOKENIZE_MODE = TokenizeMode.ORIGINAL
+PLOT_TRAINING: Final[bool] = True
+SAVE_PLOT_TRAINING: Final[bool] = True
+CREATE_SHEET_MUSIC: Final[bool] = True
+
+
+""" Model presets """
 
 # Model architecture presets as a mapping from preset name to its hyperparameter configuration
 

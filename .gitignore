@@ -68,4 +68,8 @@ data/**
 
 # I've changed this like 10 times and it still doesn't work consistently
 # If you create a new folder and want to add it to the project structure, but obviously don#t want to upload all data inside
-# use the git add data/your_folder/.gitkeep
+# use the git add data/your_folder/.gitkeep file_dir -f
+
+
+# Exclude config.py for now (if you want to push a new version, containging new features, use git add file_dir -f)
+src/groove_panda/config.py
