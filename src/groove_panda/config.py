@@ -1,4 +1,5 @@
 from enum import Enum, auto
+import threading
 from typing import Final
 
 """ Enum Defenitions """
@@ -29,9 +30,11 @@ SEQUENCE_LENGTH: Final[int] = 32  # Important to match processed dataset sequenc
 
 GENERATION_LENGTH: Final[int] = 400
 
-TRAINING_EPOCHS: Final[int] = 1
+TRAINING_EPOCHS: Final[int] = 2
 
 TRAINING_BATCH_SIZE: Final[int] = 64
+
+MODEL_TYPE: Final[str] = "LSTM"
 
 
 """ Parsing """
@@ -209,3 +212,49 @@ MODEL_PRESETS = {
     },
     # Further presets can be added here
 }
+
+
+class Config:
+    _instance: "Config | None" = None  # Holds the one-and-only instance
+    _initialized: bool = False  # Used to check if the instance has been created
+    _lock = threading.Lock()  # Ensures that creation is atomic
+
+    def __new__(cls, *args, **kwargs):
+        """
+        This method is called automatically when initialising objects.
+        We must overwrite it to make sure only one instance exists.
+        """
+
+        # With this, we make it so that during multi-threading, when one thread
+        # starts creating our Config instance, other threads are locked from doing so.
+        # This is to prevent multiple threads creating the Config simultaneously.
+        with cls._lock:
+            # Check if singleton has been created
+            if cls._instance is None:
+                # It hasn't, so we allocate this instance to memory and set this operation as done
+                cls._instance = super().__new__(cls)
+
+                # Now an instance exists, but has not been initialized
+                # It is necessary to let __init__ know that it still
+                # has to do its one-time set up
+                cls._instance._initialized = False
+
+        # Always return the one instance
+        return cls._instance
+
+    def __init__(self):
+        """
+        Called when initializing a Config object.
+        The very first time this occurs, an instance will be initialized.
+        All subsequent attempts to create new Config objects will fail, returning the one we already have.
+        (Singleton)
+        """
+
+        # If instance already exists, don't create a new one.
+        if self._initialized:
+            return
+
+        # The code below is only executed the very first time a Config object is created.
+
+        # Make sure we remember that the first instance has been initialized.
+        self._initialized = True
