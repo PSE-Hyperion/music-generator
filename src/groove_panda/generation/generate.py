@@ -112,12 +112,12 @@ class MusicGenerator:
             predictions = self.model.predict(model_input, verbose=0)
 
             predictions = ModelPredictions(
-                bar=predictions[0],
-                position=predictions[1],
-                pitch=predictions[2],
-                duration=predictions[3],
-                velocity=predictions[4],
-                tempo=predictions[5],
+                bar=predictions["output_bar"],
+                position=predictions["output_position"],
+                pitch=predictions["output_pitch"],
+                duration=predictions["output_duration"],
+                velocity=predictions["output_velocity"],
+                tempo=predictions["output_tempo"],
             )
 
             sixtuple = self._predictions_to_sixtuple(predictions)

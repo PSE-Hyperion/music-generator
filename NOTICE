@@ -1,0 +1,111 @@
+NOTICE
+
+This project includes third-party packages licensed under various open-source licenses.
+Below is a list of packages and their respective licenses and authors.
+The list was created using: pip-licenses --from=mixed --with-authors
+
+ Name                          Version      License                                                  Author
+ Markdown                      3.8.2        UNKNOWN                                                  Manfred Stienstra, Yuri Takhteyev
+ Markdown                      3.8.2        UNKNOWN                                                  Manfred Stienstra, Yuri Takhteyev
+ MarkupSafe                    3.0.2        BSD License                                              UNKNOWN
+ MarkupSafe                    3.0.2        BSD License                                              UNKNOWN
+ Pygments                      2.19.2       BSD License                                              Georg Brandl <georg@python.org>
+ Pygments                      2.19.2       BSD License                                              Georg Brandl <georg@python.org>
+ Werkzeug                      3.1.3        BSD License                                              UNKNOWN
+ Werkzeug                      3.1.3        BSD License                                              UNKNOWN
+ absl-py                       2.3.1        Apache Software License                                  The Abseil Authors
+ absl-py                       2.3.1        Apache Software License                                  The Abseil Authors
+ astunparse                    1.6.3        BSD License                                              UNKNOWN
+ astunparse                    1.6.3        BSD License                                              UNKNOWN
+ certifi                       2025.6.15    Mozilla Public License 2.0 (MPL 2.0)                     Kenneth Reitz
+ certifi                       2025.6.15    Mozilla Public License 2.0 (MPL 2.0)                     Kenneth Reitz
+ chardet                       5.2.0        GNU Lesser General Public License v2 or later (LGPLv2+)  Mark Pilgrim
+ chardet                       5.2.0        GNU Lesser General Public License v2 or later (LGPLv2+)  Mark Pilgrim
+ charset-normalizer            3.4.2        MIT License                                              "Ahmed R. TAHRI" <tahri.ahmed@proton.me>
+ charset-normalizer            3.4.2        MIT License                                              "Ahmed R. TAHRI" <tahri.ahmed@proton.me>
+ contourpy                     1.3.2        BSD License                                              Ian Thomas <ianthomas23@gmail.com>
+ contourpy                     1.3.2        BSD License                                              Ian Thomas <ianthomas23@gmail.com>
+ cycler                        0.12.1       BSD License                                              Thomas A Caswell <matplotlib-users@python.org>
+ cycler                        0.12.1       BSD License                                              Thomas A Caswell <matplotlib-users@python.org>
+ flatbuffers                   25.2.10      Apache Software License                                  Derek Bailey
+ flatbuffers                   25.2.10      Apache Software License                                  Derek Bailey
+ fonttools                     4.58.5       MIT                                                      Just van Rossum
+ fonttools                     4.58.5       MIT                                                      Just van Rossum
+ gast                          0.6.0        BSD License                                              serge-sans-paille
+ gast                          0.6.0        BSD License                                              serge-sans-paille
+ google-pasta                  0.2.0        Apache Software License                                  Nick Smith
+ google-pasta                  0.2.0        Apache Software License                                  Nick Smith
+ grpcio                        1.73.1       Apache Software License                                  The gRPC Authors
+ grpcio                        1.73.1       Apache Software License                                  The gRPC Authors
+ h5py                          3.14.0       UNKNOWN                                                  Andrew Collette <andrew.collette@gmail.com>
+ h5py                          3.14.0       UNKNOWN                                                  Andrew Collette <andrew.collette@gmail.com>
+ idna                          3.10         BSD License                                              Kim Davies <kim+pypi@gumleaf.org>
+ idna                          3.10         BSD License                                              Kim Davies <kim+pypi@gumleaf.org>
+ joblib                        1.5.1        BSD License                                              Gael Varoquaux <gael.varoquaux@normalesup.org>
+ joblib                        1.5.1        BSD License                                              Gael Varoquaux <gael.varoquaux@normalesup.org>
+ jsonpickle                    4.1.1        BSD-3-Clause                                             Theelx
+ jsonpickle                    4.1.1        BSD-3-Clause                                             Theelx
+ keras                         3.10.0       Apache License 2.0                                       Keras team <keras-users@googlegroups.com>
+ keras                         3.10.0       Apache License 2.0                                       Keras team <keras-users@googlegroups.com>
+ kiwisolver                    1.4.8        BSD License                                              The Nucleic Development Team <sccolbert@gmail.com>
+ kiwisolver                    1.4.8        BSD License                                              The Nucleic Development Team <sccolbert@gmail.com>
+ libclang                      18.1.1       Apache Software License                                  Tao He
+ libclang                      18.1.1       Apache Software License                                  Tao He
+ markdown-it-py                3.0.0        MIT License                                              Chris Sewell <chrisj_sewell@hotmail.com>
+ markdown-it-py                3.0.0        MIT License                                              Chris Sewell <chrisj_sewell@hotmail.com>
+ matplotlib                    3.10.3       Python Software Foundation License                       John D. Hunter, Michael Droettboom
+ matplotlib                    3.10.3       Python Software Foundation License                       John D. Hunter, Michael Droettboom
+ mdurl                         0.1.2        MIT License                                              Taneli Hukkinen <hukkin@users.noreply.github.com>
+ mdurl                         0.1.2        MIT License                                              Taneli Hukkinen <hukkin@users.noreply.github.com>
+ mido                          1.3.3        MIT License                                              Ole Martin Bjorndalen <ombdalen@gmail.com>
+ mido                          1.3.3        MIT License                                              Ole Martin Bjorndalen <ombdalen@gmail.com>
+ ml_dtypes                     0.5.1        Apache Software License                                  ml_dtypes authors <ml_dtypes@google.com>
+ ml_dtypes                     0.5.1        Apache Software License                                  ml_dtypes authors <ml_dtypes@google.com>
+ more-itertools                10.7.0       MIT License                                              Erik Rose <erikrose@grinchcentral.com>
+ more-itertools                10.7.0       MIT License                                              Erik Rose <erikrose@grinchcentral.com>
+ music21                       9.7.1        BSD License                                              Michael Scott Asato Cuthbert <michael.asato.cuthbert@gmail.com>
+ music21                       9.7.1        BSD License                                              Michael Scott Asato Cuthbert <michael.asato.cuthbert@gmail.com>
+ namex                         0.1.0        UNKNOWN                                                  Francois Chollet
+ namex                         0.1.0        UNKNOWN                                                  Francois Chollet
+ numpy                         2.1.3        BSD License                                              Travis E. Oliphant et al.
+ numpy                         2.1.3        BSD License                                              Travis E. Oliphant et al.
+ opt_einsum                    3.4.0        MIT License                                              Daniel Smith <dgasmith@icloud.com>
+ opt_einsum                    3.4.0        MIT License                                              Daniel Smith <dgasmith@icloud.com>
+ optree                        0.16.0       UNKNOWN                                                  OpTree Contributors
+ optree                        0.16.0       UNKNOWN                                                  OpTree Contributors
+ packaging                     25.0         Apache Software License; BSD License                     Donald Stufft <donald@stufft.io>
+ packaging                     25.0         Apache Software License; BSD License                     Donald Stufft <donald@stufft.io>
+ pillow                        11.3.0       UNKNOWN                                                  "Jeffrey A. Clark" <aclark@aclark.net>
+ pillow                        11.3.0       UNKNOWN                                                  "Jeffrey A. Clark" <aclark@aclark.net>
+ prompt_toolkit                3.0.51       BSD License                                              Jonathan Slenders
+ prompt_toolkit                3.0.51       BSD License                                              Jonathan Slenders
+ protobuf                      5.29.5       3-Clause BSD License                                     protobuf@googlegroups.com
+ protobuf                      5.29.5       3-Clause BSD License                                     protobuf@googlegroups.com
+ pyparsing                     3.2.3        MIT License                                              Paul McGuire <ptmcg.gm+pyparsing@gmail.com>
+ pyparsing                     3.2.3        MIT License                                              Paul McGuire <ptmcg.gm+pyparsing@gmail.com>
+ python-dateutil               2.9.0.post0  Apache Software License; BSD License                     Gustavo Niemeyer
+ python-dateutil               2.9.0.post0  Apache Software License; BSD License                     Gustavo Niemeyer
+ requests                      2.32.4       Apache Software License                                  Kenneth Reitz
+ requests                      2.32.4       Apache Software License                                  Kenneth Reitz
+ rich                          14.0.0       MIT License                                              Will McGugan
+ rich                          14.0.0       MIT License                                              Will McGugan
+ six                           1.17.0       MIT License                                              Benjamin Peterson
+ six                           1.17.0       MIT License                                              Benjamin Peterson
+ tensorboard                   2.19.0       Apache Software License                                  Google Inc.
+ tensorboard                   2.19.0       Apache Software License                                  Google Inc.
+ tensorboard-data-server       0.7.2        Apache Software License                                  Google Inc.
+ tensorboard-data-server       0.7.2        Apache Software License                                  Google Inc.
+ tensorflow-io-gcs-filesystem  0.37.1       Apache Software License                                  Google Inc.
+ tensorflow-io-gcs-filesystem  0.37.1       Apache Software License                                  Google Inc.
+ tensorflow_cpu                2.19.0       Apache Software License                                  Google Inc.
+ tensorflow_cpu                2.19.0       Apache Software License                                  Google Inc.
+ termcolor                     3.1.0        UNKNOWN                                                  Konstantin Lepa <konstantin.lepa@gmail.com>
+ termcolor                     3.1.0        UNKNOWN                                                  Konstantin Lepa <konstantin.lepa@gmail.com>
+ typing_extensions             4.14.0       UNKNOWN                                                  "Guido van Rossum, Jukka Lehtosalo, Łukasz Langa, Michael Lee" <levkivskyi@gmail.com>
+ typing_extensions             4.14.0       UNKNOWN                                                  "Guido van Rossum, Jukka Lehtosalo, Łukasz Langa, Michael Lee" <levkivskyi@gmail.com>
+ urllib3                       2.5.0        UNKNOWN                                                  Andrey Petrov <andrey.petrov@shazow.net>
+ urllib3                       2.5.0        UNKNOWN                                                  Andrey Petrov <andrey.petrov@shazow.net>
+ webcolors                     24.11.1      BSD License                                              James Bennett
+ webcolors                     24.11.1      BSD License                                              James Bennett
+ wrapt                         1.17.2       BSD License                                              Graham Dumpleton
+ wrapt                         1.17.2       BSD License                                              Graham Dumpleton

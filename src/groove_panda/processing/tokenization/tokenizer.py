@@ -4,8 +4,8 @@ import logging
 from music21 import chord, interval, key, note, pitch, stream
 from music21.tempo import MetronomeMark, TempoIndication
 
-from groove_panda.config import CREATE_SHEET_MUSIC, DEFAULT_TEMPO, TEMPO_TOLERANCE
-from groove_panda.sheet_music_generator.sheet_music_generator import generate_sheet_music
+from groove_panda.config import CREATE_SHEET_MUSIC, DEFAULT_TEMPO, TEMPO_ROUND_VALUE, TEMPO_TOLERANCE
+from groove_panda.midi.sheet_music_generator import generate_sheet_music
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +59,9 @@ class Sixtuple:
     @property
     def tempo(self):
         return self._tempo
+
+    def __repr__(self):
+        return self.bar + self.position + self.pitch + self.duration + self.velocity + self.tempo
 
 
 def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:  # noqa: PLR0912, PLR0915  #REVIEW for now it's ok
@@ -128,6 +131,7 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:  # noqa: PLR0912, PL
             # Check if tempo has changed at this position
             if events_same_duration:
                 tempo_value = int(events_same_duration[0].tempo.split("_")[1])
+                tempo_value = round_tempo(tempo_value)
                 if current_tempo != tempo_value:
                     current_tempo = tempo_value
                     s.insert(abs_offset, TempoIndication(number=current_tempo))
@@ -307,6 +311,10 @@ class SixtupleTokenMaps:
         self._tempo_map = {token: idx for idx, token in enumerate(tempo_set)}
 
 
+def round_tempo(tempo: int) -> int:
+    return round(tempo / TEMPO_ROUND_VALUE) * TEMPO_ROUND_VALUE
+
+
 class Tokenizer:
     def __init__(self, processed_dataset_id: str = "EMPTY"):
         self.processed_dataset_id = processed_dataset_id
@@ -331,14 +339,14 @@ class Tokenizer:
         # Two classes could contain this data, so we have to check both
         tempo_indications = flat.getElementsByClass("TempoIndication")
         metronome_marks = flat.getElementsByClass("MetronomeMark")
-        current_tempo = DEFAULT_TEMPO
+        current_tempo = round_tempo(DEFAULT_TEMPO)
 
         # Set first tempo
         if tempo_indications:
-            current_tempo = int(tempo_indications[0].number)
+            current_tempo = round_tempo(int(tempo_indications[0].number))
             # logger.info("TempoIndication found: %s ", current_tempo)
         elif metronome_marks:
-            current_tempo = int(metronome_marks[0].number)
+            current_tempo = round_tempo(int(metronome_marks[0].number))
             # logger.info("MetronomeMark found: %s",current_tempo)
         else:
             pass
@@ -348,8 +356,8 @@ class Tokenizer:
         beats_per_bar = 4
 
         tempo_changes = sorted(
-            [(ti.offset, int(ti.number)) for ti in tempo_indications]
-            + [(mm.offset, int(mm.number)) for mm in metronome_marks]
+            [(ti.offset, round_tempo(int(ti.number))) for ti in tempo_indications]
+            + [(mm.offset, round_tempo(int(mm.number))) for mm in metronome_marks]
         )
 
         # Use an index to track which tempo is active
