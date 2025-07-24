@@ -43,7 +43,7 @@ def _plot_training_history(history, model_name: str, dir_path: str):
         row = i // 3
         col = i % 3
 
-        loss_key = f"{feature}_output_loss"
+        loss_key = f"output_{feature}_loss"
         val_loss_key = f"val_{feature}_output_loss"
 
         if loss_key in history.history:
@@ -62,7 +62,7 @@ def _plot_training_history(history, model_name: str, dir_path: str):
         row = (i // 3) + 2  # Offset by 2 rows for accuracy plots
         col = i % 3
 
-        acc_key = f"{feature}_output_accuracy"
+        acc_key = f"output_{feature}_accuracy"
         val_acc_key = f"val_{feature}_output_accuracy"
 
         if acc_key in history.history:
@@ -103,7 +103,7 @@ def _plot_training_metrics_separate(history: History, model_name: str, dir_path:
     for i, feature in enumerate(feature_names):
         plt.subplot(2, 3, i + 1)
 
-        loss_key = f"{feature}_output_loss"
+        loss_key = f"output_{feature}_loss"
         val_loss_key = f"val_{feature}_output_loss"
 
         if loss_key in history.history:
@@ -129,7 +129,7 @@ def _plot_training_metrics_separate(history: History, model_name: str, dir_path:
     # plt.show()
 
     # Seperate accuracy plot
-    has_accuracy = any(f"{feature}_output_accuracy" in history.history for feature in feature_names)
+    has_accuracy = any(f"output_{feature}_accuracy" in history.history for feature in feature_names)
 
     if has_accuracy:
         plt.figure(figsize=(15, 10))
@@ -137,7 +137,7 @@ def _plot_training_metrics_separate(history: History, model_name: str, dir_path:
         for i, feature in enumerate(feature_names):
             plt.subplot(2, 3, i + 1)
 
-            acc_key = f"{feature}_output_accuracy"
+            acc_key = f"output_{feature}_accuracy"
             val_acc_key = f"val_{feature}_output_accuracy"
 
             if acc_key in history.history:
