@@ -1,7 +1,7 @@
 from fractions import Fraction
 import logging
 
-import midi_file_utils
+from groove_panda.processing.tokenization import midi_file_utils
 from mido import MidiFile
 from music21 import chord, interval, key, note, pitch, stream
 from music21.tempo import MetronomeMark, TempoIndication
