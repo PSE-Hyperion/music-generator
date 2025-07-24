@@ -18,12 +18,12 @@ class BaseModel:
     #
 
     def __init__(self, model_id: str, input_shape: tuple[int, int]):
-        self.model_id = model_id
-        self.input_shape = input_shape
-        self.model: Model
-        self.epochs_trained: int = 0
-        self.history: History = History()  # Initialises an empty History attribute, populated after training
-        self.version: int = 1
+        self._model_id = model_id
+        self._input_shape = input_shape
+        self._model: Model
+        self._epochs_trained: int = 0
+        self._history: History = History()  # Initialises an empty History attribute, populated after training
+        self._version: int = 1
 
     def build(self):
         #   Should define the architecture of a model
@@ -36,7 +36,7 @@ class BaseModel:
         raise NotImplementedError
 
     def set_model(self, model: Model):
-        self.model = model
+        self._model = model
 
     def setup(self, history: History, version: int, epochs_trained: int):
         """
@@ -44,8 +44,8 @@ class BaseModel:
         This includes its history as well as the epochs the model has previously been trained on.
         Also increments the model's version counter.
         """
-        self.history = history
-        self.version = version + 1
+        self._history = history
+        self._version = version + 1
         self.add_epochs(epochs_trained)
 
     def set_history(self, history: History):
@@ -53,13 +53,34 @@ class BaseModel:
         Sets this model's history to the given argument, including the epochs
         this model was trained on in previous sessions.
         """
-        self.history = history
+        self._history = history
 
     def add_epochs(self, new_epochs: int):
-        self.epochs_trained += new_epochs
+        self._epochs_trained += new_epochs
 
-    def get_input_shape(self) -> tuple[int, int]:
-        return self.input_shape
+    @property
+    def model_id(self) -> str:
+        return self._model_id
+
+    @property
+    def input_shape(self) -> tuple[int, int]:
+        return self._input_shape
+
+    @property
+    def model(self) -> Model:
+        return self._model
+
+    @property
+    def epochs_trained(self) -> int:
+        return self._epochs_trained
+
+    @property
+    def history(self) -> History:
+        return self._history
+
+    @property
+    def version(self) -> int:
+        return self._version
 
 
 class LSTMModel(BaseModel):
@@ -158,7 +179,9 @@ class LSTMModel(BaseModel):
 
         # Create the model object
         built_model = Model(
-            inputs=list(input_layers.values()), outputs=list(output_tensors.values()), name=f"{self.model_id}_midi_lstm"
+            inputs=list(input_layers.values()),
+            outputs=list(output_tensors.values()),
+            name=f"{self._model_id}_midi_lstm",
         )
 
         # Prepare and set the loss function and metrics for each output
@@ -170,20 +193,21 @@ class LSTMModel(BaseModel):
         built_model.compile(optimizer=optimizer, loss=loss_dict, metrics=metric_dict)
 
         # Assign model to this Model object's LSTM model.
-        self.model = built_model
+        self._model = built_model
 
     def train(self, dataset: tf.data.Dataset, epochs: int, callbacks: TerminalPrettyCallback, tensorboard):
         """
-        Trains the model using the provided sequence generator for the provided number of epochs
+        Trains the model using the provided sequence generator for the provided number of epochs.
+        Updates the model's history to reflect data from ALL training sessions.
         """
         # Train the model for the specified number of epochs
         try:
             # Verbose set to 0, since we use custom callbacks instead
-            total_epochs = self.epochs_trained + epochs
-            history = self.model.fit(
+            total_epochs = self._epochs_trained + epochs
+            history = self._model.fit(
                 dataset,
                 epochs=total_epochs,
-                initial_epoch=self.epochs_trained,
+                initial_epoch=self._epochs_trained,
                 verbose=0,
                 callbacks=[callbacks, tensorboard],
             )
@@ -195,9 +219,9 @@ class LSTMModel(BaseModel):
         # Rebuild history (connecting it to previous histories)
         new_history = history
 
-        if self.history.history:  # If this model has been trained before, combine the histories.
+        if self._history.history:  # If this model has been trained before, combine the histories.
             combined_history = {
-                key: self.history.history[key] + new_history.history[key] for key in new_history.history
+                key: self._history.history[key] + new_history.history[key] for key in new_history.history
             }
             new_history.history = combined_history
 

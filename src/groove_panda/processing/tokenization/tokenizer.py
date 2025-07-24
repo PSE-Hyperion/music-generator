@@ -1,7 +1,6 @@
 from fractions import Fraction
 import logging
 
-import midi_file_utils
 from mido import MidiFile
 from music21 import chord, interval, key, note, pitch, stream
 from music21.tempo import MetronomeMark, TempoIndication
@@ -15,6 +14,7 @@ from groove_panda.config import (
     TokenizeMode,
 )
 from groove_panda.midi.sheet_music_generator import generate_sheet_music
+from groove_panda.processing.tokenization import midi_file_utils
 
 logger = logging.getLogger(__name__)
 
@@ -134,8 +134,10 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
         # Initialize event duration before loop.
         event_duration: float = 0
 
-        # Add each event at the given position to the stream. There is no differentiation between notes and chords.
-        # Chords are implicitly included in the form of several individual notes starting at the same position.
+        """
+        Add each event at the given position to the stream. There is no differentiation between notes and chords.
+        Chords are implicitly included in the form of several individual notes starting at the same position.
+        """
         for event in events_at_position:
             pitch_midi = int(event.pitch.split("_")[1])
             duration = float(Fraction(event.duration.split("_")[1]))
@@ -145,9 +147,11 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
             n.volume.velocity = velocity
             s.insert(abs_offset, n)
 
-            # event_duration is used to calculate rests in between notes.
-            # In the case of several notes in one position, the rest should only start
-            # after the longest note has ended, since only then will there be silence.
+            """
+            event_duration is used to calculate rests in between notes.
+            In the case of several notes in one position, the rest should only start
+            after the longest note has ended, since only then will there be silence.
+            """
             event_duration = max(event_duration, duration)
 
         # Update current offset to the end of this event
