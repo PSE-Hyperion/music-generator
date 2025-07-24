@@ -50,5 +50,5 @@ def train_model(model_id: str, processed_dataset_id: str, preset_name: str):
         shuffle=True,
     )
 
-    tr.train_model(model, train_generator)
+    tr.train_model_eager(model, train_generator)
     save_model(model, processed_dataset_id)
