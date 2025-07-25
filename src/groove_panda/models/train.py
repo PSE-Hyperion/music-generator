@@ -4,32 +4,37 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.callbacks import History  # type: ignore
 
-from groove_panda.config import FEATURE_NAMES, LOG_DIR, TRAINING_BATCH_SIZE, TRAINING_EPOCHS
+from groove_panda.config import FEATURE_NAMES, LOG_DIR, TRAINING_EPOCHS
 from groove_panda.models import plot
-from groove_panda.models.lazy_sequence_generator import LazySequenceGenerator
+from groove_panda.models.flexible_sequence_generator import FlexibleSequenceGenerator
 from groove_panda.models.models import BaseModel
 from groove_panda.models.tf_custom.callbacks import TerminalPrettyCallback
+from groove_panda.processing.process import extract_subsequence
 
 logger = logging.getLogger(__name__)
 
 
-def train_model(model: BaseModel, file_paths: list):
+def train_model(model: BaseModel, train_generator):
     """
-    Train model using LazySequenceGenerator for memory-efficient training on large datasets.
-
-    File paths contain the paths to .npz files. Needed to create a lazy sequence generator, that will lazily load
-    samples in batches (and random samples and shuffles)
+    Train model using sequence generator for memory-efficient training on large datasets.
+    Supports both LazySequenceGenerator (legacy) and FlexibleSequenceGenerator (new).
     """
 
-    logger.info("Start training with lazy loading...")
+    logger.info("Start training with sequence generator...")
 
     try:
-        train_generator = LazySequenceGenerator(file_paths=file_paths, batch_size=TRAINING_BATCH_SIZE, shuffle=True)
-
         steps_per_epoch = len(train_generator)
 
-        logger.info("Training with %s files, containing %s total samples", len(file_paths), train_generator.n_samples)
-        logger.info("Steps per epoch: %s, Batch size: %s", steps_per_epoch, TRAINING_BATCH_SIZE)
+        logger.info(
+            "Training with %s files, containing %s total samples",
+            len(train_generator.file_paths),
+            len(train_generator.sample_map),
+        )
+        logger.info("Sequence length: %s, Stride: %s", train_generator.sequence_length, train_generator.stride)
+        logger.info("Steps per epoch: %s, Batch size: %s", steps_per_epoch, train_generator.batch_size)
+
+        training_callback = TerminalPrettyCallback()
+        tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR, histogram_freq=1)  # type: ignore
 
         # fit() will automatically call on_epoch_end of lazy sequence generator, to get new samples
         history = model.model.fit(
@@ -37,7 +42,7 @@ def train_model(model: BaseModel, file_paths: list):
             epochs=TRAINING_EPOCHS,
             steps_per_epoch=steps_per_epoch,
             verbose=2,  # type: ignore
-            # callbacks=[TrainingCallback()],
+            callbacks=[training_callback, tensorboard_cb],
             # Note: validation_split doesn't work with generators,
             # you'd need a separate validation generator (or other solution)
         )
@@ -51,7 +56,7 @@ def train_model(model: BaseModel, file_paths: list):
         plot.plot_training(history, model.model_id)
 
 
-def train_model_eager(model: BaseModel, file_paths: list):
+def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerator):
     """
     Loads all necessary data upfront.
     This reduces the latency per sample. The model can take the samples
@@ -61,19 +66,33 @@ def train_model_eager(model: BaseModel, file_paths: list):
     """
 
     try:
-        logger.info("Start gathering processed songs...")
-        # Concatenates the sample seq["bar", "position", "pitch", "duration", "velocity", "tempo"])uences of all files
-        # into an array
-        full_array_x = np.concatenate([(np.load(path))["x"] for path in file_paths])
-        # Concatenates the sample targets of all files into an array
-        full_array_y = np.concatenate([(np.load(path))["y"] for path in file_paths])
-        # Ensures that the lengths of samples of targets match
+        logger.info("Start gathering all subsequences from continuous data...")
+
+        # Extract ALL possible subsequences using FlexibleSequenceGenerator logic
+        all_x, all_y = [], []
+
+        for continuous_seq in train_generator.song_data:
+            max_start_idx = len(continuous_seq) - train_generator.sequence_length - 1
+            max_start_steps = max_start_idx // train_generator.stride
+
+            for start_step in range(max_start_steps + 1):
+                start_idx = start_step * train_generator.stride
+
+                # Extract subsequence using the same logic as FlexibleSequenceGenerator
+                x, y = extract_subsequence(
+                    continuous_seq, train_generator.sequence_length, stride=train_generator.stride, start_idx=start_idx
+                )
+                all_x.append(x)
+                all_y.append(y)
+
+        # Convert to numpy arrays
+        full_array_x = np.array(all_x)
+        full_array_y = np.array(all_y)
+
         assert full_array_x.shape[0] == full_array_y.shape[0]
         dataset_size = full_array_x.shape[0]
 
-        # Structure of the arrays:
-        # sample sequences x: [<sample_idx>, <token_in_sample_idx>, <feature_idx>]
-        # sample targets: [<sample_idx>, <feature_idx>]
+        logger.info("Loaded %d total subsequences from %d songs", dataset_size, len(train_generator.song_data))
 
         logger.info("Start converting...")
         # Conversion for the model input layers
@@ -96,7 +115,7 @@ def train_model_eager(model: BaseModel, file_paths: list):
 
         logger.info("Start batching...")
         # Creating new batches of the data
-        dataset = dataset.batch(TRAINING_BATCH_SIZE)
+        dataset = dataset.batch(train_generator.batch_size)
         # Automates how TF prefetches the batches for better resource use
         # Since we already tell TF to shuffle all samples and the samples are all stored in the dict in the RAM,
         # this could have no effect at all (maybe on GPU training)
@@ -106,14 +125,13 @@ def train_model_eager(model: BaseModel, file_paths: list):
 
         training_callback = TerminalPrettyCallback()
 
-        tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR, histogram_freq=1)
+        tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR, histogram_freq=1)  # type: ignore
         # Other callbacks can be added here for specific purposes
 
         # verbose set to 0, since we use cuembeddingstom callbacks instead
-        history = model.model.fit(dataset, epochs=TRAINING_EPOCHS, verbose=0, callbacks=[
-            training_callback,
-            tensorboard_cb
-        ])
+        history = model.model.fit(
+            dataset, epochs=TRAINING_EPOCHS, verbose=0, callbacks=[training_callback, tensorboard_cb]
+        )
 
         logger.info("Finished training %s", model.model_id)
 

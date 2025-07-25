@@ -69,12 +69,11 @@ def _parallel_process_worker(
     # Numerize
     numeric_sixtuples = process.numerize(sixtuples, sixtuple_token_maps)
 
-    # Sequenize + reshape
-    x, y = process.sequenize(numeric_sixtuples)
-    x = process.reshape_x(x)
+    # Save as continuous sequence instead of sequenizing
+    continuous_sequence = process.create_continuous_sequence(numeric_sixtuples)
 
-    # Save .npz
-    processed_io.save_processed_data(processed_dataset_id, midi_path, x, y)
+    # Save .npz with continuous sequence
+    processed_io.save_continuous_data(processed_dataset_id, midi_path, continuous_sequence)
 
 
 def parallel_process(dataset_id: str, processed_dataset_id: str):

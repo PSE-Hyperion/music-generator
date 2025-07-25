@@ -115,6 +115,7 @@ CREATE_SHEET_MUSIC: Final[bool] = True
 
 # Each config dict includes:
 #   - sequence_length: int
+#   - stride: int
 #   - lstm_units: int
 #   - num_lstm_layers: int
 #   - dropout_rate: float
@@ -126,10 +127,12 @@ CREATE_SHEET_MUSIC: Final[bool] = True
 MODEL_PRESETS = {
     "light": {
         "sequence_length": 16,
+        "stride": 1,
         "lstm_units": 64,
         "num_lstm_layers": 1,
         "dropout_rate": 0.1,
         "learning_rate": 1e-3,  # This is the default for ADAM
+        "batch_size": 32,
         "embedding_dims": {
             "pitch": 16,
             "duration": 8,
@@ -141,10 +144,12 @@ MODEL_PRESETS = {
     },
     "basic": {
         "sequence_length": 32,
+        "stride": 1,
         "lstm_units": 128,
         "num_lstm_layers": 2,
         "dropout_rate": 0.2,
         "learning_rate": 1e-3,
+        "batch_size": 64,
         "embedding_dims": {
             "pitch": 32,
             "duration": 16,
@@ -156,10 +161,12 @@ MODEL_PRESETS = {
     },
     "advanced": {
         "sequence_length": 64,
+        "stride": 1,
         "lstm_units": 512,
         "num_lstm_layers": 3,
         "dropout_rate": 0.3,
         "learning_rate": 5e-4,
+        "batch_size": 64,
         "embedding_dims": {
             "pitch": 128,
             "duration": 64,
