@@ -1,7 +1,6 @@
 from fractions import Fraction
 import logging
 
-import midi_file_utils
 from mido import MidiFile
 from music21 import chord, interval, key, note, pitch, stream
 from music21.tempo import MetronomeMark, TempoIndication
@@ -15,6 +14,7 @@ from groove_panda.config import (
     TokenizeMode,
 )
 from groove_panda.midi.sheet_music_generator import generate_sheet_music
+from groove_panda.processing.tokenization import midi_file_utils
 
 logger = logging.getLogger(__name__)
 

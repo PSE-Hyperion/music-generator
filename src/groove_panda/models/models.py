@@ -125,11 +125,11 @@ class LSTMModel(BaseModel):
                 activation="softmax",  # We want a probability distribution
                 name=f"output_{feature_name}",
             )(x)  # apply to the last LSTM/Dropout output
-            output_tensors[feature_name] = dense_output
+            output_tensors[f"output_{feature_name}"] = dense_output
 
         # Create the model object
         built_model = Model(
-            inputs=list(input_layers.values()), outputs=list(output_tensors.values()), name=f"{self.model_id}_midi_lstm"
+            inputs=list(input_layers.values()), outputs=output_tensors, name=f"{self.model_id}_midi_lstm"
         )
 
         # Prepare and set the loss function and metrics for each output
