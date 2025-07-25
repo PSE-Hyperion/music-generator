@@ -166,7 +166,7 @@ class LSTMModel(BaseModel):
             # Add a Dropout layer to avoid overfitting.
             x = Dropout(rate=dropout_rate, name=f"dropout_after_lstm_{layer_index + 1}")(x)
 
-            # Add a per feature dense layer
+        # Add a per feature dense layer
         output_tensors = {}
         for feature_name, vocab_size in vocab_sizes.items():
             # Build a Dense softmax head for this feature
@@ -174,7 +174,7 @@ class LSTMModel(BaseModel):
                 units=vocab_size,  # Number of classes for this feature
                 activation="softmax",  # We want a probability distribution
                 name=f"output_{feature_name}",
-            )(x)  # apply to the last LSTM/Dropout output
+            )(x)  # Append this dense layer to the last LSTM/Dropout output
             output_tensors[feature_name] = dense_output
 
         # Create the model object
@@ -228,3 +228,6 @@ class LSTMModel(BaseModel):
         self.set_history(new_history)
 
         return new_history
+
+
+MODEL_TYPES = {"LSTM": LSTMModel}

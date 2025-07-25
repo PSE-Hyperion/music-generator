@@ -8,7 +8,7 @@ from tensorflow.keras.callbacks import History  # type: ignore
 from tensorflow.keras.models import load_model as load_keras_model  # type: ignore
 
 from groove_panda.config import MODEL_TYPE, MODELS_DIR
-from groove_panda.models.models import BaseModel, LSTMModel
+from groove_panda.models.models import MODEL_TYPES, BaseModel
 from groove_panda.models.tf_custom.regularizers import (
     NuclearRegularizer,  # noqa: F401 # May be necessary for Keras when loading a model with this regularizer.
 )
@@ -17,8 +17,6 @@ HISTORY_FILE_NAME: Final = "history.json"
 CONFIG_FILE_NAME: Final = "config.json"
 MODEL_FILE_NAME: Final = "model.keras"
 METADATA_FILE_NAME: Final = "metadata.json"
-
-MODEL_TYPES = {"LSTM": LSTMModel}
 
 logger = logging.getLogger(__name__)
 
