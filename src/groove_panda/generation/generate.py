@@ -110,17 +110,6 @@ class MusicGenerator:
         for i in range(generation_length):
             model_input = sequence_to_model_input(current_sequence)
             predictions = self.model.predict(model_input, verbose=0)
-<<<<<<< HEAD
-
-            predictions = ModelPredictions(
-                bar=predictions[0],
-                position=predictions[1],
-                pitch=predictions[2],
-                duration=predictions[3],
-                velocity=predictions[4],
-                tempo=predictions[5],
-            )
-=======
             # Output structure has been changed to a dict.
             # Previously built models that use lists are still supported. Here it checks for the type`.
             if isinstance(predictions, dict):
@@ -141,7 +130,6 @@ class MusicGenerator:
                     velocity=predictions[4],
                     tempo=predictions[5],
                 )
->>>>>>> origin/development
 
             sixtuple = self._predictions_to_sixtuple(predictions)
             generated_events.append(sixtuple)
