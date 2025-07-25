@@ -1,7 +1,7 @@
 import json
 import os
 
-from groove_panda.config import MODEL_PRESETS
+from groove_panda.config import FEATURE_NAMES, MODEL_PRESETS
 from groove_panda.models import models, train as tr
 from groove_panda.models.flexible_sequence_generator import FlexibleSequenceGenerator
 from groove_panda.models.model_io import save_model
@@ -38,7 +38,7 @@ def train_model(model_id: str, processed_dataset_id: str, preset_name: str):
     preset = MODEL_PRESETS[preset_name]
     sequence_length = preset["sequence_length"]
 
-    model = models.LSTMModel(model_id, (sequence_length, 6))
+    model = models.LSTMModel(model_id, (sequence_length, len(FEATURE_NAMES)))
     model.build(vocab_sizes=vocab_sizes, preset_name=preset_name)
 
     # Use flexible sequence generator instead of loading all data
@@ -46,7 +46,7 @@ def train_model(model_id: str, processed_dataset_id: str, preset_name: str):
         file_paths=file_paths,
         sequence_length=sequence_length,
         stride=preset["stride"],
-        batch_size=preset.get("batch_size", 32),
+        batch_size=preset["batch_size"],
         shuffle=True,
     )
 
