@@ -1,12 +1,21 @@
+import json
+import logging
 import os
 
-from groove_panda.config import ALLOWED_MUSIC_FILE_EXTENSIONS, GENERATION_TEMPERATURE
+from groove_panda.config import (
+    ALLOWED_MUSIC_FILE_EXTENSIONS,
+    GENERATION_TEMPERATURE,
+    RESULT_TOKENS_DIR,
+    SAVE_TOKEN_JSON,
+)
 from groove_panda.generation.generate import MusicGenerator
 from groove_panda.midi import writer
 from groove_panda.midi.parser import parse_midi
 from groove_panda.models.model_io import load_model
 from groove_panda.processing.tokenization import token_map_io
 from groove_panda.processing.tokenization.tokenizer import Tokenizer, detokenize
+
+logger = logging.getLogger(__name__)
 
 
 def generate_music(model_name: str, input_name: str, output_name: str):
@@ -65,3 +74,24 @@ def generate_music(model_name: str, input_name: str, output_name: str):
     writer.write_midi(output_name, generated_stream)
 
     print(f"Music generation completed! Output saved as: {output_name}")
+
+    # Save token tuples as JSON, only generate sheet music if enabled in config
+    if not SAVE_TOKEN_JSON:
+        logger.info("Sheet music generation is disabled (CREATE_SHEET_MUSIC=False).")
+        return
+    token_tuples = [
+        {
+            "bar": tuple.bar,
+            "position": tuple.position,
+            "pitch": tuple.pitch,
+            "duration": tuple.duration,
+            "velocity": tuple.velocity,
+            "tempo": tuple.tempo,
+        }
+        for tuple in generated_sixtuples
+    ]
+    base_name = os.path.splitext(os.path.basename(output_name))[0]
+    json_output_path = os.path.join(RESULT_TOKENS_DIR, f"{base_name}.json")
+
+    with open(json_output_path, "w") as f:
+        json.dump(token_tuples, f, indent=2)
