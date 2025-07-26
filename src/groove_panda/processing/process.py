@@ -73,6 +73,46 @@ def numerize(sixtuples: list[Sixtuple], sixtuple_token_maps: SixtupleTokenMaps) 
     return numeric_sixtuples
 
 
+def create_continuous_sequence(numeric_sixtuples: list[NumericSixtuple]) -> np.ndarray:
+    """
+    Save the entire continuous sequence instead of splitting into fixed lengths
+    """
+    logger.info("Creating continuous sequence...")
+
+    # Convert to array format
+    sequence = np.array(
+        [
+            [event.bar, event.position, event.pitch, event.duration, event.velocity, event.tempo]
+            for event in numeric_sixtuples
+        ],
+        dtype=np.int32,
+    )
+
+    logger.info("Finished creating continuous sequence")
+    return sequence
+
+
+def extract_subsequence(
+    full_sequence: np.ndarray, sequence_length: int, stride: int = 1, start_idx: int | None = None
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Extract a subsequence of given length from the full sequence
+    """
+    if len(full_sequence) < sequence_length + 1:
+        raise ValueError(f"Sequence too short: {len(full_sequence)} < {sequence_length + 1}")
+
+    if start_idx is None:
+        # Calculate max start index considering stride
+        max_start_steps = (len(full_sequence) - sequence_length) // stride
+        start_step = np.random.randint(0, max_start_steps + 1)
+        start_idx = start_step * stride
+
+    x = full_sequence[start_idx : start_idx + sequence_length]
+    y = full_sequence[start_idx + sequence_length]
+
+    return x, y
+
+
 def sequenize(numeric_sixtuples: list[NumericSixtuple]):
     """creates sequences of feature tuples (extracts feature num val from embeddednumericevent class)
     and corresponding next event feature tuples
