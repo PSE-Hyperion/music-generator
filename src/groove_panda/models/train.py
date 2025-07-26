@@ -128,10 +128,7 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
         tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR, histogram_freq=1)  # type: ignore
         # Other callbacks can be added here for specific purposes
 
-        # verbose set to 0, since we use cuembeddingstom callbacks instead
-        history = model.model.fit(
-            dataset, epochs=TRAINING_EPOCHS, verbose=0, callbacks=[training_callback, tensorboard_cb]
-        )
+        history = model.train(dataset, epochs=TRAINING_EPOCHS, callbacks=training_callback, tensorboard=tensorboard_cb)
 
         logger.info("Finished training %s", model.model_id)
 

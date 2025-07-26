@@ -4,7 +4,7 @@ import os
 from groove_panda.config import FEATURE_NAMES, MODEL_PRESETS
 from groove_panda.models import models, train as tr
 from groove_panda.models.flexible_sequence_generator import FlexibleSequenceGenerator
-from groove_panda.models.model_io import save_model
+from groove_panda.models.model_io import get_model_path, load_model, save_model
 from groove_panda.processing import processed_io
 from groove_panda.processing.tokenization import token_map_io
 
@@ -38,8 +38,16 @@ def train_model(model_id: str, processed_dataset_id: str, preset_name: str):
     preset = MODEL_PRESETS[preset_name]
     sequence_length = preset["sequence_length"]
 
-    model = models.LSTMModel(model_id, (sequence_length, len(FEATURE_NAMES)))
-    model.build(vocab_sizes=vocab_sizes, preset_name=preset_name)
+    input_shape = (sequence_length, len(FEATURE_NAMES))
+
+    model_path = get_model_path(model_id)
+
+    # Keep training if model exists, otherwise create new model
+    if os.path.exists(model_path):
+        model = load_model(model_id)[0]  # Get the model, discard the config
+    else:
+        model = models.LSTMModel(model_id, input_shape)
+        model.build(vocab_sizes=vocab_sizes, preset_name=preset_name)
 
     # Use flexible sequence generator instead of loading all data
     train_generator = FlexibleSequenceGenerator(

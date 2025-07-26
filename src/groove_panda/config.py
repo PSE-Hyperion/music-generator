@@ -29,9 +29,11 @@ SEQUENCE_LENGTH: Final[int] = 32  # Important to match processed dataset sequenc
 
 GENERATION_LENGTH: Final[int] = 400
 
-TRAINING_EPOCHS: Final[int] = 1
+TRAINING_EPOCHS: Final[int] = 2
 
 TRAINING_BATCH_SIZE: Final[int] = 64
+
+MODEL_TYPE: Final[str] = "LSTM"
 
 
 """ Parsing """
@@ -175,6 +177,46 @@ MODEL_PRESETS = {
             "bar": 32,
             "tempo": 64,
         },
+    },
+    "lightplus": {  # Takes about 1:42 per epoch on kpop16
+        "sequence_length": 16,
+        "lstm_units": 64,
+        "num_lstm_layers": 2,
+        "dropout_rate": 0.1,
+        "learning_rate": 1e-3,
+        "embedding_dims": {
+            "pitch": 16,
+            "duration": 8,
+            "velocity": 8,
+            "position": 8,
+            "bar": 4,
+            "tempo": 8,
+        },
+    },
+    "lightadjust": {
+        "sequence_length": 32,
+        "lstm_units": 128,
+        "num_lstm_layers": 3,
+        "dropout_rate": 0.2,
+        "learning_rate": 1e-3,
+        "embedding_dims": {
+            "pitch": 64,
+            "duration": 8,
+            "velocity": 8,
+            "position": 8,
+            "bar": 2,
+            "tempo": 8,
+        },
+    },
+    "test": {  # Terrible but fast architecture. Use just for program testing/debugging.
+        "sequence_length": 16,
+        "stride": 1,
+        "lstm_units": 1,
+        "num_lstm_layers": 1,
+        "dropout_rate": 0.1,
+        "learning_rate": 1e-3,
+        "embedding_dims": 1,
+        "batch_size": 128,
     },
     # Further presets can be added here
 }

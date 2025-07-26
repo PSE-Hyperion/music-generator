@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 
 from matplotlib import pyplot as plt
 from tensorflow.keras.callbacks import History  # type: ignore
@@ -16,6 +17,11 @@ logger = logging.getLogger(__name__)
 def plot_training(history: History, model_name: str):
     if PLOT_TRAINING:
         dir_path = os.path.join(PLOT_DIR, f"training_{model_name}")
+
+        # If the dir exists, it's an old version. Delete it so the new version can be saved.
+        if os.path.exists(dir_path):
+            shutil.rmtree(dir_path)
+
         os.makedirs(dir_path, exist_ok=False)
         _plot_training_history(history, model_name, dir_path)
         _plot_training_metrics_separate(history, model_name, dir_path)
@@ -37,7 +43,7 @@ def _plot_training_history(history, model_name: str, dir_path: str):
         row = i // 3
         col = i % 3
 
-        loss_key = f"{feature}_output_loss"
+        loss_key = f"output_{feature}_loss"
         val_loss_key = f"val_{feature}_output_loss"
 
         if loss_key in history.history:
@@ -56,7 +62,7 @@ def _plot_training_history(history, model_name: str, dir_path: str):
         row = (i // 3) + 2  # Offset by 2 rows for accuracy plots
         col = i % 3
 
-        acc_key = f"{feature}_output_accuracy"
+        acc_key = f"output_{feature}_accuracy"
         val_acc_key = f"val_{feature}_output_accuracy"
 
         if acc_key in history.history:
@@ -97,7 +103,7 @@ def _plot_training_metrics_separate(history: History, model_name: str, dir_path:
     for i, feature in enumerate(feature_names):
         plt.subplot(2, 3, i + 1)
 
-        loss_key = f"{feature}_output_loss"
+        loss_key = f"output_{feature}_loss"
         val_loss_key = f"val_{feature}_output_loss"
 
         if loss_key in history.history:
@@ -123,7 +129,7 @@ def _plot_training_metrics_separate(history: History, model_name: str, dir_path:
     # plt.show()
 
     # Seperate accuracy plot
-    has_accuracy = any(f"{feature}_output_accuracy" in history.history for feature in feature_names)
+    has_accuracy = any(f"output_{feature}_accuracy" in history.history for feature in feature_names)
 
     if has_accuracy:
         plt.figure(figsize=(15, 10))
@@ -131,7 +137,7 @@ def _plot_training_metrics_separate(history: History, model_name: str, dir_path:
         for i, feature in enumerate(feature_names):
             plt.subplot(2, 3, i + 1)
 
-            acc_key = f"{feature}_output_accuracy"
+            acc_key = f"output_{feature}_accuracy"
             val_acc_key = f"val_{feature}_output_accuracy"
 
             if acc_key in history.history:
