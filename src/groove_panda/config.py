@@ -134,6 +134,8 @@ class Config:
         config_file_name = config_name + ".json"
         config_path = os.path.join(self.config_dir, config_file_name)
 
+        logger.info(f"Loading config {config_name}...")
+
         if not os.path.exists(config_path):
             # Unsure whether to use error or to raise an exception.
             self.logger.error(f"No {config_name} config found")
@@ -141,7 +143,6 @@ class Config:
         # Load config file
         with open(config_path) as fp:
             config = json.load(fp)
-            self.logger.info(f"Loaded {config_name} config successfully!")
 
         # Config loading was successful, save settings
         self.config_name = config_name
@@ -153,6 +154,7 @@ class Config:
 
         # No errors occurred, set this config to our current config dict
         self.config = config
+        self.logger.info(f"Loaded {config_name} config successfully!")
 
     def save_config(self, name: str, directory: str = DEFAULT_STR):
         """
@@ -178,6 +180,12 @@ class Config:
         # Convert the config dictionary to a .json and save it in the configs folder
         overwrite_json(config_path, self.config)
 
+        # Update state to point to the newly created config if we saved to configs
+        # Skip this step if we are just saving the config as metadata for something else
+        if directory is self.DEFAULT_STR:
+            self.config_name = name
+            self.config_path = config_path
+
         self.logger.info(f"Saved {name} successfully as a config!.")
 
     def overwrite(self):
@@ -196,7 +204,7 @@ class Config:
         """
         self.load_config(self.config_name)
 
-    def change_setting(self, setting: str, value):
+    def change_setting(self, setting: str, value):  # noqa: PLR0912
         """
         Changes the given setting's value to be the new value in the current config's settings.
         """
@@ -229,13 +237,14 @@ class Config:
             elif annotation is str:
                 setattr(self, setting, str(value))
             elif annotation is bool:
+                # "Truth" values can sometimes be strings and sometimes booleans. Both cases must be checked
                 if isinstance(value, str):
                     setattr(self, setting, (value.lower() == "true"))
                 else:
                     setattr(self, setting, value)
             else:
                 setattr(self, setting, value)
-                logger.info("This setting might be too complicated to change via the terminal")
+                logger.info(f"The setting {setting} might be too complicated to change via the terminal")
                 logger.info("If it failed, consider changing it in the file itself and using the '-update' command :D")
                 return
 

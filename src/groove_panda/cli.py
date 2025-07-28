@@ -357,11 +357,6 @@ def start_session():
     #   Also catches errors from handling input and prints them
 
     session = PromptSession(completer=CommandCompleter())
-    logger.info("Loading config...")
-    config.load_config("hahahaha")
-    config.change_setting("training_epochs", 3)
-    config.overwrite()
-    logger.info("Config loaded.")
     while True:
         try:
             u_input = session.prompt("Music_Generation_LSTM> ")

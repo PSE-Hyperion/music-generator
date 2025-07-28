@@ -1,6 +1,7 @@
 import logging
 
 from groove_panda import cli
+from groove_panda.config import Config
 from groove_panda.logging_config import setup_logging
 
 
@@ -11,7 +12,8 @@ def main():
 
     setup_logging(level="INFO")
     logging.getLogger("main").info("Starting CLI")
-
+    config = Config()
+    config.load_config("config-johnny")
     cli.start_session()
 
 
