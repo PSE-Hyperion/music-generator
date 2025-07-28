@@ -15,5 +15,5 @@ def get_loss_weights():
 
     return {
         key: value / loss_weights_relative_sum
-        for key, value in loss_weights_relative
+        for key, value in loss_weights_relative.items()
     }
