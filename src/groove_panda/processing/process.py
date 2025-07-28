@@ -117,7 +117,7 @@ def extract_subsequence(
 def sequenize(numeric_sixtuples: list[NumericSixtuple]):
     """creates sequences of feature tuples (extracts feature num val from embeddednumericevent class)
     and corresponding next event feature tuples
-    uses sliding window of size of config.sequence_length
+    uses sliding window of size of the sequence length defined in the current config
     X contains sequences of features of an event, y contains the next features of an event
     X = [[1, 2], [2, 3], [3, 4]], y = [3, 4, 5]
     sequence X[i] is followed by y[i]

@@ -95,7 +95,7 @@ class LSTMModel(BaseModel):
     def build(self, vocab_sizes: dict[str, int], preset_name: str = "basic"):
         """
         Builds the LSTMModel according to the hyperparameters defined
-        in config.model_presets[preset_name].
+        in the chosen preset.
 
         Arguments:
             vocab_sizes: A dict mapping each feature name to its vocabulary size.

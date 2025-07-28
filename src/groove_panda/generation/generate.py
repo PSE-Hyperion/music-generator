@@ -94,17 +94,12 @@ class MusicGenerator:
             self.token_maps["tempo"][sixtuple.tempo],
         )
 
-    def generate_sequence(
-        self,
-        seed_sequence: list[tuple[int, int, int, int, int, int]],
-        generation_length: int | None = None,
-    ) -> list[Sixtuple]:
+    def generate_sequence(self, seed_sequence: list[tuple[int, int, int, int, int, int]]) -> list[Sixtuple]:
         """
         Generate a sequence of music events using the trained model.
         """
 
-        if generation_length is None:
-            generation_length = config.generation_length
+        generation_length = config.generation_length
 
         print(f"Starting generation with temperature: {self.temperature}")
         print(f"Generation length: {generation_length}")
