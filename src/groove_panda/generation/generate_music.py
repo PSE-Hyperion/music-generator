@@ -1,12 +1,14 @@
 import os
 
-from groove_panda.config import ALLOWED_MUSIC_FILE_EXTENSIONS, GENERATION_TEMPERATURE
+from groove_panda.config import Config
 from groove_panda.generation.generate import MusicGenerator
 from groove_panda.midi import writer
 from groove_panda.midi.parser import parse_midi
 from groove_panda.models.model_io import load_model
 from groove_panda.processing.tokenization import token_map_io
 from groove_panda.processing.tokenization.tokenizer import Tokenizer, detokenize
+
+config = Config()
 
 
 def generate_music(model_name: str, input_name: str, output_name: str):
@@ -17,20 +19,20 @@ def generate_music(model_name: str, input_name: str, output_name: str):
     print(f"Starting music generation with model: {model_name}")
 
     # Load the trained model
-    model, config = load_model(model_name)
-    processed_dataset_id = config.get("processed_dataset_id")
+    model, model_metadata = load_model(model_name)
+    processed_dataset_id = model_metadata.get("processed_dataset_id")
     if not processed_dataset_id:
         raise ValueError(
-            "The loaded model config does not contain a 'processed_dataset_id'. "
+            "The loaded model metadata does not contain a 'processed_dataset_id'. "
             "Please ensure the model was saved with the correct dataset reference."
         )
 
     token_maps, metadata, reverse_mappings = token_map_io.load_token_maps(processed_dataset_id)
-    generator = MusicGenerator(model.model, token_maps, reverse_mappings, metadata, GENERATION_TEMPERATURE)
+    generator = MusicGenerator(model.model, token_maps, reverse_mappings, metadata, config.generation_temperature)
 
     # Load seed sequence from input MIDI file
     input_midi_path = None
-    for ext in ALLOWED_MUSIC_FILE_EXTENSIONS:
+    for ext in config.allowed_music_file_extensions:
         candidate = os.path.join("data/midi/input", f"{input_name}{ext}")
         if os.path.exists(candidate):
             input_midi_path = candidate

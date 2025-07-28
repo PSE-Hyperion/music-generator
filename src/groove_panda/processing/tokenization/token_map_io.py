@@ -3,9 +3,10 @@ import logging
 import os
 from typing import Final
 
-from groove_panda.config import TOKEN_MAPS_DIR
+from groove_panda.config import Config
 from groove_panda.processing.tokenization.tokenizer import SixtupleTokenMaps
 
+config = Config()
 logger = logging.getLogger(__name__)
 
 TOTAL_UNIQUE_BAR_TOKENS: Final = "total_unique_bar_tokens"
@@ -21,7 +22,7 @@ def save_token_maps(processed_dataset_id: str, token_maps: SixtupleTokenMaps):
     """
     Saves all the token maps into a file (with metadata).
 
-    You can find the file in TOKEN_MAPS_DIR plus id
+    You can find the file in config.token_maps_dir plus id
     """
 
     logger.info("Start saving maps...")
@@ -30,7 +31,7 @@ def save_token_maps(processed_dataset_id: str, token_maps: SixtupleTokenMaps):
 
     logger.info("Total unique tokens: %s", total_unique_tokens)
 
-    folder_path = os.path.join(TOKEN_MAPS_DIR, processed_dataset_id)
+    folder_path = os.path.join(config.token_maps_dir, processed_dataset_id)
     os.makedirs(folder_path, exist_ok=False)
 
     # save important information with maps just in case
@@ -69,7 +70,7 @@ def load_token_maps(processed_dataset_id: str) -> tuple[dict, dict, dict]:
     """
     Load token maps, metadata and reverse mapping for a processed dataset
     """
-    token_maps_dir = os.path.join(TOKEN_MAPS_DIR, processed_dataset_id)
+    token_maps_dir = os.path.join(config.token_maps_dir, processed_dataset_id)
 
     # Load metadata
     metadata_path = os.path.join(token_maps_dir, "metadata.json")

@@ -4,13 +4,14 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.callbacks import History  # type: ignore
 
-from groove_panda.config import FEATURE_NAMES, LOG_DIR, TRAINING_EPOCHS
+from groove_panda.config import Config
 from groove_panda.models import plot
 from groove_panda.models.flexible_sequence_generator import FlexibleSequenceGenerator
 from groove_panda.models.models import BaseModel
 from groove_panda.models.tf_custom.callbacks import TerminalPrettyCallback
 from groove_panda.processing.process import extract_subsequence
 
+config = Config()
 logger = logging.getLogger(__name__)
 
 
@@ -34,12 +35,12 @@ def train_model(model: BaseModel, train_generator):
         logger.info("Steps per epoch: %s, Batch size: %s", steps_per_epoch, train_generator.batch_size)
 
         training_callback = TerminalPrettyCallback()
-        tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR, histogram_freq=1)  # type: ignore
+        tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=config.log_dir, histogram_freq=1)  # type: ignore
 
         # fit() will automatically call on_epoch_end of lazy sequence generator, to get new samples
         history = model.model.fit(
             train_generator,
-            epochs=TRAINING_EPOCHS,
+            epochs=config.training_epochs,
             steps_per_epoch=steps_per_epoch,
             verbose=2,  # type: ignore
             callbacks=[training_callback, tensorboard_cb],
@@ -99,11 +100,11 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
         # Iterating over the feature axis of the tensors
         x_dict = {
             f"input_{feature}": full_array_x[:, :, idx]  # take of each sample only the specified feature
-            for idx, feature in enumerate(FEATURE_NAMES)
+            for idx, feature in enumerate(config.feature_names)
         }
         y_dict = {
             f"output_{feature}": full_array_y[:, idx]  # take of each sample only the specified feature
-            for idx, feature in enumerate(FEATURE_NAMES)
+            for idx, feature in enumerate(config.feature_names)
         }
 
         dataset = tf.data.Dataset.from_tensor_slices((x_dict, y_dict))
@@ -125,10 +126,12 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
 
         training_callback = TerminalPrettyCallback()
 
-        tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR, histogram_freq=1)  # type: ignore
+        tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=config.log_dir, histogram_freq=1)  # type: ignore
         # Other callbacks can be added here for specific purposes
 
-        history = model.train(dataset, epochs=TRAINING_EPOCHS, callbacks=training_callback, tensorboard=tensorboard_cb)
+        history = model.train(
+            dataset, epochs=config.training_epochs, callbacks=training_callback, tensorboard=tensorboard_cb
+        )
 
         logger.info("Finished training %s", model.model_id)
 

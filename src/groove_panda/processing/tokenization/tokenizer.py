@@ -5,17 +5,11 @@ from mido import MidiFile
 from music21 import chord, interval, key, note, pitch, stream
 from music21.tempo import MetronomeMark, TempoIndication
 
-from groove_panda.config import (
-    CREATE_SHEET_MUSIC,
-    DEFAULT_TEMPO,
-    TEMPO_ROUND_VALUE,
-    TEMPO_TOLERANCE,
-    TOKENIZE_MODE,
-    TokenizeMode,
-)
+from groove_panda.config import Config, TokenizeMode
 from groove_panda.midi.sheet_music_generator import generate_sheet_music
 from groove_panda.processing.tokenization import midi_file_utils
 
+config = Config()
 logger = logging.getLogger(__name__)
 
 
@@ -158,7 +152,7 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
         current_offset = abs_offset + event_duration
 
     logger.info("Finished detokenizing.")
-    if CREATE_SHEET_MUSIC:
+    if config.create_sheet_music:
         generate_sheet_music(s)
     return s
 
@@ -298,7 +292,7 @@ class SixtupleTokenMaps:
 
 
 def round_tempo(tempo: int) -> int:
-    return round(tempo / TEMPO_ROUND_VALUE) * TEMPO_ROUND_VALUE
+    return round(tempo / config.tempo_round_value) * config.tempo_round_value
 
 
 class Tokenizer:
@@ -312,14 +306,14 @@ class Tokenizer:
         Tokenizes the parsed midi according to it's mode
         """
 
-        if TOKENIZE_MODE is TokenizeMode.ORIGINAL:
+        if config.tokenize_mode is TokenizeMode.ORIGINAL:
             sixtuples = self._tokenize_original_key(parsed_midi)
-        elif TOKENIZE_MODE is TokenizeMode.ALL_KEYS:
+        elif config.tokenize_mode is TokenizeMode.ALL_KEYS:
             sixtuples = self._tokenize_all_keys(parsed_midi)
-        elif TOKENIZE_MODE is TokenizeMode.C_MAJOR_A_MINOR:
+        elif config.tokenize_mode is TokenizeMode.C_MAJOR_A_MINOR:
             sixtuples = self._tokenize_cmajor_aminor(parsed_midi)
         else:
-            raise ValueError(f"Unsupported TOKENIZE_MODE: {TOKENIZE_MODE!r}")
+            raise ValueError(f"Unsupported TOKENIZE_MODE: {config.tokenize_mode!r}")
 
         return sixtuples
 
@@ -465,7 +459,7 @@ class Tokenizer:
         # Two classes could contain this data, so we have to check both
         tempo_indications = flat.getElementsByClass("TempoIndication")
         metronome_marks = flat.getElementsByClass("MetronomeMark")
-        current_tempo = round_tempo(DEFAULT_TEMPO)
+        current_tempo = round_tempo(config.default_tempo)
 
         # Set first tempo
         if tempo_indications:
@@ -499,7 +493,10 @@ class Tokenizer:
         for event in flat:
             abs_offset = float(event.offset)
 
-            while tempo_idx < len(tempo_changes) and abs(tempo_changes[tempo_idx][0] - abs_offset) < TEMPO_TOLERANCE:
+            while (
+                tempo_idx < len(tempo_changes)
+                and abs(tempo_changes[tempo_idx][0] - abs_offset) < config.tempo_tolerance
+            ):
                 current_tempo = tempo_changes[tempo_idx][1]
                 tempo_idx += 1
 

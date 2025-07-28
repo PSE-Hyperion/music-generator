@@ -3,9 +3,11 @@ from dataclasses import dataclass
 import numpy as np
 from tensorflow.keras.models import Model  # type: ignore
 
-from groove_panda.config import GENERATION_LENGTH
+from groove_panda.config import Config
 from groove_panda.processing.process import sequence_to_model_input
 from groove_panda.processing.tokenization.tokenizer import Sixtuple
+
+config = Config()
 
 
 @dataclass
@@ -93,11 +95,17 @@ class MusicGenerator:
         )
 
     def generate_sequence(
-        self, seed_sequence: list[tuple[int, int, int, int, int, int]], generation_length: int = GENERATION_LENGTH
+        self,
+        seed_sequence: list[tuple[int, int, int, int, int, int]],
+        generation_length: int | None = None,
     ) -> list[Sixtuple]:
         """
         Generate a sequence of music events using the trained model.
         """
+
+        if generation_length is None:
+            generation_length = config.generation_length
+
         print(f"Starting generation with temperature: {self.temperature}")
         print(f"Generation length: {generation_length}")
 

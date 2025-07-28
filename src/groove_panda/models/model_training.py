@@ -1,12 +1,14 @@
 import json
 import os
 
-from groove_panda.config import FEATURE_NAMES, MODEL_PRESETS
+from groove_panda.config import Config
 from groove_panda.models import models, train as tr
 from groove_panda.models.flexible_sequence_generator import FlexibleSequenceGenerator
 from groove_panda.models.model_io import get_model_path, load_model, save_model
 from groove_panda.processing import processed_io
 from groove_panda.processing.tokenization import token_map_io
+
+config = Config()
 
 
 def train_model(model_id: str, processed_dataset_id: str, preset_name: str):
@@ -35,10 +37,10 @@ def train_model(model_id: str, processed_dataset_id: str, preset_name: str):
     }
 
     # Get preset config
-    preset = MODEL_PRESETS[preset_name]
+    preset = config.model_presets[preset_name]
     sequence_length = preset["sequence_length"]
 
-    input_shape = (sequence_length, len(FEATURE_NAMES))
+    input_shape = (sequence_length, len(config.feature_names))
 
     model_path = get_model_path(model_id)
 
