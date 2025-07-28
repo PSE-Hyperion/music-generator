@@ -4,7 +4,15 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.callbacks import EarlyStopping, History, TensorBoard  # type: ignore
 
-from groove_panda.config import FEATURE_NAMES, LOG_DIR, TRAINING_EPOCHS, VALIDATION_DATASET_SIZE
+from groove_panda.config import (
+    EARLY_STOPPING_ENABLED,
+    EARLY_STOPPING_EPOCHS_TO_WAIT,
+    EARLY_STOPPING_THRESHOLD,
+    FEATURE_NAMES,
+    LOG_DIR,
+    TRAINING_EPOCHS,
+    VALIDATION_DATASET_SIZE,
+)
 from groove_panda.models import plot
 from groove_panda.models.flexible_sequence_generator import FlexibleSequenceGenerator
 from groove_panda.models.models import BaseModel
@@ -150,8 +158,16 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
         # Early stopping ensures that the training stops when the validation loss doesn't improve
         callbacks = [
             TensorBoard(log_dir=LOG_DIR, histogram_freq=1),
-            EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
         ]
+        if EARLY_STOPPING_ENABLED:
+            callbacks.append(
+                EarlyStopping(
+                    monitor='val_loss',
+                    patience=EARLY_STOPPING_EPOCHS_TO_WAIT,
+                    min_delta=EARLY_STOPPING_THRESHOLD,
+                    restore_best_weights=True
+                )
+            )
 
         logger.info("Start training...")
 

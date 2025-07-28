@@ -22,7 +22,6 @@ class Parser(Enum):
     MUSIC21 = auto()
     MIDO = auto()
 
-
 """ Hyperparameters """
 
 SEQUENCE_LENGTH: Final[int] = 32  # Important to match processed dataset sequence length to model sequence length!!
@@ -30,6 +29,13 @@ SEQUENCE_LENGTH: Final[int] = 32  # Important to match processed dataset sequenc
 GENERATION_LENGTH: Final[int] = 400
 
 TRAINING_EPOCHS: Final[int] = 2
+
+# Whether the model should stop when the validation loss doesn't improve
+EARLY_STOPPING_ENABLED: Final[bool] = True
+# How many epochs with no change to wait until it will stop
+EARLY_STOPPING_EPOCHS_TO_WAIT: Final[int] = 3
+# Difference that will be considered as no improvement
+EARLY_STOPPING_THRESHOLD: Final[float] = 0
 
 TRAINING_BATCH_SIZE: Final[int] = 64
 
