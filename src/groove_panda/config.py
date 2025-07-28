@@ -33,6 +33,10 @@ TRAINING_EPOCHS: Final[int] = 2
 
 TRAINING_BATCH_SIZE: Final[int] = 64
 
+# Relative share of the validation dataset (between 0 and 1)
+# The validation will get executed after every epoch.
+VALIDATION_DATASET_SIZE: Final[int] = 0.2
+
 MODEL_TYPE: Final[str] = "LSTM"
 
 
@@ -173,7 +177,7 @@ MODEL_PRESETS = {
             "pitch": 128,
             "duration": 64,
             "velocity": 64,
-            "position": 64,
+            "position": 32,
             "bar": 32,
             "tempo": 64,
         },

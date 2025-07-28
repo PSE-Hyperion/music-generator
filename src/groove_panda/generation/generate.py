@@ -56,8 +56,8 @@ class MusicGenerator:
         """
 
         # Apply temperature sampling to each feature prediction
-        bar_idx = self._apply_temperature_sampling(predictions.bar[0], self.temperature)
-        position_idx = self._apply_temperature_sampling(predictions.position[0], self.temperature)
+        bar_idx = self._apply_temperature_sampling(predictions.bar[0], 0)
+        position_idx = self._apply_temperature_sampling(predictions.position[0], 0)
         pitch_idx = self._apply_temperature_sampling(predictions.pitch[0], self.temperature)
         duration_idx = self._apply_temperature_sampling(predictions.duration[0], self.temperature)
         velocity_idx = self._apply_temperature_sampling(predictions.velocity[0], self.temperature)

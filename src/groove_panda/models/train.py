@@ -96,12 +96,6 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
         logger.info("Loaded %d total subsequences from %d songs", dataset_size, len(train_generator.song_data))
 
         logger.info("Splitting the dataset into training and validation...")
-        # Create shuffled indices for repeatable application of the shuffle
-        shuffle_indices = np.arange(dataset_size)
-        np.random.shuffle(shuffle_indices)
-
-        full_x_array = full_x_array[shuffle_indices]
-        full_y_array = full_y_array[shuffle_indices]
 
         train_x_array = full_x_array[:train_dataset_size]
         train_y_array = full_y_array[:train_dataset_size]
@@ -151,6 +145,7 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
         val_dataset = val_dataset.prefetch(tf.data.AUTOTUNE)
 
         # Callbacks for pretty printing in the terminal and for TensorBoard logging
+        # Early stopping ensures that the training stops when the validation loss doesn't improve
         callbacks = [
             TensorBoard(log_dir=LOG_DIR, histogram_freq=1),
             EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
