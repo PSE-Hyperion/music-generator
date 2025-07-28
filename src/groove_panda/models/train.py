@@ -2,7 +2,7 @@ import logging
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.callbacks import History, TensorBoard, EarlyStopping  # type: ignore
+from tensorflow.keras.callbacks import EarlyStopping, History, TensorBoard  # type: ignore
 
 from groove_panda.config import FEATURE_NAMES, LOG_DIR, TRAINING_EPOCHS, VALIDATION_DATASET_SIZE
 from groove_panda.models import plot
@@ -127,9 +127,11 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
         val_dataset = tf.data.Dataset.from_tensor_slices((val_x_dict, val_y_dict))
 
         # Providing input for the model is now handled by Tensorflow since it's maximally optimized
-        # The full pipeline will be executed each epoch (tf.data handles the steps as functions, not as the results of the functions)
+        # The full pipeline will be executed each epoch (tf.data handles the steps as functions,
+        # not as the results of the functions)
         #
-        # Shuffle all samples for each epoch (only for training dataset because validation should be consistent over epochs)
+        # Shuffle all samples for each epoch
+        # (only for training dataset because validation should be consistent over epochs)
         # Create new batches with the shuffled samples each epoch
         #
         # Prefetching automates how TF prefetches the batches for better resource use

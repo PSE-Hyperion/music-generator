@@ -4,18 +4,16 @@ def get_loss_weights():
     The weights defined are relative. The method calculates the absolute values, that sum up to 1
     """
     loss_weights_relative = {
-        'bar_output': 1,
-        'position_output': 2,
-        'pitch_output': 3,
-        'velocity_output': 3,
-        'duration_output': 2,
-        'tempo_output': 1
+        'output_bas': 1,
+        'output_position': 2,
+        'output_pitch': 3,
+        'output_velocity': 3,
+        'output_duration': 2,
+        'output_tempo': 1
     }
-    loss_weights_relative_sum = 0
-    for key in loss_weights_relative:
-        loss_weights_relative_sum += loss_weights_relative[key]
+    loss_weights_relative_sum = sum(loss_weights_relative.values())
 
     return {
-        key: loss_weights_relative[key] / loss_weights_relative_sum
-        for key in loss_weights_relative
+        key: value / loss_weights_relative_sum
+        for key, value in loss_weights_relative
     }
