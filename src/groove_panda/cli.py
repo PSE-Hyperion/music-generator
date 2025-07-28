@@ -114,7 +114,7 @@ def handle_config(args: list[str]):
         case "load":
             config.load_config(args[1])
         case "save":
-            if len(args) <= 2:
+            if len(args) <= 2:  # noqa: PLR2004 - will be taken care of later with a handler overhaul.
                 config.save_config(args[1])
             else:
                 config.save_config(args[1], args[2])

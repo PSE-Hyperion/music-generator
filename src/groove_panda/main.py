@@ -13,7 +13,7 @@ def main():
     setup_logging(level="INFO")
     logging.getLogger("main").info("Starting CLI")
     config = Config()
-    config.load_config("config-johnny")
+    config.load_config("config")
     cli.start_session()
 
 
