@@ -29,7 +29,7 @@ SEQUENCE_LENGTH: Final[int] = 32  # Important to match processed dataset sequenc
 
 GENERATION_LENGTH: Final[int] = 400
 
-TRAINING_EPOCHS: Final[int] = 2
+TRAINING_EPOCHS: Final[int] = 3
 
 TRAINING_BATCH_SIZE: Final[int] = 64
 
@@ -195,6 +195,7 @@ MODEL_PRESETS = {
     },
     "lightadjust": {
         "sequence_length": 32,
+        "stride": 1,
         "lstm_units": 128,
         "num_lstm_layers": 3,
         "dropout_rate": 0.2,
@@ -207,6 +208,7 @@ MODEL_PRESETS = {
             "bar": 2,
             "tempo": 8,
         },
+        "batch_size": 1024,
     },
     "test": {  # Terrible but fast architecture. Use just for program testing/debugging.
         "sequence_length": 16,
