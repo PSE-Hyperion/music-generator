@@ -1,4 +1,5 @@
 import logging
+import random
 
 import numpy as np
 import tensorflow as tf
@@ -10,6 +11,7 @@ from groove_panda.config import (
     EARLY_STOPPING_THRESHOLD,
     FEATURE_NAMES,
     LOG_DIR,
+    SONG_SHUFFLE_SEED,
     TRAINING_EPOCHS,
     VALIDATION_DATASET_SIZE,
 )
@@ -79,7 +81,12 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
         # Extract ALL possible subsequences using FlexibleSequenceGenerator logic
         all_x, all_y = [], []
 
-        for continuous_seq in train_generator.song_data:
+        # Shuffle all songs to get a less biased split into training and validation dataset.
+        # Otherwise the last songs in the list would always be only for validation.
+        song_data = train_generator.song_data
+        random.Random(SONG_SHUFFLE_SEED).shuffle(song_data)
+
+        for continuous_seq in song_data:
             max_start_idx = len(continuous_seq) - train_generator.sequence_length - 1
             max_start_steps = max_start_idx // train_generator.stride
 
@@ -158,6 +165,7 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
         # Early stopping ensures that the training stops when the validation loss doesn't improve
         callbacks = [
             TensorBoard(log_dir=LOG_DIR, histogram_freq=1),
+            TerminalPrettyCallback()
         ]
         if EARLY_STOPPING_ENABLED:
             callbacks.append(

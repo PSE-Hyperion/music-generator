@@ -39,11 +39,15 @@ EARLY_STOPPING_THRESHOLD: Final[float] = 0
 
 TRAINING_BATCH_SIZE: Final[int] = 64
 
+MODEL_TYPE: Final[str] = "LSTM"
+
+# Seed for shuffling the songs before they get transformed to a dataset
+# Important for the split into training and validation dataset.
+# Seed is useful for random but repeatable split
+SONG_SHUFFLE_SEED: Final[int] = 123456
 # Relative share of the validation dataset (between 0 and 1)
 # The validation will get executed after every epoch.
 VALIDATION_DATASET_SIZE: Final[int] = 0.2
-
-MODEL_TYPE: Final[str] = "LSTM"
 
 
 """ Parsing """
