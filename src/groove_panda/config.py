@@ -185,7 +185,7 @@ MODEL_PRESETS = {
             "pitch": 128,
             "duration": 64,
             "velocity": 64,
-            "position": 32,
+            "position": 64,
             "bar": 32,
             "tempo": 64,
         },

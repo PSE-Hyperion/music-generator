@@ -1,4 +1,4 @@
-def get_loss_weights():
+def get_loss_weights() -> dict[str, float]:
     """
     Set the weights for the feature losses (might be moved to the config module)
     The weights defined are relative. The method calculates the absolute values, that sum up to 1
