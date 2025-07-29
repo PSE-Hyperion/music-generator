@@ -1,3 +1,5 @@
+import json
+import logging
 import os
 
 from groove_panda.config import Config
@@ -9,6 +11,7 @@ from groove_panda.processing.tokenization import token_map_io
 from groove_panda.processing.tokenization.tokenizer import Tokenizer, detokenize
 
 config = Config()
+logger = logging.getLogger(__name__)
 
 
 def generate_music(model_name: str, input_name: str, output_name: str):
@@ -40,7 +43,7 @@ def generate_music(model_name: str, input_name: str, output_name: str):
     if input_midi_path is None:
         raise FileNotFoundError(f"Input MIDI file not found: {input_name}")
 
-    print(f"Loading seed sequence from: {input_midi_path}")
+    logger.info(f"Loading seed sequence from: {input_midi_path}")
 
     score = parse_midi(input_midi_path)
     tokenizer = Tokenizer(processed_dataset_id)
@@ -66,4 +69,26 @@ def generate_music(model_name: str, input_name: str, output_name: str):
     generated_stream = detokenize(seed_sixtuple + generated_sixtuples)
     writer.write_midi(output_name, generated_stream)
 
-    print(f"Music generation completed! Output saved as: {output_name}")
+    logger.info(f"Music generation completed! Output saved as: {output_name}")
+
+    # Save token tuples as JSON, only generate sheet music if enabled in config
+    if not config.save_token_json:
+        logger.info("Saving Token as json is disabled (SAVE_TOKEN_JSON=False).")
+        return
+    token_tuples = [
+        {
+            "bar": tuple.bar,
+            "position": tuple.position,
+            "pitch": tuple.pitch,
+            "duration": tuple.duration,
+            "velocity": tuple.velocity,
+            "tempo": tuple.tempo,
+        }
+        for tuple in generated_sixtuples
+    ]
+    base_name = os.path.splitext(os.path.basename(output_name))[0]
+    json_output_path = os.path.join(config.result_tokens_dir, f"{base_name}.json")
+
+    with open(json_output_path, "w") as f:
+        json.dump(token_tuples, f, indent=2)
+    logger.info("Saved Tokens as json")

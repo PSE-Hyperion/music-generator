@@ -78,11 +78,13 @@ class Config:
     plot_dir: str = DEFAULT_STR
     output_sheet_music_dir: str = DEFAULT_STR
     log_dir: str = DEFAULT_STR
+    result_tokens_dir: str = DEFAULT_STR
 
     # Debugging and diagnostics settings
     plot_training: bool = DEFAULT_BOOL
     save_plot_training: bool = DEFAULT_BOOL
     create_sheet_music: bool = DEFAULT_BOOL
+    save_token_json: bool = DEFAULT_BOOL
 
     # Model presets
     model_presets: dict[str, dict] = {}  # noqa: RUF012
