@@ -106,6 +106,7 @@ FEATURE_NAMES: Final[list[str]] = ["bar", "position", "pitch", "duration", "velo
 DATASETS_MIDI_DIR: Final[str] = "data/midi/datasets"
 INPUT_MIDI_DIR: Final[str] = "data/midi/input"
 RESULTS_MIDI_DIR: Final[str] = "data/midi/results"
+RESULT_TOKENS_DIR: Final[str] = "data/tokens/results"
 MODELS_DIR: Final[str] = "data/models"
 PROCESSED_DIR: Final[str] = "data/processed"
 TOKEN_MAPS_DIR: Final[str] = "data/token_maps"
@@ -119,6 +120,7 @@ LOG_DIR: Final[str] = "data/logs"
 PLOT_TRAINING: Final[bool] = True
 SAVE_PLOT_TRAINING: Final[bool] = True
 CREATE_SHEET_MUSIC: Final[bool] = True
+SAVE_TOKEN_JSON: Final[bool] = True
 
 
 """ Model presets """
