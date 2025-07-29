@@ -8,6 +8,7 @@ from tensorflow.keras.optimizers import Adam  # type: ignore
 
 from groove_panda.config import MODEL_PRESETS
 from groove_panda.models.tf_custom.callbacks import TerminalPrettyCallback
+from groove_panda.models.utils import get_loss_weights
 
 logger = logging.getLogger(__name__)
 
@@ -189,8 +190,17 @@ class LSTMModel(BaseModel):
         metric_dict = {f"output_{feature_name}": "accuracy" for feature_name in vocab_sizes}
 
         # Compile model using the specified learning rate
-        optimizer = Adam(learning_rate=learning_rate)
-        built_model.compile(optimizer=optimizer, loss=loss_dict, metrics=metric_dict)
+        # Adding gradient clipping to avoid extreme gradient values that may destroy the learning process
+        optimizer = Adam(
+            learning_rate=learning_rate,
+            clipnorm=1.0
+        )
+        built_model.compile(
+            optimizer=optimizer,
+            loss=loss_dict,
+            loss_weights=get_loss_weights(),
+            metrics=metric_dict
+        )
 
         # Assign model to this Model object's LSTM model.
         self._model = built_model
