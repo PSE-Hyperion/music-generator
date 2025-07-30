@@ -13,4 +13,4 @@ def get_normal_distribution_tensor(variance, cutoff):
     # Those will be the arguments for the gauss probability function
     x = tf.linspace()
     # Calculate he gauss probability function
-    distribution_tensor = tf.exp(- tf.square(x - mu)/(2 * sigma2))
+    

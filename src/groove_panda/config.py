@@ -22,7 +22,6 @@ class Parser(Enum):
     MUSIC21 = auto()
     MIDO = auto()
 
-
 """ Hyperparameters """
 
 SEQUENCE_LENGTH: Final[int] = 32  # Important to match processed dataset sequence length to model sequence length!!
@@ -31,9 +30,24 @@ GENERATION_LENGTH: Final[int] = 400
 
 TRAINING_EPOCHS: Final[int] = 2
 
+# Whether the model should stop when the validation loss doesn't improve
+EARLY_STOPPING_ENABLED: Final[bool] = True
+# How many epochs with no change to wait until it will stop
+EARLY_STOPPING_EPOCHS_TO_WAIT: Final[int] = 3
+# Difference that will be considered as no improvement
+EARLY_STOPPING_THRESHOLD: Final[float] = 0
+
 TRAINING_BATCH_SIZE: Final[int] = 64
 
 MODEL_TYPE: Final[str] = "LSTM"
+
+# Seed for shuffling the songs before they get transformed to a dataset
+# Important for the split into training and validation dataset.
+# Seed is useful for random but repeatable split
+SONG_SHUFFLE_SEED: Final[int] = 123456
+# Relative share of the validation dataset (between 0 and 1)
+# The validation will get executed after every epoch.
+VALIDATION_DATASET_SIZE: Final[int] = 0.2
 
 
 """ Parsing """
