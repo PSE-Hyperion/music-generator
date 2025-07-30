@@ -7,3 +7,10 @@ def nuclear_norm(matrix: tf.Tensor) -> tf.Tensor:
     """
     singular_matrix = tf.linalg.svd(matrix, compute_uv=False)
     return tf.reduce_sum(singular_matrix)
+
+def get_normal_distribution_tensor(variance, cutoff):
+    # Create a 1D tensor with the indices as float entries.
+    # Those will be the arguments for the gauss probability function
+    x = tf.linspace()
+    # Calculate he gauss probability function
+    distribution_tensor = tf.exp(- tf.square(x - mu)/(2 * sigma2))
