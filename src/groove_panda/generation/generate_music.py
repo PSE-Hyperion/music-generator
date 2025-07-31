@@ -31,7 +31,7 @@ def generate_music(model_name: str, input_name: str, output_name: str):
         )
 
     token_maps, metadata, reverse_mappings = token_map_io.load_token_maps(processed_dataset_id)
-    generator = MusicGenerator(model.model, token_maps, reverse_mappings, metadata, config.generation_temperature)
+    generator = MusicGenerator(model.model, token_maps, reverse_mappings, metadata)
 
     # Load seed sequence from input MIDI file
     input_midi_path = None

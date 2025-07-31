@@ -21,14 +21,12 @@ class ModelPredictions:
 
 
 class MusicGenerator:
-    def __init__(
-        self, model: Model, token_maps: dict, reverse_mappings: dict, metadata: dict, temperature: float = 1.0
-    ):
+    def __init__(self, model: Model, token_maps: dict, reverse_mappings: dict, metadata: dict):
         self.model = model
         self.token_maps = token_maps
         self.reverse_mappings = reverse_mappings
         self.metadata = metadata
-        self.temperature = temperature
+        self.feature_temperatures = config.feature_temperatures
 
         first_input = model.inputs[0]
         self.sequence_length = first_input.shape[1]
@@ -57,31 +55,27 @@ class MusicGenerator:
         Convert model predictions to a Sixtuple using temperature sampling
         """
 
-        # Apply temperature sampling to each feature prediction
-        bar_idx = self._apply_temperature_sampling(predictions.bar[0], 0)
-        position_idx = self._apply_temperature_sampling(predictions.position[0], 0)
-        pitch_idx = self._apply_temperature_sampling(predictions.pitch[0], self.temperature)
-        duration_idx = self._apply_temperature_sampling(predictions.duration[0], self.temperature)
-        velocity_idx = self._apply_temperature_sampling(predictions.velocity[0], self.temperature)
-        tempo_idx = self._apply_temperature_sampling(predictions.tempo[0], self.temperature)
+        sampled_indices = {}
+        # Use config.feature_names
+        for feature in config.feature_names:
+            feature_predictions = getattr(predictions, feature)[0]
+            temp = self.feature_temperatures[feature]
+
+            if temp == 0.0:
+                sampled_indices[feature] = np.argmax(feature_predictions)
+            else:
+                sampled_indices[feature] = self._apply_temperature_sampling(feature_predictions, temp)
 
         # Convert indices back to tokens using reverse mappings
-        tokens = [
-            self.reverse_mappings["bar"][bar_idx],
-            self.reverse_mappings["position"][position_idx],
-            self.reverse_mappings["pitch"][pitch_idx],
-            self.reverse_mappings["duration"][duration_idx],
-            self.reverse_mappings["velocity"][velocity_idx],
-            self.reverse_mappings["tempo"][tempo_idx],
-        ]
+        tokens = {feature: self.reverse_mappings[feature][sampled_indices[feature]] for feature in config.feature_names}
 
         return Sixtuple(
-            bar=tokens[0].split("_")[1],
-            position=tokens[1].split("_")[1],
-            pitch=tokens[2].split("_")[1],
-            duration=tokens[3].split("_")[1],
-            velocity=tokens[4].split("_")[1],
-            tempo=tokens[5].split("_")[1],
+            bar=tokens["bar"].split("_")[1],
+            position=tokens["position"].split("_")[1],
+            pitch=tokens["pitch"].split("_")[1],
+            duration=tokens["duration"].split("_")[1],
+            velocity=tokens["velocity"].split("_")[1],
+            tempo=tokens["tempo"].split("_")[1],
         )
 
     def _sixtuple_to_numeric_tuple(self, sixtuple: Sixtuple) -> tuple[int, int, int, int, int, int]:
@@ -101,7 +95,7 @@ class MusicGenerator:
 
         generation_length = config.generation_length
 
-        print(f"Starting generation with temperature: {self.temperature}")
+        print(f"Starting generation with feature temperatures: {self.feature_temperatures}")
         print(f"Generation length: {generation_length}")
 
         if len(seed_sequence) != self.sequence_length:
