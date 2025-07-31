@@ -50,9 +50,18 @@ class Config:
     training_batch_size: int = DEFAULT_NUMBER
 
     # Further parameters
-    early_stopping_epochs_to_wait: int = DEFAULT_NUMBER
-    early_stopping_threshold: float = DEFAULT_NUMBER
+    early_stopping_epochs_to_wait: int = DEFAULT_NUMBER  # How many epochs with no change to wait until it will stop
+    early_stopping_threshold: float = DEFAULT_NUMBER  # Difference that will be considered as no improvement
+    """
+    Seed for shuffling the songs before they get transformed to a dataset.
+    Important for the split into training and validation dataset.
+    Seed is useful for random but repeatable split.
+    """
     song_shuffle_seed: int = DEFAULT_NUMBER
+    """
+    Relative share of the validation dataset (between 0 and 1)
+    The validation will get executed after every epoch
+    """
     validation_split_proportion: float = DEFAULT_NUMBER
 
     # General settings
@@ -91,7 +100,9 @@ class Config:
     save_plot_training: bool = DEFAULT_BOOL
     create_sheet_music: bool = DEFAULT_BOOL
     save_token_json: bool = DEFAULT_BOOL
-    early_stopping_enabled: bool = DEFAULT_BOOL
+    early_stopping_enabled: bool = (
+        DEFAULT_BOOL  # Whether the model should stop when the validation loss doesn't improve
+    )
 
     # Model presets
     model_presets: dict[str, dict] = {}  # noqa: RUF012
