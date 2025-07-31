@@ -165,7 +165,6 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
         # Early stopping ensures that the training stops when the validation loss doesn't improve
         callbacks = [
             TensorBoard(log_dir=LOG_DIR, histogram_freq=1),
-            TerminalPrettyCallback()
         ]
         if EARLY_STOPPING_ENABLED:
             callbacks.append(

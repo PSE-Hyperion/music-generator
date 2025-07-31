@@ -8,7 +8,7 @@ from tensorflow.keras.optimizers import Adam  # type: ignore
 
 from groove_panda.config import MODEL_PRESETS
 from groove_panda.models.tf_custom.callbacks import TerminalPrettyCallback
-from groove_panda.models.tf_custom.losses import NormalDistributedCrossEntropy
+from groove_panda.models.tf_custom.losses import SoftCategorialCrossEntropy
 from groove_panda.models.utils import get_loss_weights
 
 logger = logging.getLogger(__name__)
@@ -187,7 +187,7 @@ class LSTMModel(BaseModel):
         )
 
         # Prepare and set the loss function and metrics for each output
-        loss_dict = {f"output_{feature_name}": NormalDistributedCrossEntropy() for feature_name in vocab_sizes}
+        loss_dict = {f"output_{feature_name}": SoftCategorialCrossEntropy() for feature_name in vocab_sizes}
         metric_dict = {f"output_{feature_name}": "accuracy" for feature_name in vocab_sizes}
 
         # Compile model using the specified learning rate
