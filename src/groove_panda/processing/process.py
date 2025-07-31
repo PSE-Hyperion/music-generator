@@ -2,9 +2,10 @@ import logging
 
 import numpy as np
 
-from groove_panda.config import SEQUENCE_LENGTH
+from groove_panda.config import Config
 from groove_panda.processing.tokenization.tokenizer import Sixtuple, SixtupleTokenMaps
 
+config = Config()
 logger = logging.getLogger(__name__)
 
 
@@ -116,7 +117,7 @@ def extract_subsequence(
 def sequenize(numeric_sixtuples: list[NumericSixtuple]):
     """creates sequences of feature tuples (extracts feature num val from embeddednumericevent class)
     and corresponding next event feature tuples
-    uses sliding window of size of SEQUENCE_LENGTH
+    uses sliding window of size of the sequence length defined in the current config
     X contains sequences of features of an event, y contains the next features of an event
     X = [[1, 2], [2, 3], [3, 4]], y = [3, 4, 5]
     sequence X[i] is followed by y[i]
@@ -126,15 +127,15 @@ def sequenize(numeric_sixtuples: list[NumericSixtuple]):
 
     x, y = [], []
 
-    if len(numeric_sixtuples) < SEQUENCE_LENGTH + 1:
+    if len(numeric_sixtuples) < config.sequence_length + 1:
         raise Exception("Skipped a score, since the song was shorter than the sequence length")
 
-    for i in range(len(numeric_sixtuples) - SEQUENCE_LENGTH):
+    for i in range(len(numeric_sixtuples) - config.sequence_length):
         input_seq = [
             (event.bar, event.position, event.pitch, event.duration, event.velocity, event.tempo)
-            for event in numeric_sixtuples[i : i + SEQUENCE_LENGTH]
+            for event in numeric_sixtuples[i : i + config.sequence_length]
         ]
-        output_event = numeric_sixtuples[i + SEQUENCE_LENGTH]
+        output_event = numeric_sixtuples[i + config.sequence_length]
         output_tuple = (
             output_event.bar,
             output_event.position,
@@ -201,4 +202,4 @@ def build_input_dict():  # Unsure about what this is, but afraid to delete - joa
 #    """ Turns list of embedded numeric events into list of embedded token events, by using the maps provided
 #        by the given tokenizer instance """
 #
-#    return []
+#    return [] - this is done, no? - Joao

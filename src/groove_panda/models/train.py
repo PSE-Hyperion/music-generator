@@ -6,14 +6,7 @@ import tensorflow as tf
 from tensorflow.keras.callbacks import EarlyStopping, History, TensorBoard  # type: ignore
 
 from groove_panda.config import (
-    EARLY_STOPPING_ENABLED,
-    EARLY_STOPPING_EPOCHS_TO_WAIT,
-    EARLY_STOPPING_THRESHOLD,
-    FEATURE_NAMES,
-    LOG_DIR,
-    SONG_SHUFFLE_SEED,
-    TRAINING_EPOCHS,
-    VALIDATION_DATASET_SIZE,
+    Config,
 )
 from groove_panda.models import plot
 from groove_panda.models.flexible_sequence_generator import FlexibleSequenceGenerator
@@ -21,6 +14,7 @@ from groove_panda.models.models import BaseModel
 from groove_panda.models.tf_custom.callbacks import TerminalPrettyCallback
 from groove_panda.processing.process import extract_subsequence
 
+config = Config()
 logger = logging.getLogger(__name__)
 
 
@@ -44,12 +38,12 @@ def train_model(model: BaseModel, train_generator):
         logger.info("Steps per epoch: %s, Batch size: %s", steps_per_epoch, train_generator.batch_size)
 
         training_callback = TerminalPrettyCallback()
-        tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR, histogram_freq=1)  # type: ignore
+        tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=config.log_dir, histogram_freq=1)  # type: ignore
 
         # fit() will automatically call on_epoch_end of lazy sequence generator, to get new samples
         history = model.model.fit(
             train_generator,
-            epochs=TRAINING_EPOCHS,
+            epochs=config.training_epochs,
             steps_per_epoch=steps_per_epoch,
             verbose=2,  # type: ignore
             callbacks=[training_callback, tensorboard_cb],
@@ -84,7 +78,7 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
         # Shuffle all songs to get a less biased split into training and validation dataset.
         # Otherwise the last songs in the list would always be only for validation.
         song_data = train_generator.song_data
-        random.Random(SONG_SHUFFLE_SEED).shuffle(song_data)
+        random.Random(config.song_shuffle_seed).shuffle(song_data)
 
         for continuous_seq in song_data:
             max_start_idx = len(continuous_seq) - train_generator.sequence_length - 1
@@ -106,7 +100,7 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
 
         assert full_x_array.shape[0] == full_y_array.shape[0]
         dataset_size = full_x_array.shape[0]
-        train_dataset_size = int((1 - VALIDATION_DATASET_SIZE) * dataset_size)
+        train_dataset_size = int((1 - config.validation_split_proportion) * dataset_size)
 
         logger.info("Loaded %d total subsequences from %d songs", dataset_size, len(train_generator.song_data))
 
@@ -120,21 +114,22 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
         logger.info("Start converting the data into the required format for Keras...")
         # Conversion for the model input layers
         # Iterating over the feature axis of the tensors
+
         train_x_dict = {
             f"input_{feature}": train_x_array[:, :, idx]  # take of each sample only the specified feature
-            for idx, feature in enumerate(FEATURE_NAMES)
+            for idx, feature in enumerate(config.feature_names)
         }
         train_y_dict = {
             f"output_{feature}": train_y_array[:, idx]  # take of each sample only the specified feature
-            for idx, feature in enumerate(FEATURE_NAMES)
+            for idx, feature in enumerate(config.feature_names)
         }
         val_x_dict = {
             f"input_{feature}": val_x_array[:, :, idx]  # take of each sample only the specified feature
-            for idx, feature in enumerate(FEATURE_NAMES)
+            for idx, feature in enumerate(config.feature_names)
         }
         val_y_dict = {
             f"output_{feature}": val_y_array[:, idx]  # take of each sample only the specified feature
-            for idx, feature in enumerate(FEATURE_NAMES)
+            for idx, feature in enumerate(config.feature_names)
         }
 
         logger.info("Giving dataset to TensorFlow...")
@@ -163,27 +158,30 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
 
         # Callbacks for pretty printing in the terminal and for TensorBoard logging
         # Early stopping ensures that the training stops when the validation loss doesn't improve
-        callbacks = [
-            TensorBoard(log_dir=LOG_DIR, histogram_freq=1),
-            TerminalPrettyCallback()
-        ]
-        if EARLY_STOPPING_ENABLED:
+        callbacks = [TensorBoard(log_dir=config.log_dir, histogram_freq=1), TerminalPrettyCallback()]
+        if config.early_stopping_enabled:
             callbacks.append(
                 EarlyStopping(
-                    monitor='val_loss',
-                    patience=EARLY_STOPPING_EPOCHS_TO_WAIT,
-                    min_delta=EARLY_STOPPING_THRESHOLD,
-                    restore_best_weights=True
+                    monitor="val_loss",
+                    patience=config.early_stopping_epochs_to_wait,
+                    min_delta=config.early_stopping_threshold,
+                    restore_best_weights=True,
                 )
             )
 
         logger.info("Start training...")
 
-        history = model.model.fit(
+        training_callback = TerminalPrettyCallback()
+
+        tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=config.log_dir, histogram_freq=1)  # type: ignore
+        # Other callbacks can be added here for specific purposes
+
+        history = model.train(
             train_dataset,
-            validation_data=val_dataset,
-            epochs=TRAINING_EPOCHS,
-            callbacks=callbacks,
+            val_dataset,
+            epochs=config.training_epochs,
+            callbacks=training_callback,
+            tensorboard=tensorboard_cb,
         )
 
         logger.info("Finished training %s", model.model_id)

@@ -4,8 +4,9 @@ import os
 from mido import MidiFile
 from music21 import stream
 
-from groove_panda.config import RESULTS_MIDI_DIR
+from groove_panda.config import Config
 
+config = Config()
 logger = logging.getLogger(__name__)
 
 
@@ -17,7 +18,7 @@ def write_midi(result_id: str, result: stream.Stream | MidiFile):
     logger.info("Started saving %s...", result_id)
 
     try:
-        result_dir = os.path.join(RESULTS_MIDI_DIR, result_id)
+        result_dir = os.path.join(config.results_midi_dir, result_id)
         os.makedirs(result_dir, exist_ok=False)
 
         if isinstance(result, stream.Stream):

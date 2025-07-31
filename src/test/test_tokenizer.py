@@ -1,8 +1,10 @@
 import os
 
-from groove_panda.config import DATASETS_MIDI_DIR
+from groove_panda.config import Config
 from groove_panda.midi import parser, writer
 from groove_panda.processing.tokenization import tokenizer as t
+
+config = Config()
 
 
 def test_tokenize_detokenize(midi_file: str):
@@ -15,7 +17,7 @@ def test_tokenize_detokenize(midi_file: str):
     tokenizer = t.Tokenizer("")
     writer.write_midi(
         "tokenize_detokenize_result",
-        t.detokenize(tokenizer.tokenize(parser.parse_midi(os.path.join(DATASETS_MIDI_DIR, "test", midi_file)))),
+        t.detokenize(tokenizer.tokenize(parser.parse_midi(os.path.join(config.datasets_midi_dir, "test", midi_file)))),
     )
 
 
