@@ -8,6 +8,7 @@ from tensorflow.keras.optimizers import Adam  # type: ignore
 
 from groove_panda.config import Config
 from groove_panda.models.tf_custom.callbacks import TerminalPrettyCallback
+from groove_panda.models.utils import get_loss_weights
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ class BaseModel:
 
         raise NotImplementedError
 
-    def train(self, dataset, epochs, callbacks, tensorboard):
+    def train(self, dataset, validation_data, epochs, callbacks, tensorboard):
         raise NotImplementedError
 
     def set_model(self, model: Model):
@@ -190,13 +191,21 @@ class LSTMModel(BaseModel):
         metric_dict = {f"output_{feature_name}": "accuracy" for feature_name in vocab_sizes}
 
         # Compile model using the specified learning rate
-        optimizer = Adam(learning_rate=learning_rate)
-        built_model.compile(optimizer=optimizer, loss=loss_dict, metrics=metric_dict)
+        # Adding gradient clipping to avoid extreme gradient values that may destroy the learning process
+        optimizer = Adam(learning_rate=learning_rate, clipnorm=1.0)
+        built_model.compile(optimizer=optimizer, loss=loss_dict, loss_weights=get_loss_weights(), metrics=metric_dict)
 
         # Assign model to this Model object's LSTM model.
         self._model = built_model
 
-    def train(self, dataset: tf.data.Dataset, epochs: int, callbacks: TerminalPrettyCallback, tensorboard):
+    def train(
+        self,
+        dataset: tf.data.Dataset,
+        validation_dataset: tf.data.Dataset,
+        epochs: int,
+        callbacks: TerminalPrettyCallback,
+        tensorboard,
+    ):
         """
         Trains the model using the provided sequence generator for the provided number of epochs.
         Updates the model's history to reflect data from ALL training sessions.
@@ -207,6 +216,7 @@ class LSTMModel(BaseModel):
             total_epochs = self._epochs_trained + epochs
             history = self._model.fit(
                 dataset,
+                validation_data=validation_dataset,
                 epochs=total_epochs,
                 initial_epoch=self._epochs_trained,
                 verbose=0,

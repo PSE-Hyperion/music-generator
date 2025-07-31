@@ -49,6 +49,12 @@ class Config:
     training_epochs: int = DEFAULT_NUMBER
     training_batch_size: int = DEFAULT_NUMBER
 
+    # Further parameters
+    early_stopping_epochs_to_wait: int = DEFAULT_NUMBER
+    early_stopping_threshold: float = DEFAULT_NUMBER
+    song_shuffle_seed: int = DEFAULT_NUMBER
+    validation_split_proportion: float = DEFAULT_NUMBER
+
     # General settings
     parser: Parser
     allowed_music_file_extensions: list[str] = EMPTY_LIST
@@ -85,6 +91,7 @@ class Config:
     save_plot_training: bool = DEFAULT_BOOL
     create_sheet_music: bool = DEFAULT_BOOL
     save_token_json: bool = DEFAULT_BOOL
+    early_stopping_enabled: bool = DEFAULT_BOOL
 
     # Model presets
     model_presets: dict[str, dict] = {}  # noqa: RUF012

@@ -368,4 +368,3 @@ def start_session():
             process_input(u_input)
         except Exception as e:
             logger.error("Something went wrong: %s", e)
-            raise Exception(f"[ERROR] {e.__traceback__}") from e
