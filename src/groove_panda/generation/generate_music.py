@@ -9,6 +9,7 @@ from groove_panda.midi.parser import parse_midi
 from groove_panda.models.model_io import load_model
 from groove_panda.processing.tokenization import token_map_io
 from groove_panda.processing.tokenization.tokenizer import Tokenizer, detokenize
+from groove_panda.utils import overwrite_json
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -66,8 +67,14 @@ def generate_music(model_name: str, input_name: str, output_name: str):
 
     # Generate and save
     generated_sixtuples = generator.generate_sequence(seed_sequence)
-    generated_stream = detokenize(seed_sixtuple + generated_sixtuples)
-    writer.write_midi(output_name, generated_stream)
+
+    # Save the song with the input sequence
+    generated_stream_full = detokenize(seed_sixtuple + generated_sixtuples)
+    writer.write_midi(output_name, generated_stream_full)
+
+    # Also save just the generation
+    generated_stream_cont = detokenize(generated_sixtuples)
+    writer.write_midi(output_name + "_cont", generated_stream_cont)
 
     logger.info(f"Music generation completed! Output saved as: {output_name}")
 
@@ -89,6 +96,8 @@ def generate_music(model_name: str, input_name: str, output_name: str):
     base_name = os.path.splitext(os.path.basename(output_name))[0]
     json_output_path = os.path.join(config.result_tokens_dir, f"{base_name}.json")
 
-    with open(json_output_path, "w") as f:
-        json.dump(token_tuples, f, indent=2)
+    # Save the token tuples
+    os.makedirs(config.result_tokens_dir, exist_ok=True)
+    overwrite_json(json_output_path, token_tuples)
+
     logger.info("Saved Tokens as json")

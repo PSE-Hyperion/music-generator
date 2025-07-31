@@ -43,7 +43,7 @@ class Config:
     DEFAULT_BOOL = False
     EMPTY_LIST = []  # noqa: RUF012
 
-    # Hyper Parameters
+    # Hyperparameters
     sequence_length: int = DEFAULT_NUMBER
     generation_length: int = DEFAULT_NUMBER
     training_epochs: int = DEFAULT_NUMBER
