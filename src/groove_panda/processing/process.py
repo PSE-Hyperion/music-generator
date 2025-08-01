@@ -59,15 +59,18 @@ def numerize(sixtuples: list[Sixtuple], sixtuple_token_maps: SixtupleTokenMaps) 
 
     numeric_sixtuples = []
     for sixtuple in sixtuples:
-        numeric_sixtuple = NumericSixtuple(
-            bar_map[sixtuple.bar],
-            position_map[sixtuple.position],
-            pitch_map[sixtuple.pitch],
-            duration_map[sixtuple.duration],
-            velocity_map[sixtuple.velocity],
-            tempo_map[sixtuple.tempo],
-        )
-        numeric_sixtuples.append(numeric_sixtuple)
+        try:
+            numeric_sixtuple = NumericSixtuple(
+                bar_map[sixtuple.bar],
+                position_map[sixtuple.position],
+                pitch_map[sixtuple.pitch],
+                duration_map[sixtuple.duration],
+                velocity_map[sixtuple.velocity],
+                tempo_map[sixtuple.tempo],
+            )
+            numeric_sixtuples.append(numeric_sixtuple)
+        except KeyError as e:
+            raise KeyError(e) from e
 
     logger.info("Finished numerize.")
 
