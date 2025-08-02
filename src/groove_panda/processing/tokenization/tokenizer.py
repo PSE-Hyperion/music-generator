@@ -511,7 +511,7 @@ class Tokenizer:
             position_in_bar = abs_offset % beats_per_bar
 
             # Quantize position to 16th notes, since all songs from dataset are 4/4
-            position_16th = int(position_in_bar * 4)
+            position_16th = round(position_in_bar * 4)
 
             if isinstance(event, note.Note):
                 sixtuples.append(
@@ -593,7 +593,7 @@ class Tokenizer:
                 # Bar and position
                 bar = int(start_qn // qn_per_bar)
                 position_qn = start_qn % qn_per_bar
-                position_16th = int(position_qn * 4)
+                position_16th = round(position_qn * 4)
 
                 sixtuples.append(
                     Sixtuple(
