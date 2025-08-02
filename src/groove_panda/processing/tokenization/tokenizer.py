@@ -519,7 +519,7 @@ class Tokenizer:
                         bar=str(bar_number),
                         position=str(position_16th),
                         pitch=str(event.pitch.midi),
-                        duration=str(event.quarterLength),
+                        duration=str(quantize(float(event.quarterLength), 0.25)),
                         velocity=str(event.volume.velocity),
                         tempo=str(current_tempo),
                     )
@@ -535,7 +535,7 @@ class Tokenizer:
                             bar=str(bar_number),
                             position=str(position_16th),
                             pitch=str(chord_note.pitch.midi),
-                            duration=str(event.quarterLength),
+                            duration=str(quantize(float(event.quarterLength), 0.25)),
                             velocity=str(event.volume.velocity),
                             tempo=str(current_tempo),
                         )
@@ -547,8 +547,6 @@ class Tokenizer:
                 # Rests are encoded implicitly from position gaps
                 rest_counter += 1
 
-        # Delete for parallel processing
-        # self.sixtuple_token_maps.extend(sixtuples)
         return sixtuples
 
     def _tokenize_midi_file(self, midi_file: MidiFile) -> list[Sixtuple]:
@@ -567,7 +565,7 @@ class Tokenizer:
         merged_events, ticks_per_beat = midi_file_utils.read_and_merge_events(midi_file)
 
         sixtuples: list[Sixtuple] = []
-        active_notes: dict = {}
+        active_notes: dict[int, list] = {}
 
         current_tempo = 500000  # microseconds per beat, default = 120bpm
         qn_per_bar = 4  # quarter notes per bar
@@ -595,21 +593,17 @@ class Tokenizer:
                 # Bar and position
                 bar = int(start_qn // qn_per_bar)
                 position_qn = start_qn % qn_per_bar
-                position_16th = int(position_qn * 4)
+                position_16th = round(position_qn)
 
                 sixtuples.append(
                     Sixtuple(
                         bar=str(bar),
                         position=str(position_16th),
                         pitch=str(event["note"]),
-                        duration=str(round(duration_qn, 4)),
+                        duration=str(quantize(duration_qn, 0.25)),
                         velocity=str(velocity),
-                        tempo=str(round_tempo(round(60000000 / tempo))),
+                        tempo=str(round(60000000 / tempo)),
                     )
                 )
-
-        sixtuples.sort(
-            key=lambda s: (int(s.bar.split("_")[1]), int(s.position.split("_")[1]), int(s.pitch.split("_")[1]))
-        )
 
         return sixtuples
