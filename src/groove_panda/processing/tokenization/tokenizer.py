@@ -575,6 +575,8 @@ class Tokenizer:
 
             # Note on
             elif event["type"] == "note_on":
+                if event["note"] not in active_notes:
+                    active_notes[event["note"]] = []
                 active_notes[event["note"]].append((tick, event["velocity"], current_tempo))
 
             # Note off
