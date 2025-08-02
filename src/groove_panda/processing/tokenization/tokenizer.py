@@ -593,7 +593,7 @@ class Tokenizer:
                 # Bar and position
                 bar = int(start_qn // qn_per_bar)
                 position_qn = start_qn % qn_per_bar
-                position_16th = round(position_qn)
+                position_16th = int(position_qn * 4)
 
                 sixtuples.append(
                     Sixtuple(
@@ -602,8 +602,12 @@ class Tokenizer:
                         pitch=str(event["note"]),
                         duration=str(quantize(duration_qn, 0.25)),
                         velocity=str(velocity),
-                        tempo=str(round(60000000 / tempo)),
+                        tempo=str(round_tempo(round(60000000 / tempo))),
                     )
                 )
+
+        sixtuples.sort(
+            key=lambda s: (int(s.bar.split("_")[1]), int(s.position.split("_")[1]), int(s.pitch.split("_")[1]))
+        )
 
         return sixtuples
