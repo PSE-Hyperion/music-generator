@@ -115,7 +115,7 @@ def parallel_process(dataset_id: str, processed_dataset_id: str):
         tempo_set |= token_sets.tempo_set
 
     sixtuple_token_maps = SixtupleTokenMaps()
-    sixtuple_token_maps.create_from_sets(bar_set, position_set, pitch_set, duration_set, velocity_set, tempo_set)
+    sixtuple_token_maps.create_from_ranges()
 
     with Pool(cpu_count()) as pool:
         pool.starmap(

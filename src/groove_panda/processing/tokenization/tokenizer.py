@@ -165,6 +165,19 @@ class SixtupleTokenMaps:
     The tokenizer can use this container to extend the token maps during processing of a dataset
     """
 
+    PITCH_MIN = 21
+    PITCH_MAX = 109  # inclusive
+    VELOCITY_MIN = 20
+    VELOCITY_MAX = 130  # inclusive
+    BAR_MIN = 0
+    BAR_MAX = 200  # or dynamic, but must be fixed per model
+    POSITION_QUANTIZATION = 16  # e.g. 16 positions per bar
+    TEMPO_MIN = 30
+    TEMPO_MAX = 300
+    TEMPO_STEP = 1
+    DURATION_MIN = 0.25
+    DURATION_MAX = 10
+
     def __init__(self):
         self._bar_map = {}
         self._position_map = {}
@@ -172,6 +185,28 @@ class SixtupleTokenMaps:
         self._duration_map = {}
         self._velocity_map = {}
         self._tempo_map = {}
+
+    def create_from_ranges(self):
+        self._bar_map = {Sixtuple.BAR_PREFIX + str(i): i - self.BAR_MIN for i in range(self.BAR_MIN, self.BAR_MAX + 1)}
+        self._position_map = {Sixtuple.POSITION_PREFIX + str(i): i for i in range(self.POSITION_QUANTIZATION)}
+        self._pitch_map = {
+            Sixtuple.PITCH_PREFIX + str(i): i - self.PITCH_MIN for i in range(self.PITCH_MIN, self.PITCH_MAX + 1)
+        }
+        self._velocity_map = {
+            Sixtuple.VELOCITY_PREFIX + str(i): i - self.VELOCITY_MIN
+            for i in range(self.VELOCITY_MIN, self.VELOCITY_MAX + 1)
+        }
+        self._tempo_map = {
+            Sixtuple.TEMPO_PREFIX + str(i): (i - self.TEMPO_MIN) // self.TEMPO_STEP
+            for i in range(self.TEMPO_MIN, self.TEMPO_MAX + 1, self.TEMPO_STEP)
+        }
+        # Duration is model specific: could be predefined bins
+        self._duration_map = self._create_duration_map()
+
+    def _create_duration_map(self) -> dict[str, int]:
+        step = 0.25
+        count = int((self.DURATION_MAX - self.DURATION_MIN) / step) + 1
+        return {Sixtuple.DURATION_PREFIX + str(self.DURATION_MIN + i * step): i + 1 for i in range(count + 1)}
 
     @property
     def bar_map(self) -> dict[str, int]:
@@ -256,43 +291,13 @@ class SixtupleTokenMaps:
     def tempo_map_size(self) -> int:
         return len(self._tempo_map)
 
-    def extend(self, sixtuples: list[Sixtuple]):
-        """
-        Since the tokenizer tokenizes in batches, this method is used to extend the maps of features of a sixtuple
-        after every new tokenization. That way, the tokenizer
-        keeps track of all unique sixtuple features across all tokenized scores. After having tokenized all scores,
-        the maps can be saved with token_maps_io.py
-        """
-
-        logger.info("Start extending maps of tokens...")
-        for sixtuple in sixtuples:
-            if sixtuple.bar not in self._bar_map:
-                self._bar_map[sixtuple.bar] = len(self._bar_map)
-            if sixtuple.position not in self._position_map:
-                self._position_map[sixtuple.position] = len(self._position_map)
-            if sixtuple.pitch not in self._pitch_map:
-                self._pitch_map[sixtuple.pitch] = len(self._pitch_map)
-            if sixtuple.duration not in self._duration_map:
-                self._duration_map[sixtuple.duration] = len(self._duration_map)
-            if sixtuple.velocity not in self._velocity_map:
-                self._velocity_map[sixtuple.velocity] = len(self._velocity_map)
-            if sixtuple.tempo not in self._tempo_map:
-                self._tempo_map[sixtuple.tempo] = len(self._tempo_map)
-        logger.info("Finished extending maps of tokens.")
-
-    def create_from_sets(
-        self, bar_set: set, position_set: set, pitch_set: set, duration_set: set, velocity_set: set, tempo_set: set
-    ):
-        self._bar_map = {token: idx for idx, token in enumerate(bar_set)}
-        self._position_map = {token: idx for idx, token in enumerate(position_set)}
-        self._pitch_map = {token: idx for idx, token in enumerate(pitch_set)}
-        self._duration_map = {token: idx for idx, token in enumerate(duration_set)}
-        self._velocity_map = {token: idx for idx, token in enumerate(velocity_set)}
-        self._tempo_map = {token: idx for idx, token in enumerate(tempo_set)}
-
 
 def round_tempo(tempo: int) -> int:
     return round(tempo / config.tempo_round_value) * config.tempo_round_value
+
+
+def quantize(value: float, precision: float) -> float:
+    return max(round(value / precision) * precision, precision)
 
 
 class Tokenizer:
@@ -513,7 +518,7 @@ class Tokenizer:
                         bar=str(bar_number),
                         position=str(position_16th),
                         pitch=str(event.pitch.midi),
-                        duration=str(event.quarterLength),
+                        duration=str(quantize(float(event.quarterLength), 0.25)),
                         velocity=str(event.volume.velocity),
                         tempo=str(current_tempo),
                     )
@@ -529,7 +534,7 @@ class Tokenizer:
                             bar=str(bar_number),
                             position=str(position_16th),
                             pitch=str(chord_note.pitch.midi),
-                            duration=str(event.quarterLength),
+                            duration=str(quantize(float(event.quarterLength), 0.25)),
                             velocity=str(event.volume.velocity),
                             tempo=str(current_tempo),
                         )
@@ -541,8 +546,6 @@ class Tokenizer:
                 # Rests are encoded implicitly from position gaps
                 rest_counter += 1
 
-        # Delete for parallel processing
-        # self.sixtuple_token_maps.extend(sixtuples)
         return sixtuples
 
     def _tokenize_midi_file(self, midi_file: MidiFile) -> list[Sixtuple]:
