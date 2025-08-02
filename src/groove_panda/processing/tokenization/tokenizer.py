@@ -151,9 +151,11 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
         # Update current offset to the end of this event
         current_offset = abs_offset + event_duration
 
-    logger.info("Finished detokenizing.")
     if config.create_sheet_music:
         generate_sheet_music(s)
+
+    logger.info("Finished detokenizing.")
+
     return s
 
 
@@ -293,6 +295,10 @@ class SixtupleTokenMaps:
 
 def round_tempo(tempo: int) -> int:
     return round(tempo / config.tempo_round_value) * config.tempo_round_value
+
+
+def quantize(value: float, precision: float) -> float:
+    return max(round(value / precision) * precision, precision)
 
 
 class Tokenizer:
@@ -589,7 +595,7 @@ class Tokenizer:
                 # Bar and position
                 bar = int(start_qn // qn_per_bar)
                 position_qn = start_qn % qn_per_bar
-                position_16th = round(position_qn)
+                position_16th = int(position_qn * 4)
 
                 sixtuples.append(
                     Sixtuple(
@@ -598,8 +604,12 @@ class Tokenizer:
                         pitch=str(event["note"]),
                         duration=str(round(duration_qn, 4)),
                         velocity=str(velocity),
-                        tempo=str(round(60000000 / tempo)),
+                        tempo=str(round_tempo(round(60000000 / tempo))),
                     )
                 )
+
+        sixtuples.sort(
+            key=lambda s: (int(s.bar.split("_")[1]), int(s.position.split("_")[1]), int(s.pitch.split("_")[1]))
+        )
 
         return sixtuples
