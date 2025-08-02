@@ -564,7 +564,7 @@ class Tokenizer:
         merged_events, ticks_per_beat = midi_file_utils.read_and_merge_events(midi_file)
 
         sixtuples: list[Sixtuple] = []
-        active_notes: dict = {}
+        active_notes: dict[int, list] = {}
 
         current_tempo = 500000  # microseconds per beat, default = 120bpm
         qn_per_bar = 4  # quarter notes per bar
@@ -578,6 +578,8 @@ class Tokenizer:
 
             # Note on
             elif event["type"] == "note_on":
+                if event["note"] not in active_notes:
+                    active_notes[event["note"]] = []
                 active_notes[event["note"]].append((tick, event["velocity"], current_tempo))
 
             # Note off
@@ -597,7 +599,7 @@ class Tokenizer:
                         bar=str(bar),
                         position=str(position_16th),
                         pitch=str(event["note"]),
-                        duration=str(round(duration_qn, 4)),
+                        duration=str(quantize(duration_qn, 0.25)),
                         velocity=str(velocity),
                         tempo=str(round(60000000 / tempo)),
                     )
