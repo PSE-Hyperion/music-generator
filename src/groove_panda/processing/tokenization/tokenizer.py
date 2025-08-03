@@ -5,7 +5,7 @@ from mido import MidiFile
 from music21 import chord, interval, key, note, pitch, stream
 from music21.tempo import MetronomeMark, TempoIndication
 
-from groove_panda.config import Config, TokenizeMode
+from groove_panda.config import Config, Feature, TokenizeMode
 from groove_panda.midi.sheet_music_generator import generate_sheet_music
 from groove_panda.processing.tokenization import midi_file_utils
 
@@ -24,12 +24,12 @@ class Sixtuple:
     Duration could be quantized, but only if necessary for dataset
     """
 
-    BAR_PREFIX = "BAR_"
-    POSITION_PREFIX = "POSITION_"
-    PITCH_PREFIX = "PITCH_"
-    DURATION_PREFIX = "DURATION_"
-    VELOCITY_PREFIX = "VELOCITY_"
-    TEMPO_PREFIX = "TEMPO_"
+    BAR_PREFIX = "bar_"
+    POSITION_PREFIX = "position_"
+    PITCH_PREFIX = "pitch_"
+    DURATION_PREFIX = "duration_"
+    VELOCITY_PREFIX = "velocity_"
+    TEMPO_PREFIX = "tempo_"
 
     def __init__(self, bar: str, position: str, pitch: str, duration: str, velocity: str, tempo: str):
         self._bar = Sixtuple.BAR_PREFIX + bar
@@ -165,135 +165,50 @@ class SixtupleTokenMaps:
     The tokenizer can use this container to extend the token maps during processing of a dataset
     """
 
-    PITCH_MIN = 21
-    PITCH_MAX = 109  # inclusive
-    VELOCITY_MIN = 20
-    VELOCITY_MAX = 130  # inclusive
-    BAR_MIN = 0
-    BAR_MAX = 200  # or dynamic, but must be fixed per model
-    POSITION_QUANTIZATION = 16  # e.g. 16 positions per bar
-    TEMPO_MIN = 30
-    TEMPO_MAX = 300
-    TEMPO_STEP = 1
-    DURATION_MIN = 0.25
-    DURATION_MAX = 10
-
     def __init__(self):
-        self._bar_map = {}
-        self._position_map = {}
-        self._pitch_map = {}
-        self._duration_map = {}
-        self._velocity_map = {}
-        self._tempo_map = {}
+        self._feature_maps: list[tuple[Feature, dict[str, int]]] = [(feature, {}) for feature in config.features]
 
     def create_from_ranges(self):
-        self._bar_map = {Sixtuple.BAR_PREFIX + str(i): i - self.BAR_MIN for i in range(self.BAR_MIN, self.BAR_MAX + 1)}
-        self._position_map = {Sixtuple.POSITION_PREFIX + str(i): i for i in range(self.POSITION_QUANTIZATION)}
-        self._pitch_map = {
-            Sixtuple.PITCH_PREFIX + str(i): i - self.PITCH_MIN for i in range(self.PITCH_MIN, self.PITCH_MAX + 1)
-        }
-        self._velocity_map = {
-            Sixtuple.VELOCITY_PREFIX + str(i): i - self.VELOCITY_MIN
-            for i in range(self.VELOCITY_MIN, self.VELOCITY_MAX + 1)
-        }
-        self._tempo_map = {
-            Sixtuple.TEMPO_PREFIX + str(i): (i - self.TEMPO_MIN) // self.TEMPO_STEP
-            for i in range(self.TEMPO_MIN, self.TEMPO_MAX + 1, self.TEMPO_STEP)
-        }
-        # Duration is model specific: could be predefined bins
-        self._duration_map = self._create_duration_map()
+        """
+        Creates complete token maps from predefined ranges.
 
-    def _create_duration_map(self) -> dict[str, int]:
-        step = 0.25
-        count = int((self.DURATION_MAX - self.DURATION_MIN) / step) + 1
-        return {Sixtuple.DURATION_PREFIX + str(self.DURATION_MIN + i * step): i + 1 for i in range(count + 1)}
+        DEV: CURRENTLY HARD CODED FOR KNOWN FEATURES
+        """
+        self._feature_maps = [
+            (
+                feature,
+                self.create_map(
+                    feature.name + config.feature_token_separator, feature.min_value, feature.max_value, feature.step
+                ),
+            )
+            for feature in config.features
+        ]
+
+    def create_map(self, feature_prefix: str, min: float, max: float, step: float) -> dict[str, int]:
+        return {feature_prefix + str(min + i * step): i for i in range(int((max - min) / step) + 1)}
 
     @property
-    def bar_map(self) -> dict[str, int]:
+    def maps(self) -> list[tuple[str, dict[str, int]]]:
         """
-        Returns a copy of the dictionary.
+        Returns a copy of all dictionary with its feature name.
         """
-
-        return self._bar_map.copy()
-
-    @property
-    def position_map(self) -> dict[str, int]:
-        """
-        Returns a copy of the dictionary.
-        """
-
-        return self._position_map.copy()
-
-    @property
-    def pitch_map(self) -> dict[str, int]:
-        """
-        Returns a copy of the dictionary.
-        """
-
-        return self._pitch_map.copy()
-
-    @property
-    def duration_map(self) -> dict[str, int]:
-        """
-        Returns a copy of the dictionary.
-        """
-
-        return self._duration_map.copy()
-
-    @property
-    def velocity_map(self) -> dict[str, int]:
-        """
-        Returns a copy of the dictionary.
-        """
-
-        return self._velocity_map.copy()
-
-    @property
-    def tempo_map(self) -> dict[str, int]:
-        """
-        Returns a copy of the dictionary.
-        """
-
-        return self._tempo_map.copy()
+        return [(feature.name, d) for feature, d in self._feature_maps]
 
     @property
     def total_size(self) -> int:
-        return (
-            len(self._bar_map)
-            + len(self._position_map)
-            + len(self._pitch_map)
-            + len(self._duration_map)
-            + len(self._velocity_map)
-            + len(self._tempo_map)
-        )
+        return sum(len(d) for _, d in self._feature_maps)
 
     @property
-    def bar_map_size(self) -> int:
-        return len(self._bar_map)
-
-    @property
-    def position_map_size(self) -> int:
-        return len(self._position_map)
-
-    @property
-    def pitch_map_size(self) -> int:
-        return len(self._pitch_map)
-
-    @property
-    def duration_map_size(self) -> int:
-        return len(self._duration_map)
-
-    @property
-    def velocity_map_size(self) -> int:
-        return len(self._velocity_map)
-
-    @property
-    def tempo_map_size(self) -> int:
-        return len(self._tempo_map)
+    def map_sizes(self) -> list[tuple[str, int]]:
+        """
+        Returns all dictionary sizes with its feature name.
+        """
+        return [(feature.name, len(d)) for feature, d in self._feature_maps].copy()
 
 
 def round_tempo(tempo: int) -> int:
-    return round(tempo / config.tempo_round_value) * config.tempo_round_value
+    tempo_round_value = next(f for f in config.features if f.name == "tempo").step
+    return int(round(tempo / tempo_round_value) * tempo_round_value)
 
 
 def quantize(value: float, precision: float) -> float:
