@@ -102,7 +102,7 @@ class Config:
     default_tempo: int = DEFAULT_NUMBER
 
     # Generation settings
-    generation_temperature: float = DEFAULT_NUMBER
+    feature_temperatures: dict[str, float] = {}  # noqa: RUF012
 
     # Directories
     config_dir: Final[str] = "data/configs"
