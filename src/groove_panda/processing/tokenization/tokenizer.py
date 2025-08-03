@@ -432,17 +432,11 @@ class Tokenizer:
         and return the tokens from that single transposition as a list.
         """
 
-        print(f"🔍 DEBUG: _tokenize_cmajor_aminor_midi_file called with: {type(parsed_midi)}")
-
         # Extract MidiFile and key from tuple
         midi_file, analyzed_key = parsed_midi
 
-        print(f"🎵 DEBUG: Original key: {analyzed_key} (mode: {analyzed_key.mode})")
-
         # Determine target key based on original mode
         target_tonic_str = "C" if analyzed_key.mode == "major" else "A"
-
-        print(f"🎯 DEBUG: Target key: {target_tonic_str}")
 
         # Calculate semitone shift needed
         original_tonic = analyzed_key.tonic
@@ -450,8 +444,6 @@ class Tokenizer:
 
         # Calculate the interval for transposition
         semitone_shift = (target_tonic.midi - original_tonic.midi) % 12
-
-        print(f"🔄 DEBUG: Semitone shift: {semitone_shift}")
 
         # Transpose the MIDI file
         transposed_midi = midi_file_utils.transpose(midi_file, semitone_shift)
