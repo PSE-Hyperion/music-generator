@@ -217,10 +217,6 @@ def quantize(value: float, precision: float) -> float:
     return max(round(value / precision) * precision, precision)
 
 
-def quantize(value: float, precision: float) -> float:
-    return max(round(value / precision) * precision, precision)
-
-
 class Tokenizer:
     def __init__(self, processed_dataset_id: str = "EMPTY"):
         self.processed_dataset_id = processed_dataset_id
