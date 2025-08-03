@@ -435,7 +435,7 @@ class Tokenizer:
                         pitch=str(event.pitch.midi),
                         duration=str(quantize(float(event.quarterLength), 0.25)),
                         velocity=str(event.volume.velocity),
-                        tempo=str(quantize(current_tempo, 5)),
+                        tempo=str(quantize(current_tempo, 5)),  # WARNING: QUANTIZE HARDCODED
                     )
                 )
                 note_counter += 1
@@ -451,7 +451,7 @@ class Tokenizer:
                             pitch=str(chord_note.pitch.midi),
                             duration=str(quantize(float(event.quarterLength), 0.25)),
                             velocity=str(event.volume.velocity),
-                            tempo=str(quantize(current_tempo, 5)),
+                            tempo=str(quantize(current_tempo, 5)),  # WARNING: QUANTIZE HARDCODED
                         )
                     )
                     note_in_chord_counter += 1
@@ -516,7 +516,7 @@ class Tokenizer:
                         pitch=str(event["note"]),
                         duration=str(quantize(duration_qn, 0.25)),
                         velocity=str(velocity),
-                        tempo=str(round(60000000 / tempo)),
+                        tempo=str(quantize(round(60000000 / tempo), 5)),
                     )
                 )
 
