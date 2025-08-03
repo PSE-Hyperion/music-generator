@@ -57,7 +57,8 @@ class MusicGenerator:
 
         sampled_indices = {}
         # Use config.feature_names
-        for feature in config.feature_names:
+        feature_names = [feature.name for feature in config.features]
+        for feature in feature_names:
             feature_predictions = getattr(predictions, feature)[0]
             temp = self.feature_temperatures[feature]
 
@@ -67,7 +68,7 @@ class MusicGenerator:
                 sampled_indices[feature] = self._apply_temperature_sampling(feature_predictions, temp)
 
         # Convert indices back to tokens using reverse mappings
-        tokens = {feature: self.reverse_mappings[feature][sampled_indices[feature]] for feature in config.feature_names}
+        tokens = {feature: self.reverse_mappings[feature][sampled_indices[feature]] for feature in feature_names}
 
         return Sixtuple(
             bar=tokens["bar"].split("_")[1],
