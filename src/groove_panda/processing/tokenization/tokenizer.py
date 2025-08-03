@@ -151,9 +151,11 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
         # Update current offset to the end of this event
         current_offset = abs_offset + event_duration
 
-    logger.info("Finished detokenizing.")
     if config.create_sheet_music:
         generate_sheet_music(s)
+
+    logger.info("Finished detokenizing.")
+
     return s
 
 
@@ -209,6 +211,10 @@ class SixtupleTokenMaps:
 def round_tempo(tempo: int) -> int:
     tempo_round_value = next(f for f in config.features if f.name == "tempo").step
     return int(round(tempo / tempo_round_value) * tempo_round_value)
+
+
+def quantize(value: float, precision: float) -> float:
+    return max(round(value / precision) * precision, precision)
 
 
 def quantize(value: float, precision: float) -> float:
@@ -425,7 +431,7 @@ class Tokenizer:
             position_in_bar = abs_offset % beats_per_bar
 
             # Quantize position to 16th notes, since all songs from dataset are 4/4
-            position_16th = int(position_in_bar * 4)
+            position_16th = round(position_in_bar * 4)
 
             if isinstance(event, note.Note):
                 sixtuples.append(
@@ -507,7 +513,7 @@ class Tokenizer:
                 # Bar and position
                 bar = int(start_qn // qn_per_bar)
                 position_qn = start_qn % qn_per_bar
-                position_16th = round(position_qn)
+                position_16th = round(position_qn * 4)
 
                 sixtuples.append(
                     Sixtuple(
@@ -516,8 +522,12 @@ class Tokenizer:
                         pitch=str(event["note"]),
                         duration=str(quantize(duration_qn, 0.25)),
                         velocity=str(velocity),
-                        tempo=str(quantize(round(60000000 / tempo), 5)),
+                        tempo=str(round_tempo(round(60000000 / tempo))),
                     )
                 )
+
+        sixtuples.sort(
+            key=lambda s: (int(s.bar.split("_")[1]), int(s.position.split("_")[1]), int(s.pitch.split("_")[1]))
+        )
 
         return sixtuples
