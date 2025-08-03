@@ -3,7 +3,7 @@ import logging
 import os
 
 from mido import MidiFile
-from music21 import converter, stream
+from music21 import converter, key, stream
 
 from groove_panda.config import Config, Parser
 
@@ -43,7 +43,7 @@ def get_midi_paths_from_dataset(dataset_id: str) -> list[str]:
     return midi_paths
 
 
-def parse_midi(midi_path: str) -> stream.Score | MidiFile:
+def parse_midi(midi_path: str) -> stream.Score | tuple[MidiFile, key.Key]:
     """
     Selects the correct midi parse method according to the set PARSER in configurations.
 
@@ -55,7 +55,7 @@ def parse_midi(midi_path: str) -> stream.Score | MidiFile:
     if config.parser == Parser.MUSIC21:
         return _parse_midi_music21(midi_path)
     if config.parser == Parser.MIDO:
-        return _parse_midi_mido(midi_path)
+        return _parse_midi_mido_with_key(midi_path)
 
     raise Exception(f"Parser {config.parser} doesn't exist.")
 
@@ -103,3 +103,27 @@ def _parse_midi_mido(midi_path: str) -> MidiFile:
             raise Exception(f"Parsing of {midi_path} failed: {e}") from e
     else:
         raise Exception(f"Invalid path {midi_path}")
+
+
+def _parse_midi_mido_with_key(midi_path: str) -> tuple[MidiFile, key.Key]:
+    """
+    Parses midi file with mido and extracts key using music21.
+    """
+    # Parse with mido
+    midi_file = _parse_midi_mido(midi_path)
+
+    # Parse with music21 for key analysis
+    try:
+        music21_score = _parse_midi_music21(midi_path)
+        analyzed_key = music21_score.analyze("key")
+
+        if not isinstance(analyzed_key, key.Key):
+            # Fallback to C major if analysis fails
+            analyzed_key = key.Key("C", "major")
+            logger.warning(f"Key analysis failed for {midi_path}, using C major as fallback")
+
+        return midi_file, analyzed_key
+
+    except Exception as e:
+        logger.warning(f"Music21 key analysis failed for {midi_path}: {e}, using C major")
+        return midi_file, key.Key("C", "major")
