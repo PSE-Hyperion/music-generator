@@ -210,7 +210,7 @@ def complete_generate(arg_index, word, _parts):
     if arg_index == 0:
         yield from id_completion(data_managment.get_existing_model_ids(), word)
     if arg_index == 1:
-        yield from id_completion(data_managment.get_existing_processed_ids(), word)
+        yield from id_completion(data_managment.get_existing_input_ids(), word)
     if arg_index == ARG_INDEX_RESULT_ID:
         yield Completion("new_results_id", start_position=-len(word))
 
