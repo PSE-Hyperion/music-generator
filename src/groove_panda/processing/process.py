@@ -9,30 +9,42 @@ config = Config()
 logger = logging.getLogger(__name__)
 
 
-class NumericSixtuple:
+class NumericTuple:
+    """
+    The numerical representation of token tuples (instead of string tokens, integers are stored).
+    """
+
     def __init__(self, *values: int):
+        # The *values parameter makes sequential NumericTuple(1, 2, 3) and grouped NumericTuple(*[1, 2, 3]) possible.
         self._values = list(values)
 
     def __repr__(self):
-        return f"NumericSixtuple({', '.join(str(v) for v in self.values)})"
+        return f"NumericTuple({', '.join(str(v) for v in self.values)})"
 
     @property
     def values(self):
         return self._values
 
 
-def numerize(sixtuples: list[Sixtuple], sixtuple_token_maps: SixtupleTokenMaps) -> list[NumericSixtuple]:
+def numerize(sixtuples: list[Sixtuple], sixtuple_token_maps: SixtupleTokenMaps) -> list[NumericTuple]:
+    """
+    Turns the incoming list of sixtuples into a list of numeric tuples using the given sixtuple token maps, to translate
+    tokens into integers.
+
+    Sixtuple is a class of six features, encoded as strings, while NumericTuple is a class of features, as defined in
+    configs (dynamic size), encoded as integers.
+    """
     logger.info("Start numerize...")
 
-    numeric_sixtuples = []
+    numeric_tuples = []
 
-    # Create a list of (feature_name, map_dict)
     feature_maps = sixtuple_token_maps.maps  # [(name, dict), ...]
 
     for sixtuple in sixtuples:
         numeric_values = []
         for name, mapping in feature_maps:
-            # Use getattr to get the attribute dynamically from sixtuple
+            # Use getattr to get the attribute dynamically from sixtuple. Features that aren't defined in configs, are
+            # ignored.
             value = getattr(sixtuple, name)
             try:
                 numeric_value = mapping[value]
@@ -40,22 +52,25 @@ def numerize(sixtuples: list[Sixtuple], sixtuple_token_maps: SixtupleTokenMaps) 
                 raise KeyError(f"Value {value} for feature '{name}' not found in {mapping}") from e
             numeric_values.append(numeric_value)
 
-        numeric_sixtuple = NumericSixtuple(*numeric_values)
-        numeric_sixtuples.append(numeric_sixtuple)
+        numeric_tuple = NumericTuple(*numeric_values)
+        numeric_tuples.append(numeric_tuple)
 
     logger.info("Finished numerize.")
-    return numeric_sixtuples
+    return numeric_tuples
 
 
-def create_continuous_sequence(numeric_sixtuples: list[NumericSixtuple]) -> np.ndarray:
+def create_continuous_sequence(numeric_tuples: list[NumericTuple]) -> np.ndarray:
     """
-    Save the entire continuous sequence instead of splitting into fixed lengths
+    Return the entire sequence of numeric tuples as an array of integers of dim (n, m) for
+
+    n = length of numeric tuples and
+
+    m = amount of features in numeric sixtuple.
     """
     logger.info("Creating continuous sequence...")
 
-    # Convert to array format
     sequence = np.array(
-        [event.values for event in numeric_sixtuples],
+        [event.values for event in numeric_tuples],
         dtype=np.int32,
     )
 
@@ -116,7 +131,7 @@ def reshape_x(x):
     return x
 
 
-def denumerize(_numeric_sixtuples: list[NumericSixtuple], _sixtuple_token_maps: SixtupleTokenMaps) -> list[Sixtuple]:
+def denumerize(_numeric_sixtuples: list[NumericTuple], _sixtuple_token_maps: SixtupleTokenMaps) -> list[Sixtuple]:
     #   Turns list of embedded numeric events into list of embedded token events,
     #   by using the maps provided by the given tokenizer instance
     #
