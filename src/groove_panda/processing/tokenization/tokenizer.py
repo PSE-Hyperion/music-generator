@@ -307,7 +307,7 @@ class Tokenizer:
 
         self.sixtuple_token_maps = SixtupleTokenMaps()
 
-    def tokenize(self, parsed_midi: stream.Score | MidiFile | tuple[MidiFile, key.Key]) -> list[Sixtuple]:
+    def tokenize(self, parsed_midi: stream.Score | tuple[MidiFile, key.Key]) -> list[Sixtuple]:
         """
         Tokenizes the parsed midi according to it's mode
         """
@@ -323,7 +323,7 @@ class Tokenizer:
 
         return sixtuples
 
-    def _tokenize_original_key(self, parsed_midi: stream.Score | MidiFile | tuple[MidiFile, key.Key]) -> list[Sixtuple]:
+    def _tokenize_original_key(self, parsed_midi: stream.Score | tuple[MidiFile, key.Key]) -> list[Sixtuple]:
         """
         Tokenizes the parsed midi in its original key, according to the type of parsed midi
         """
@@ -334,7 +334,7 @@ class Tokenizer:
         midi_file, _ = parsed_midi  # Extract MidiFile, ignore key for original key mode
         return self._tokenize_original_key_midi_file(midi_file)
 
-    def _tokenize_all_keys(self, parsed_midi: stream.Score | MidiFile | tuple[MidiFile, key.Key]) -> list[Sixtuple]:
+    def _tokenize_all_keys(self, parsed_midi: stream.Score | tuple[MidiFile, key.Key]) -> list[Sixtuple]:
         """ """
 
         if isinstance(parsed_midi, stream.Score):
@@ -343,9 +343,7 @@ class Tokenizer:
         midi_file, _ = parsed_midi  # Extract MidiFile, ignore key for all keys mode
         return self._tokenize_all_keys_midi_file(midi_file)
 
-    def _tokenize_cmajor_aminor(
-        self, parsed_midi: stream.Score | MidiFile | tuple[MidiFile, key.Key]
-    ) -> list[Sixtuple]:
+    def _tokenize_cmajor_aminor(self, parsed_midi: stream.Score | tuple[MidiFile, key.Key]) -> list[Sixtuple]:
         """
         Transpose every piece to C major (if originally major) or A minor (if originally minor),
         and return the tokens from that single transposition as a list.
@@ -354,10 +352,7 @@ class Tokenizer:
         if isinstance(parsed_midi, stream.Score):
             return self._tokenize_cmajor_aminor_score(parsed_midi)
 
-        if isinstance(parsed_midi, tuple):
-            return self._tokenize_cmajor_aminor_midi_file(parsed_midi)
-
-        raise ValueError("MIDO parser should return tuple[MidiFile, key.Key] for C_MAJOR_A_MINOR mode")
+        return self._tokenize_cmajor_aminor_midi_file(parsed_midi)
 
     def _tokenize_original_key_score(self, score: stream.Score) -> list[Sixtuple]:
         """
