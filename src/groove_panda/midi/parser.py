@@ -120,7 +120,7 @@ def _parse_midi_mido_with_key(midi_path: str) -> tuple[MidiFile, key.Key]:
         if not isinstance(analyzed_key, key.Key):
             # Fallback to C major if analysis fails
             analyzed_key = key.Key("C", "major")
-            logger.warning(f"Key analysis failed for {midi_path}, using C major as fallback")
+            logger.warning(f"Key analysis did not return a valid key for {midi_path}, using C major as fallback")
 
         return midi_file, analyzed_key
 

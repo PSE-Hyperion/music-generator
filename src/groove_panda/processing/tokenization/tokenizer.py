@@ -331,10 +331,8 @@ class Tokenizer:
         if isinstance(parsed_midi, stream.Score):
             return self._tokenize_original_key_score(parsed_midi)
 
-        if isinstance(parsed_midi, tuple):
-            midi_file, _ = parsed_midi  # Extract MidiFile, ignore key for original key mode
-            return self._tokenize_original_key_midi_file(midi_file)
-        return self._tokenize_original_key_midi_file(parsed_midi)
+        midi_file, _ = parsed_midi  # Extract MidiFile, ignore key for original key mode
+        return self._tokenize_original_key_midi_file(midi_file)
 
     def _tokenize_all_keys(self, parsed_midi: stream.Score | MidiFile | tuple[MidiFile, key.Key]) -> list[Sixtuple]:
         """ """
@@ -342,10 +340,8 @@ class Tokenizer:
         if isinstance(parsed_midi, stream.Score):
             return self._tokenize_all_keys_score(parsed_midi)
 
-        if isinstance(parsed_midi, tuple):
-            midi_file, _ = parsed_midi  # Extract MidiFile, ignore key for all keys mode
-            return self._tokenize_all_keys_midi_file(midi_file)
-        return self._tokenize_all_keys_midi_file(parsed_midi)
+        midi_file, _ = parsed_midi  # Extract MidiFile, ignore key for all keys mode
+        return self._tokenize_all_keys_midi_file(midi_file)
 
     def _tokenize_cmajor_aminor(
         self, parsed_midi: stream.Score | MidiFile | tuple[MidiFile, key.Key]
@@ -358,7 +354,10 @@ class Tokenizer:
         if isinstance(parsed_midi, stream.Score):
             return self._tokenize_cmajor_aminor_score(parsed_midi)
 
-        return self._tokenize_cmajor_aminor_midi_file(parsed_midi)
+        if isinstance(parsed_midi, tuple):
+            return self._tokenize_cmajor_aminor_midi_file(parsed_midi)
+
+        raise ValueError("MIDO parser should return tuple[MidiFile, key.Key] for C_MAJOR_A_MINOR mode")
 
     def _tokenize_original_key_score(self, score: stream.Score) -> list[Sixtuple]:
         """
@@ -426,7 +425,7 @@ class Tokenizer:
                 raise Exception("Couldn't transpose MIDI to semitone shift")
         return all_tokens
 
-    def _tokenize_cmajor_aminor_midi_file(self, parsed_midi: MidiFile | tuple[MidiFile, key.Key]) -> list[Sixtuple]:
+    def _tokenize_cmajor_aminor_midi_file(self, parsed_midi: tuple[MidiFile, key.Key]) -> list[Sixtuple]:
         """
         Transpose every piece to C major (if originally major) or A minor (if originally minor),
         and return the tokens from that single transposition as a list.
