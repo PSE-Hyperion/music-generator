@@ -19,7 +19,7 @@ def generate_music(model_name: str, input_name: str, output_name: str):
     Load model -> Load input MIDI -> Generate -> Save output
     """
 
-    print(f"Starting music generation with model: {model_name}")
+    logger.info(f"Starting music generation with model: {model_name}")
 
     # Load the trained model
     model, model_metadata = load_model(model_name)

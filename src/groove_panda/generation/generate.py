@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import logging
 
 import numpy as np
 from tensorflow.keras.models import Model  # type: ignore
@@ -8,6 +9,7 @@ from groove_panda.processing.process import sequence_to_model_input
 from groove_panda.processing.tokenization.tokenizer import Sixtuple
 
 config = Config()
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -95,8 +97,8 @@ class MusicGenerator:
 
         generation_length = config.generation_length
 
-        print(f"Starting generation with feature temperatures: {self.feature_temperatures}")
-        print(f"Generation length: {generation_length}")
+        logger.info(f"Starting generation with feature temperatures: {self.feature_temperatures}")
+        logger.info(f"Generation length: {generation_length}")
 
         if len(seed_sequence) != self.sequence_length:
             raise ValueError(f"Seed sequence must be exactly {self.sequence_length} events long")
@@ -136,7 +138,7 @@ class MusicGenerator:
             current_sequence = [*current_sequence[1:], numeric_event]
 
             if (i + 1) % 100 == 0:
-                print(f"Generated {i + 1}/{generation_length} events")
+                logger.info(f"Generated {i + 1}/{generation_length} events")
 
-        print("Generation completed")
+        logger.info("Generation completed")
         return generated_events

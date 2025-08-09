@@ -307,23 +307,22 @@ class Tokenizer:
 
         self.sixtuple_token_maps = SixtupleTokenMaps()
 
-    def tokenize(self, parsed_midi: stream.Score | MidiFile) -> list[Sixtuple]:
+    def tokenize(self, parsed_midi: stream.Score | tuple[MidiFile, key.Key]) -> list[list[Sixtuple]]:
         """
         Tokenizes the parsed midi according to it's mode
         """
 
         if config.tokenize_mode is TokenizeMode.ORIGINAL:
             sixtuples = self._tokenize_original_key(parsed_midi)
-        elif config.tokenize_mode is TokenizeMode.ALL_KEYS:
-            sixtuples = self._tokenize_all_keys(parsed_midi)
-        elif config.tokenize_mode is TokenizeMode.C_MAJOR_A_MINOR:
+            return [sixtuples]
+        if config.tokenize_mode is TokenizeMode.ALL_KEYS:
+            return self._tokenize_all_keys_as_seperate_lists(parsed_midi)
+        if config.tokenize_mode is TokenizeMode.C_MAJOR_A_MINOR:
             sixtuples = self._tokenize_cmajor_aminor(parsed_midi)
-        else:
-            raise ValueError(f"Unsupported TOKENIZE_MODE: {config.tokenize_mode!r}")
+            return [sixtuples]
+        raise ValueError(f"Unsupported TOKENIZE_MODE: {config.tokenize_mode!r}")
 
-        return sixtuples
-
-    def _tokenize_original_key(self, parsed_midi: stream.Score | MidiFile) -> list[Sixtuple]:
+    def _tokenize_original_key(self, parsed_midi: stream.Score | tuple[MidiFile, key.Key]) -> list[Sixtuple]:
         """
         Tokenizes the parsed midi in its original key, according to the type of parsed midi
         """
@@ -331,17 +330,22 @@ class Tokenizer:
         if isinstance(parsed_midi, stream.Score):
             return self._tokenize_original_key_score(parsed_midi)
 
-        return self._tokenize_original_key_midi_file(parsed_midi)
+        midi_file, _ = parsed_midi  # Extract MidiFile, ignore key for original key mode
+        return self._tokenize_original_key_midi_file(midi_file)
 
-    def _tokenize_all_keys(self, parsed_midi: stream.Score | MidiFile) -> list[Sixtuple]:
-        """ """
-
+    def _tokenize_all_keys_as_seperate_lists(
+        self, parsed_midi: stream.Score | tuple[MidiFile, key.Key]
+    ) -> list[list[Sixtuple]]:
+        """
+        Dispatcher for ALL_KEYS tokenization - maintains consistent architecture
+        """
         if isinstance(parsed_midi, stream.Score):
-            return self._tokenize_all_keys_score(parsed_midi)
+            return self._tokenize_all_keys_score_as_separate_lists(parsed_midi)
 
-        return self._tokenize_all_keys_midi_file(parsed_midi)
+        midi_file, _ = parsed_midi
+        return self._tokenize_all_keys_midi_file_as_separate_lists(midi_file)
 
-    def _tokenize_cmajor_aminor(self, parsed_midi: stream.Score | MidiFile) -> list[Sixtuple]:
+    def _tokenize_cmajor_aminor(self, parsed_midi: stream.Score | tuple[MidiFile, key.Key]) -> list[Sixtuple]:
         """
         Transpose every piece to C major (if originally major) or A minor (if originally minor),
         and return the tokens from that single transposition as a list.
@@ -359,20 +363,21 @@ class Tokenizer:
 
         return self._tokenize_score(score)
 
-    def _tokenize_all_keys_score(self, score: stream.Score) -> list[Sixtuple]:
+    def _tokenize_all_keys_score_as_separate_lists(self, score: stream.Score) -> list[list[Sixtuple]]:
         """
-        Transpose a music21 stream.Score through all 12 semitone steps (0 = original, +1, ..., +11)
-        and return a flat list of all tokens across every transposition.
+        Transpose Music21 score through all 12 keys, return each as separate list
         """
+        all_song_versions = []
 
-        all_tokens: list[Sixtuple] = []
         for semitone_shift in range(12):
             transposed_midi = score.transpose(semitone_shift)
             if transposed_midi:
-                all_tokens.extend(self._tokenize_score(transposed_midi))
+                sixtuples = self._tokenize_score(transposed_midi)
+                all_song_versions.append(sixtuples)
             else:
                 raise Exception("Couldn't transpose score to semitone shift")
-        return all_tokens
+
+        return all_song_versions
 
     def _tokenize_cmajor_aminor_score(self, parsed_midi: stream.Score) -> list[Sixtuple]:
         """
@@ -402,50 +407,47 @@ class Tokenizer:
 
         return self._tokenize_midi_file(midi_file)
 
-    def _tokenize_all_keys_midi_file(self, parsed_midi: MidiFile) -> list[Sixtuple]:
+    def _tokenize_all_keys_midi_file_as_separate_lists(self, midi_file: MidiFile) -> list[list[Sixtuple]]:
         """
-        Transpose the score through all 12 semitone steps (0 = original, +1, ..., +11)
-        and return a flat list of all tokens across every transposition.
+        Transpose Mido MidiFile through all 12 keys, return each as separate list
         """
-
-        all_tokens: list[Sixtuple] = []
+        all_song_versions = []
 
         for semitone_shift in range(12):
-            transposed_midi = midi_file_utils.transpose(parsed_midi, semitone_shift)
+            transposed_midi = midi_file_utils.transpose(midi_file, semitone_shift)
             if transposed_midi:
-                all_tokens.extend(self._tokenize_midi_file(transposed_midi))
+                sixtuples = self._tokenize_midi_file(transposed_midi)
+                all_song_versions.append(sixtuples)
             else:
                 raise Exception("Couldn't transpose MIDI to semitone shift")
-        return all_tokens
 
-    def _tokenize_cmajor_aminor_midi_file(self, parsed_midi: MidiFile) -> list[Sixtuple]:
+        return all_song_versions
+
+    def _tokenize_cmajor_aminor_midi_file(self, parsed_midi: tuple[MidiFile, key.Key]) -> list[Sixtuple]:
         """
         Transpose every piece to C major (if originally major) or A minor (if originally minor),
         and return the tokens from that single transposition as a list.
         """
 
-        if isinstance(parsed_midi, stream.Score):
-            analyzed_key = parsed_midi.analyze("key")
-            if isinstance(analyzed_key, key.Key):
-                tonic: pitch.Pitch = analyzed_key.tonic
+        # Extract MidiFile and key from tuple
+        midi_file, analyzed_key = parsed_midi
 
-                target_tonic = pitch.Pitch("C") if analyzed_key.mode == "major" else pitch.Pitch("A")
+        # Determine target key based on original mode
+        target_tonic_str = "C" if analyzed_key.mode == "major" else "A"
 
-                transposition_interval = interval.Interval(tonic, target_tonic)
-                transposed_midi = parsed_midi.transpose(transposition_interval)
+        # Calculate semitone shift needed
+        original_tonic = analyzed_key.tonic
+        target_tonic = pitch.Pitch(target_tonic_str)
 
-                if transposed_midi:
-                    return self.tokenize(transposed_midi)
+        # Calculate the interval for transposition
+        semitone_shift = (target_tonic.midi - original_tonic.midi) % 12
 
-                raise Exception("Transposition of score was unsuccessful and returned null.")
-            raise Exception("Analyzing of score was unsuccessful and didn't return a key.")
+        # Transpose the MIDI file
+        transposed_midi = midi_file_utils.transpose(midi_file, semitone_shift)
 
-        # TODO Implement minor/major transposition for MidiFile. There seems to be no analyze aquivalent in mido
-        logger.warning(
-            "Tokenizer mode: C_MAJOR_A_MINOR, doesn't work with parser: MIDO. For more information "
-            "read TODO in tokenizer.py _tokenize_cmajor_aminor_midi_file()"
-        )
-        return []
+        if transposed_midi:
+            return self._tokenize_midi_file(transposed_midi)
+        raise Exception("Transposition of MIDI file was unsuccessful.")
 
     def _tokenize_score(self, score: stream.Score) -> list[Sixtuple]:
         """
