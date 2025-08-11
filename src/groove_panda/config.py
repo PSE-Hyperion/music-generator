@@ -59,8 +59,6 @@ class Config:
     training_epochs: int = DEFAULT_NUMBER
     training_batch_size: int = DEFAULT_NUMBER
 
-    # Loss weights for model
-
     # Further parameters
     early_stopping_epochs_to_wait: int = DEFAULT_NUMBER  # How many epochs with no change to wait until it will stop
     early_stopping_threshold: float = DEFAULT_NUMBER  # Difference that will be considered as no improvement
