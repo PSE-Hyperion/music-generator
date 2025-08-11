@@ -313,7 +313,7 @@ class Tokenizer:
         """
 
         if config.tokenize_mode is TokenizeMode.ORIGINAL:
-            sixtuples = self._tokenize_original_key(parsed_midi)
+            sixtuples = self.tokenize_original_key(parsed_midi)
             return [sixtuples]
         if config.tokenize_mode is TokenizeMode.ALL_KEYS:
             return self._tokenize_all_keys_as_seperate_lists(parsed_midi)
@@ -322,7 +322,7 @@ class Tokenizer:
             return [sixtuples]
         raise ValueError(f"Unsupported TOKENIZE_MODE: {config.tokenize_mode!r}")
 
-    def _tokenize_original_key(self, parsed_midi: stream.Score | tuple[MidiFile, key.Key]) -> list[Sixtuple]:
+    def tokenize_original_key(self, parsed_midi: stream.Score | tuple[MidiFile, key.Key]) -> list[Sixtuple]:
         """
         Tokenizes the parsed midi in its original key, according to the type of parsed midi
         """

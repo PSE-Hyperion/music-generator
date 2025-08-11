@@ -47,7 +47,7 @@ def generate_music(model_name: str, input_name: str, output_name: str):
 
     score = parse_midi(input_midi_path)
     tokenizer = Tokenizer(processed_dataset_id)
-    sixtuples = tokenizer.tokenize(score)
+    sixtuples = tokenizer.tokenize_original_key(score)
 
     # Convert to numeric tuples
     seed_sequence = []
