@@ -43,11 +43,23 @@ class Config:
     DEFAULT_BOOL = False
     EMPTY_LIST = []  # noqa: RUF012
 
+    # default loss weights
+    LOSS_WEIGHTS_DEFAULT_TPL = (
+        ("output_bas", 1),
+        ("output_position", 2),
+        ("output_pitch", 3),
+        ("output_velocity", 3),
+        ("output_duration", 2),
+        ("output_tempo", 1),
+    )
+
     # Hyperparameters
     sequence_length: int = DEFAULT_NUMBER
     generation_length: int = DEFAULT_NUMBER
     training_epochs: int = DEFAULT_NUMBER
     training_batch_size: int = DEFAULT_NUMBER
+
+    # Loss weights for model
 
     # Further parameters
     early_stopping_epochs_to_wait: int = DEFAULT_NUMBER  # How many epochs with no change to wait until it will stop
@@ -78,7 +90,7 @@ class Config:
 
     # Generation settings
     tempo_round_value: int = DEFAULT_NUMBER  # Rounds all tempo values
-    feature_temperatures: dict[str, float] = {}  # noqa: RUF012
+    generation_temperature: float = DEFAULT_NUMBER
 
     # Directories
     config_dir: Final[str] = "data/configs"
@@ -242,6 +254,17 @@ class Config:
             except KeyError as e:
                 raise ValueError(f"Unknown tokenize_mode '{value}' in {self.config_path}") from e
             setattr(self, setting, cast)
+
+        elif setting == "loss_weights":
+            if not isinstance(value, dict):
+                self.logger.error("loss_weights must be a mapping")
+                return
+            try:
+                loss_weights = {str(key): float(value) for key, value in value.items()}
+            except (TypeError, ValueError) as e:
+                raise ValueError("loss_weights values must be numeric") from e
+            setattr(self, setting, loss_weights)
+            self.logger.debug(f"Set setting {setting} to value {loss_weights}")
 
         else:
             # Every setting other than parser and tokenize mode can be set directly
