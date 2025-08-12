@@ -113,7 +113,7 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
         # Check if tempo has changed at this position
         if events_at_position:
             # I am not sure we need to round in detokenize, since tokens already only have rounded values - joao
-            tempo_value = round_tempo(int(events_at_position[0].tempo.split("_")[1]))
+            tempo_value = tokenize_feature_int("tempo", int(events_at_position[0].tempo.split("_")[1]))
             if current_tempo != tempo_value:
                 current_tempo = tempo_value
                 s.insert(abs_offset, TempoIndication(number=current_tempo))
@@ -208,13 +208,44 @@ class SixtupleTokenMaps:
         return [(feature.name, len(d)) for feature, d in self._feature_maps].copy()
 
 
-def round_tempo(tempo: int) -> int:
-    tempo_round_value = next(f for f in config.features if f.name == "tempo").step
-    return int(round(tempo / tempo_round_value) * tempo_round_value)
+def tokenize_feature_int(feature_name: str, value: int | None) -> int:
+    if value is None:
+        logger.warning(f"Tried to tokenize feature {feature_name} with null value. Value set to 0.")
+        value = 0
+
+    feature_config = next(f for f in config.features if f.name == feature_name)
+
+    if not feature_config:
+        logger.warning(
+            f"Tried to tokenize feature {feature_name} which doesn't have an corresponding entry in "
+            "config {config.config_name}. Returned 0."
+        )
+        return 0
+
+    step = 1 if feature_config is None else feature_config.step
+    min_value = feature_config.min_value
+    max_value = feature_config.max_value
+    return int(max(min(round(value / step) * step, max_value), min_value))
 
 
-def quantize(value: float, precision: float) -> float:
-    return max(round(value / precision) * precision, precision)
+def tokenize_feature_float(feature_name: str, value: float | None) -> float:
+    if value is None:
+        logger.warning(f"Tried to tokenize feature {feature_name} with null value. Value set to 0.")
+        value = 0
+
+    feature_config = next(f for f in config.features if f.name == feature_name)
+
+    if not feature_config:
+        logger.warning(
+            f"Tried to tokenize feature {feature_name} which doesn't have an corresponding entry in "
+            "config {config.config_name}. Returned 0."
+        )
+        return 0
+
+    step = 1 if feature_config is None else feature_config.step
+    min_value = feature_config.min_value
+    max_value = feature_config.max_value
+    return float(max(min(round(value / step) * step, max_value), min_value))
 
 
 class Tokenizer:
@@ -383,14 +414,14 @@ class Tokenizer:
         # Two classes could contain this data, so we have to check both
         tempo_indications = flat.getElementsByClass("TempoIndication")
         metronome_marks = flat.getElementsByClass("MetronomeMark")
-        current_tempo = round_tempo(config.default_tempo)
+        current_tempo = tokenize_feature_int("tempo", config.default_tempo)
 
         # Set first tempo
         if tempo_indications:
-            current_tempo = round_tempo(int(tempo_indications[0].number))
+            current_tempo = tokenize_feature_int("tempo", int(tempo_indications[0].number))
             # logger.info("TempoIndication found: %s ", current_tempo)
         elif metronome_marks:
-            current_tempo = round_tempo(int(metronome_marks[0].number))
+            current_tempo = tokenize_feature_int("tempo", int(metronome_marks[0].number))
             # logger.info("MetronomeMark found: %s",current_tempo)
         else:
             pass
@@ -400,8 +431,8 @@ class Tokenizer:
         beats_per_bar = 4
 
         tempo_changes = sorted(
-            [(ti.offset, round_tempo(int(ti.number))) for ti in tempo_indications]
-            + [(mm.offset, round_tempo(int(mm.number))) for mm in metronome_marks]
+            [(ti.offset, tokenize_feature_int("tempo", int(ti.number))) for ti in tempo_indications]
+            + [(mm.offset, tokenize_feature_int("tempo", int(mm.number))) for mm in metronome_marks]
         )
 
         # Use an index to track which tempo is active
@@ -434,12 +465,12 @@ class Tokenizer:
             if isinstance(event, note.Note):
                 sixtuples.append(
                     Sixtuple(
-                        bar=str(bar_number),
-                        position=str(position_16th),
-                        pitch=str(event.pitch.midi),
-                        duration=str(quantize(float(event.quarterLength), 0.25)),
-                        velocity=str(event.volume.velocity),
-                        tempo=str(quantize(current_tempo, 5)),  # WARNING: QUANTIZE HARDCODED
+                        bar=str(tokenize_feature_int("bar", bar_number)),
+                        position=str(tokenize_feature_int("position", position_16th)),
+                        pitch=str(tokenize_feature_int("pitch", event.pitch.midi)),
+                        duration=str(tokenize_feature_float("duration", float(event.quarterLength))),
+                        velocity=str(tokenize_feature_int("velocity", event.volume.velocity)),
+                        tempo=str(tokenize_feature_int("tempo", current_tempo)),  # WARNING: QUANTIZE HARDCODED
                     )
                 )
                 note_counter += 1
@@ -453,9 +484,9 @@ class Tokenizer:
                             bar=str(bar_number),
                             position=str(position_16th),
                             pitch=str(chord_note.pitch.midi),
-                            duration=str(quantize(float(event.quarterLength), 0.25)),
+                            duration=str(tokenize_feature_float("duration", float(event.quarterLength))),
                             velocity=str(event.volume.velocity),
-                            tempo=str(quantize(current_tempo, 5)),  # WARNING: QUANTIZE HARDCODED
+                            tempo=str(tokenize_feature_int("tempo", current_tempo)),  # WARNING: QUANTIZE HARDCODED
                         )
                     )
                     note_in_chord_counter += 1
@@ -515,12 +546,12 @@ class Tokenizer:
 
                 sixtuples.append(
                     Sixtuple(
-                        bar=str(bar),
-                        position=str(position_16th),
-                        pitch=str(event["note"]),
-                        duration=str(quantize(duration_qn, 0.25)),
-                        velocity=str(velocity),
-                        tempo=str(round_tempo(round(60000000 / tempo))),
+                        bar=str(tokenize_feature_int("bar", bar)),
+                        position=str(tokenize_feature_int("position", position_16th)),
+                        pitch=str(tokenize_feature_int("pitch", event["note"])),
+                        duration=str(tokenize_feature_float("duration", duration_qn)),
+                        velocity=str(tokenize_feature_int("velocity", velocity)),
+                        tempo=str(tokenize_feature_int("tempo", round(60000000 / tempo))),
                     )
                 )
 
