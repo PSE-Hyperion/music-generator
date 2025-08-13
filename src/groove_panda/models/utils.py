@@ -8,15 +8,14 @@ def get_loss_weights() -> dict[str, float]:
     """
     config = Config()
 
-    # get relative weights from the loaded config or if there are non the default ones
-    loss_weights_relative = getattr(config, "loss_weights", None)
+    loss_weights_relative = getattr(config, "loss_weights", None)  # Get weights from config or use defaults
     if not loss_weights_relative:
-        loss_weights_relative = dict(config.LOSS_WEIGHTS_DEFAULT)  # using default loss weights
+        loss_weights_relative = config.LOSS_WEIGHTS_DEFAULT.copy()
 
-    loss_weights_relative = {key: float(value) for key, value in loss_weights_relative.items()}
+    loss_weights_relative = {str(key): float(value) for key, value in loss_weights_relative.items()}
 
     total = sum(loss_weights_relative.values())
-    if total != 0:
-        raise ValueError("Sum of loss_weights must be > 0")  # must be greater 0 or we could divide by 0 later,ohoh
+    if total == 0:
+        raise ValueError("Sum of loss_weights must not be 0")  # prevents divide by zero
 
     return {key: value / total for key, value in loss_weights_relative.items()}
