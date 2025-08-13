@@ -44,7 +44,7 @@ class Config:
     EMPTY_LIST = []  # noqa: RUF012
 
     # default loss weights
-    LOSS_WEIGHTS_DEFAULT_TPL = (
+    LOSS_WEIGHTS_DEFAULT = (
         ("output_bas", 1),
         ("output_position", 2),
         ("output_pitch", 3),
