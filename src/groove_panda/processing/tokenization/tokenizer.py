@@ -5,7 +5,7 @@ from mido import MidiFile
 from music21 import chord, interval, key, note, pitch, stream
 from music21.tempo import MetronomeMark, TempoIndication
 
-from groove_panda.config import Config, TokenizeMode
+from groove_panda.config import Config, Feature, TokenizeMode
 from groove_panda.midi.sheet_music_generator import generate_sheet_music
 from groove_panda.processing.tokenization import midi_file_utils
 
@@ -24,12 +24,12 @@ class Sixtuple:
     Duration could be quantized, but only if necessary for dataset
     """
 
-    BAR_PREFIX = "BAR_"
-    POSITION_PREFIX = "POSITION_"
-    PITCH_PREFIX = "PITCH_"
-    DURATION_PREFIX = "DURATION_"
-    VELOCITY_PREFIX = "VELOCITY_"
-    TEMPO_PREFIX = "TEMPO_"
+    BAR_PREFIX = "bar_"
+    POSITION_PREFIX = "position_"
+    PITCH_PREFIX = "pitch_"
+    DURATION_PREFIX = "duration_"
+    VELOCITY_PREFIX = "velocity_"
+    TEMPO_PREFIX = "tempo_"
 
     def __init__(self, bar: str, position: str, pitch: str, duration: str, velocity: str, tempo: str):
         self._bar = Sixtuple.BAR_PREFIX + bar
@@ -113,7 +113,7 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
         # Check if tempo has changed at this position
         if events_at_position:
             # I am not sure we need to round in detokenize, since tokens already only have rounded values - joao
-            tempo_value = round_tempo(int(events_at_position[0].tempo.split("_")[1]))
+            tempo_value = tokenize_feature_int("tempo", int(events_at_position[0].tempo.split("_")[1]))
             if current_tempo != tempo_value:
                 current_tempo = tempo_value
                 s.insert(abs_offset, TempoIndication(number=current_tempo))
@@ -168,137 +168,84 @@ class SixtupleTokenMaps:
     """
 
     def __init__(self):
-        self._bar_map = {}
-        self._position_map = {}
-        self._pitch_map = {}
-        self._duration_map = {}
-        self._velocity_map = {}
-        self._tempo_map = {}
+        self._feature_maps: list[tuple[Feature, dict[str, int]]] = [(feature, {}) for feature in config.features]
+
+    def create_from_ranges(self):
+        """
+        Creates complete token maps from predefined ranges.
+
+        DEV: CURRENTLY HARD CODED FOR KNOWN FEATURES
+        """
+        self._feature_maps = [
+            (
+                feature,
+                self.create_map(
+                    feature.name + config.feature_token_separator, feature.min_value, feature.max_value, feature.step
+                ),
+            )
+            for feature in config.features
+        ]
+
+    def create_map(self, feature_prefix: str, min: float, max: float, step: float) -> dict[str, int]:
+        return {feature_prefix + str(min + i * step): i for i in range(int((max - min) / step) + 1)}
 
     @property
-    def bar_map(self) -> dict[str, int]:
+    def maps(self) -> list[tuple[str, dict[str, int]]]:
         """
-        Returns a copy of the dictionary.
+        Returns a copy of all dictionary with its feature name.
         """
-
-        return self._bar_map.copy()
-
-    @property
-    def position_map(self) -> dict[str, int]:
-        """
-        Returns a copy of the dictionary.
-        """
-
-        return self._position_map.copy()
-
-    @property
-    def pitch_map(self) -> dict[str, int]:
-        """
-        Returns a copy of the dictionary.
-        """
-
-        return self._pitch_map.copy()
-
-    @property
-    def duration_map(self) -> dict[str, int]:
-        """
-        Returns a copy of the dictionary.
-        """
-
-        return self._duration_map.copy()
-
-    @property
-    def velocity_map(self) -> dict[str, int]:
-        """
-        Returns a copy of the dictionary.
-        """
-
-        return self._velocity_map.copy()
-
-    @property
-    def tempo_map(self) -> dict[str, int]:
-        """
-        Returns a copy of the dictionary.
-        """
-
-        return self._tempo_map.copy()
+        return [(feature.name, d) for feature, d in self._feature_maps]
 
     @property
     def total_size(self) -> int:
-        return (
-            len(self._bar_map)
-            + len(self._position_map)
-            + len(self._pitch_map)
-            + len(self._duration_map)
-            + len(self._velocity_map)
-            + len(self._tempo_map)
+        return sum(len(d) for _, d in self._feature_maps)
+
+    @property
+    def map_sizes(self) -> list[tuple[str, int]]:
+        """
+        Returns all dictionary sizes with its feature name.
+        """
+        return [(feature.name, len(d)) for feature, d in self._feature_maps].copy()
+
+
+def tokenize_feature_int(feature_name: str, value: int | None) -> int:
+    if value is None:
+        logger.warning(f"Tried to tokenize feature {feature_name} with null value. Value set to 0.")
+        value = 0
+
+    feature_config = next(f for f in config.features if f.name == feature_name)
+
+    if not feature_config:
+        logger.warning(
+            f"Tried to tokenize feature {feature_name} which doesn't have an corresponding entry in "
+            "config {config.config_name}. Returned 0."
         )
+        return 0
 
-    @property
-    def bar_map_size(self) -> int:
-        return len(self._bar_map)
-
-    @property
-    def position_map_size(self) -> int:
-        return len(self._position_map)
-
-    @property
-    def pitch_map_size(self) -> int:
-        return len(self._pitch_map)
-
-    @property
-    def duration_map_size(self) -> int:
-        return len(self._duration_map)
-
-    @property
-    def velocity_map_size(self) -> int:
-        return len(self._velocity_map)
-
-    @property
-    def tempo_map_size(self) -> int:
-        return len(self._tempo_map)
-
-    def extend(self, sixtuples: list[Sixtuple]):
-        """
-        Since the tokenizer tokenizes in batches, this method is used to extend the maps of features of a sixtuple
-        after every new tokenization. That way, the tokenizer
-        keeps track of all unique sixtuple features across all tokenized scores. After having tokenized all scores,
-        the maps can be saved with token_maps_io.py
-        """
-
-        logger.info("Start extending maps of tokens...")
-        for sixtuple in sixtuples:
-            if sixtuple.bar not in self._bar_map:
-                self._bar_map[sixtuple.bar] = len(self._bar_map)
-            if sixtuple.position not in self._position_map:
-                self._position_map[sixtuple.position] = len(self._position_map)
-            if sixtuple.pitch not in self._pitch_map:
-                self._pitch_map[sixtuple.pitch] = len(self._pitch_map)
-            if sixtuple.duration not in self._duration_map:
-                self._duration_map[sixtuple.duration] = len(self._duration_map)
-            if sixtuple.velocity not in self._velocity_map:
-                self._velocity_map[sixtuple.velocity] = len(self._velocity_map)
-            if sixtuple.tempo not in self._tempo_map:
-                self._tempo_map[sixtuple.tempo] = len(self._tempo_map)
-        logger.info("Finished extending maps of tokens.")
-
-    def create_from_sets(
-        self, bar_set: set, position_set: set, pitch_set: set, duration_set: set, velocity_set: set, tempo_set: set
-    ):
-        self._bar_map = {token: idx for idx, token in enumerate(bar_set)}
-        self._position_map = {token: idx for idx, token in enumerate(position_set)}
-        self._pitch_map = {token: idx for idx, token in enumerate(pitch_set)}
-        self._duration_map = {token: idx for idx, token in enumerate(duration_set)}
-        self._velocity_map = {token: idx for idx, token in enumerate(velocity_set)}
-        self._tempo_map = {token: idx for idx, token in enumerate(tempo_set)}
+    step = 1 if feature_config is None else feature_config.step
+    min_value = feature_config.min_value
+    max_value = feature_config.max_value
+    return int(max(min(round(value / step) * step, max_value), min_value))
 
 
-def round_tempo(tempo: int) -> int:
-    return round(tempo / config.tempo_round_value) * config.tempo_round_value
+def tokenize_feature_float(feature_name: str, value: float | None) -> float:
+    if value is None:
+        logger.warning(f"Tried to tokenize feature {feature_name} with null value. Value set to 0.")
+        value = 0
 
+    feature_config = next(f for f in config.features if f.name == feature_name)
 
-def quantize(value: float, precision: float) -> float:
-    return max(round(value / precision) * precision, precision)
+    if not feature_config:
+        logger.warning(
+            f"Tried to tokenize feature {feature_name} which doesn't have an corresponding entry in "
+            "config {config.config_name}. Returned 0."
+        )
+        return 0
+
+    step = 1 if feature_config is None else feature_config.step
+    min_value = feature_config.min_value
+    max_value = feature_config.max_value
+    return float(max(min(round(value / step) * step, max_value), min_value))
 
 
 class Tokenizer:
@@ -467,14 +414,14 @@ class Tokenizer:
         # Two classes could contain this data, so we have to check both
         tempo_indications = flat.getElementsByClass("TempoIndication")
         metronome_marks = flat.getElementsByClass("MetronomeMark")
-        current_tempo = round_tempo(config.default_tempo)
+        current_tempo = tokenize_feature_int("tempo", config.default_tempo)
 
         # Set first tempo
         if tempo_indications:
-            current_tempo = round_tempo(int(tempo_indications[0].number))
+            current_tempo = tokenize_feature_int("tempo", int(tempo_indications[0].number))
             # logger.info("TempoIndication found: %s ", current_tempo)
         elif metronome_marks:
-            current_tempo = round_tempo(int(metronome_marks[0].number))
+            current_tempo = tokenize_feature_int("tempo", int(metronome_marks[0].number))
             # logger.info("MetronomeMark found: %s",current_tempo)
         else:
             pass
@@ -484,8 +431,8 @@ class Tokenizer:
         beats_per_bar = 4
 
         tempo_changes = sorted(
-            [(ti.offset, round_tempo(int(ti.number))) for ti in tempo_indications]
-            + [(mm.offset, round_tempo(int(mm.number))) for mm in metronome_marks]
+            [(ti.offset, tokenize_feature_int("tempo", int(ti.number))) for ti in tempo_indications]
+            + [(mm.offset, tokenize_feature_int("tempo", int(mm.number))) for mm in metronome_marks]
         )
 
         # Use an index to track which tempo is active
@@ -518,12 +465,12 @@ class Tokenizer:
             if isinstance(event, note.Note):
                 sixtuples.append(
                     Sixtuple(
-                        bar=str(bar_number),
-                        position=str(position_16th),
-                        pitch=str(event.pitch.midi),
-                        duration=str(quantize(float(event.quarterLength), 0.25)),
-                        velocity=str(event.volume.velocity),
-                        tempo=str(current_tempo),
+                        bar=str(tokenize_feature_int("bar", bar_number)),
+                        position=str(tokenize_feature_int("position", position_16th)),
+                        pitch=str(tokenize_feature_int("pitch", event.pitch.midi)),
+                        duration=str(tokenize_feature_float("duration", float(event.quarterLength))),
+                        velocity=str(tokenize_feature_int("velocity", event.volume.velocity)),
+                        tempo=str(tokenize_feature_int("tempo", current_tempo)),  # WARNING: QUANTIZE HARDCODED
                     )
                 )
                 note_counter += 1
@@ -537,9 +484,9 @@ class Tokenizer:
                             bar=str(bar_number),
                             position=str(position_16th),
                             pitch=str(chord_note.pitch.midi),
-                            duration=str(quantize(float(event.quarterLength), 0.25)),
+                            duration=str(tokenize_feature_float("duration", float(event.quarterLength))),
                             velocity=str(event.volume.velocity),
-                            tempo=str(current_tempo),
+                            tempo=str(tokenize_feature_int("tempo", current_tempo)),  # WARNING: QUANTIZE HARDCODED
                         )
                     )
                     note_in_chord_counter += 1
@@ -599,12 +546,12 @@ class Tokenizer:
 
                 sixtuples.append(
                     Sixtuple(
-                        bar=str(bar),
-                        position=str(position_16th),
-                        pitch=str(event["note"]),
-                        duration=str(quantize(duration_qn, 0.25)),
-                        velocity=str(velocity),
-                        tempo=str(round_tempo(round(60000000 / tempo))),
+                        bar=str(tokenize_feature_int("bar", bar)),
+                        position=str(tokenize_feature_int("position", position_16th)),
+                        pitch=str(tokenize_feature_int("pitch", event["note"])),
+                        duration=str(tokenize_feature_float("duration", duration_qn)),
+                        velocity=str(tokenize_feature_int("velocity", velocity)),
+                        tempo=str(tokenize_feature_int("tempo", round(60000000 / tempo))),
                     )
                 )
 

@@ -76,7 +76,7 @@ class TerminalPrettyCallback(callbacks.Callback):
         values = [
             f"{epoch + 1:<{TerminalPrettyCallback.EPOCH_COLUMN_WIDTH}}",
             f"{f'{int(mins)}m {int(secs)}s':<{TerminalPrettyCallback.TIME_COLUMN_WIDTH}}",
-            f"{logs.get('loss', 0):<{TerminalPrettyCallback.LOSS_COLUMN_WIDTH}.{TerminalPrettyCallback.FLOAT_PRECISION}f}"  # noqa: E501    idk how to split it #REVIEW
+            f"{logs.get('loss', 0):<{TerminalPrettyCallback.LOSS_COLUMN_WIDTH}.{TerminalPrettyCallback.FLOAT_PRECISION}f}",  # noqa: E501    idk how to split it #REVIEW
         ]
         for output in outputs:
             loss_key = f"{output}_output_loss"
@@ -88,9 +88,7 @@ class TerminalPrettyCallback(callbacks.Callback):
             acc = logs.get(acc_key, 0.0)
             values.append(
                 f"{loss:.{TerminalPrettyCallback.FLOAT_PRECISION}f}, "
-                f"{acc:.{TerminalPrettyCallback.FLOAT_PRECISION}f}".ljust(
-                    TerminalPrettyCallback.COLUMN_WIDTH
-                )
+                f"{acc:.{TerminalPrettyCallback.FLOAT_PRECISION}f}".ljust(TerminalPrettyCallback.COLUMN_WIDTH)
             )
 
         # print header once on first epoch for visual clarity (makes the output appear like a table)
@@ -101,23 +99,24 @@ class TerminalPrettyCallback(callbacks.Callback):
         print(" | ".join(values))
 
 
-class EmbeddingPropertiesCallback(tf.keras.callbacks.Callback):
+class EmbeddingPropertiesCallback(tf.keras.callbacks.Callback):  # type: ignore
     """
     This callback can be used to track properties of a specified embedding layer during training,
     e.g. the dimensionality for better architecture design and exploration.
     It's not intended to be used in regular trainings
     """
-    def __init__(self, log_dir, layer_name='embedding', threshold=0.99):
+
+    def __init__(self, log_dir, layer_name="embedding", threshold=0.99):
         super().__init__()
         self.log_dir = log_dir
         self.layer_name = layer_name
         self.threshold = threshold
-        self.writer = tf.summary.create_file_writer(os.path.join(log_dir, 'embedding_svd'))
+        self.writer = tf.summary.create_file_writer(os.path.join(log_dir, "embedding_svd"))
 
     def log_singular_values(self, weights, step_label, step):
         u, s, vh = np.linalg.svd(weights, full_matrices=False)
 
-        squared_s = s ** 2
+        squared_s = s**2
         total_energy = np.sum(squared_s)
         energy_ratio = np.cumsum(squared_s) / total_energy
         effective_rank = np.searchsorted(energy_ratio, self.threshold) + 1

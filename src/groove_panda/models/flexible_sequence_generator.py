@@ -98,7 +98,7 @@ class FlexibleSequenceGenerator(Sequence):
         y_array = np.array(batch_y)
 
         # Split inputs into feature-wise dictionaries for multi-input model
-        x_dict = {f"input_{config.feature_names[i]}": x_array[:, :, i] for i in range(len(config.feature_names))}
+        x_dict = {f"input_{config.features[i].name}": x_array[:, :, i] for i in range(len(config.features))}
 
         # Split outputs into feature-wise arrays for multi-output model
         y_outputs = tuple(y_array[:, i] for i in range(6))

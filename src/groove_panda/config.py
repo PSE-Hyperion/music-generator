@@ -31,6 +31,30 @@ class Parser(Enum):
     MIDO = auto()
 
 
+class Feature:
+    def __init__(self, name: str, min_value: float, max_value: float, step: float) -> None:
+        self._name = name
+        self._min_value = min_value
+        self._max_value = max_value
+        self._step = step
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def min_value(self) -> float:
+        return self._min_value
+
+    @property
+    def max_value(self) -> float:
+        return self._max_value
+
+    @property
+    def step(self) -> float:
+        return self._step
+
+
 class Config:
     # Special config settings - do not touch
     _instance: "Config | None" = None  # Holds the one-and-only instance
@@ -67,7 +91,8 @@ class Config:
     # General settings
     parser: Parser
     allowed_music_file_extensions: list[str] = EMPTY_LIST
-    feature_names: list[str] = EMPTY_LIST
+    features: list[Feature] = EMPTY_LIST
+    feature_token_separator: str = DEFAULT_STR
     model_type: str = DEFAULT_STR
     config: dict  # The entire config file will be saved here
 
@@ -77,7 +102,6 @@ class Config:
     default_tempo: int = DEFAULT_NUMBER
 
     # Generation settings
-    tempo_round_value: int = DEFAULT_NUMBER  # Rounds all tempo values
     feature_temperatures: dict[str, float] = {}  # noqa: RUF012
 
     # Directories
@@ -233,7 +257,7 @@ class Config:
             try:
                 cast = Parser[value]
             except KeyError as e:
-                raise ValueError(f"Unknown tokenize_mode '{value}' in {self.config_path}") from e
+                raise ValueError(f"Unknown parser '{value}' in {self.config_path}") from e
             setattr(self, setting, cast)
 
         elif setting == "tokenize_mode":
@@ -241,6 +265,13 @@ class Config:
                 cast = TokenizeMode[value]
             except KeyError as e:
                 raise ValueError(f"Unknown tokenize_mode '{value}' in {self.config_path}") from e
+            setattr(self, setting, cast)
+
+        elif setting == "features":
+            try:
+                cast = [Feature(*entry) for entry in value]
+            except KeyError as e:
+                raise ValueError(f"Unknown features '{value}' in {self.config_path}") from e
             setattr(self, setting, cast)
 
         else:

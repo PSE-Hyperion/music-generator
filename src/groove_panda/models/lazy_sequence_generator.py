@@ -77,7 +77,7 @@ class LazySequenceGenerator(Sequence):
 
         # Split inputs into feature-wise dictionaries for multi-input model
 
-        x_dict = {config.feature_names[i]: x_array[:, :, i] for i in range(len(config.feature_names))}
+        x_dict = {config.features[i].name: x_array[:, :, i] for i in range(len(config.features))}
         """
         Creates a map similar to this:
         {
