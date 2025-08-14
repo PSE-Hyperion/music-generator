@@ -9,13 +9,10 @@ def get_loss_weights() -> dict[str, float]:
     If config was not loaded or its not defined them, we fall back to the defaults.
     """
 
-    loss_weights_relative = getattr(config, "loss_weights", None)  # Get weights from config or use defaults
-    if not loss_weights_relative:
-        loss_weights_relative = config.loss_weights_default.copy()
-
-    loss_weights_relative = {str(key): float(value) for key, value in loss_weights_relative.items()}
+    loss_weights_relative = config.loss_weights.copy()  # Get weights from config
 
     total = sum(loss_weights_relative.values())
+
     if total == 0:
         raise ValueError("Sum of loss_weights must not be 0")  # prevents divide by zero
 

@@ -44,7 +44,7 @@ class Config:
     EMPTY_LIST = []  # noqa: RUF012
 
     # default loss weights
-    loss_weights_default: dict[str, float] = {  # noqa: RUF012
+    loss_weights: dict[str, float] = {  # noqa: RUF012
         "output_bas": 1,
         "output_position": 2,
         "output_pitch": 3,
