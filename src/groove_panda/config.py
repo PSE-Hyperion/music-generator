@@ -44,7 +44,14 @@ class Config:
     EMPTY_LIST = []  # noqa: RUF012
 
     # default loss weights
-    LOSS_WEIGHTS_DEFAULT: dict[str, float] = {}  # noqa: RUF012
+    loss_weights_default: dict[str, float] = {  # noqa: RUF012
+        "output_bas": 1,
+        "output_position": 2,
+        "output_pitch": 3,
+        "output_velocity": 3,
+        "output_duration": 2,
+        "output_tempo": 1,
+    }
 
     # Hyperparameters
     sequence_length: int = DEFAULT_NUMBER
