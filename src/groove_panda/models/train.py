@@ -102,7 +102,8 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
         dataset_size = full_x_array.shape[0]
         train_dataset_size = int((1 - config.validation_split_proportion) * dataset_size)
 
-        logger.info("Loaded %d total subsequences from %d songs", dataset_size, len(train_generator.song_data))
+        song_word = "song" if len(train_generator.song_data) == 1 else "songs"
+        logger.info("Loaded %d total subsequences from %d %s", dataset_size, len(train_generator.song_data), song_word)
 
         logger.info("Splitting the dataset into training and validation...")
 
@@ -116,20 +117,20 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
         # Iterating over the feature axis of the tensors
 
         train_x_dict = {
-            f"input_{feature}": train_x_array[:, :, idx]  # take of each sample only the specified feature
-            for idx, feature in enumerate(config.feature_names)
+            f"input_{feature.name}": train_x_array[:, :, idx]  # take of each sample only the specified feature
+            for idx, feature in enumerate(config.features)
         }
         train_y_dict = {
-            f"output_{feature}": train_y_array[:, idx]  # take of each sample only the specified feature
-            for idx, feature in enumerate(config.feature_names)
+            f"output_{feature.name}": train_y_array[:, idx]  # take of each sample only the specified feature
+            for idx, feature in enumerate(config.features)
         }
         val_x_dict = {
-            f"input_{feature}": val_x_array[:, :, idx]  # take of each sample only the specified feature
-            for idx, feature in enumerate(config.feature_names)
+            f"input_{feature.name}": val_x_array[:, :, idx]  # take of each sample only the specified feature
+            for idx, feature in enumerate(config.features)
         }
         val_y_dict = {
-            f"output_{feature}": val_y_array[:, idx]  # take of each sample only the specified feature
-            for idx, feature in enumerate(config.feature_names)
+            f"output_{feature.name}": val_y_array[:, idx]  # take of each sample only the specified feature
+            for idx, feature in enumerate(config.features)
         }
 
         logger.info("Giving dataset to TensorFlow...")

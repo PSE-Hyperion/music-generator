@@ -359,7 +359,7 @@ def start_session():
     session = PromptSession(completer=CommandCompleter())
     while True:
         try:
-            u_input = session.prompt("Music_Generation_LSTM> ")
+            u_input = session.prompt("Groove_Panda> ")
 
             if parse_command(u_input.strip()) == Command.EXIT:
                 handle_exit()
