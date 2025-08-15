@@ -33,7 +33,7 @@ def _plot_training_history(history, model_name: str, dir_path: str):
     Plot training history showing loss and accuracy for all 6 feature outputs.
     """
 
-    feature_names = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
+    feature_names = [feature.name for feature in config.features]
 
     # Create subplots: 4 rows x 3 columns (loss and accuracy for each feature)
     fig, axes = plt.subplots(4, 3, figsize=(18, 20))
@@ -96,7 +96,7 @@ def _plot_training_metrics_separate(history: History, model_name: str, dir_path:
     Alternative version: Plot loss and accuracy in separate figures for better readability.
     """
 
-    feature_names = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
+    feature_names = [feature.name for feature in config.features]
 
     # Seperate loss plot
     plt.figure(figsize=(15, 10))
