@@ -13,15 +13,13 @@ config = Config()
 logger = logging.getLogger(__name__)
 
 
+# this could be changed to instead be a token class of undefined size, like the new numeric tuple in process.
+# this would make "deactivating features" possible
 class Sixtuple:
     """
     Sixtuple note event featuring bar, position, pitch, duration, velocity, tempo
 
     Doesn't include instruments or time signature
-
-    Bar could be limited to only 0-100 range (if dataset contains unreasonably long songs)
-
-    Duration could be quantized, but only if necessary for dataset
     """
 
     BAR_PREFIX = "bar_"
@@ -460,7 +458,7 @@ class Tokenizer:
             position_in_bar = abs_offset % beats_per_bar
 
             # Quantize position to 16th notes, since all songs from dataset are 4/4
-            position_16th = round(position_in_bar * 4)
+            position_16th = round(position_in_bar * 4)  # this could be loaded from config position
 
             if isinstance(event, note.Note):
                 sixtuples.append(
@@ -470,7 +468,7 @@ class Tokenizer:
                         pitch=str(tokenize_feature_int("pitch", event.pitch.midi)),
                         duration=str(tokenize_feature_float("duration", float(event.quarterLength))),
                         velocity=str(tokenize_feature_int("velocity", event.volume.velocity)),
-                        tempo=str(tokenize_feature_int("tempo", current_tempo)),  # WARNING: QUANTIZE HARDCODED
+                        tempo=str(tokenize_feature_int("tempo", current_tempo)),
                     )
                 )
                 note_counter += 1
@@ -481,12 +479,12 @@ class Tokenizer:
                 for chord_note in event.notes:
                     sixtuples.append(
                         Sixtuple(
-                            bar=str(bar_number),
-                            position=str(position_16th),
-                            pitch=str(chord_note.pitch.midi),
+                            bar=str(tokenize_feature_int("bar", bar_number)),
+                            position=str(tokenize_feature_int("position", position_16th)),
+                            pitch=str(tokenize_feature_int("pitch", chord_note.pitch.midi)),
                             duration=str(tokenize_feature_float("duration", float(event.quarterLength))),
-                            velocity=str(event.volume.velocity),
-                            tempo=str(tokenize_feature_int("tempo", current_tempo)),  # WARNING: QUANTIZE HARDCODED
+                            velocity=str(tokenize_feature_int("velocity", event.volume.velocity)),
+                            tempo=str(tokenize_feature_int("tempo", current_tempo)),
                         )
                     )
                     note_in_chord_counter += 1
@@ -542,7 +540,7 @@ class Tokenizer:
                 # Bar and position
                 bar = int(start_qn // qn_per_bar)
                 position_qn = start_qn % qn_per_bar
-                position_16th = round(position_qn * 4)
+                position_16th = round(position_qn * 4)  # this could be loaded from config position
 
                 sixtuples.append(
                     Sixtuple(
