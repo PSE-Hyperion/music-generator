@@ -66,6 +66,10 @@ class Config:
     DEFAULT_STR = ""
     DEFAULT_BOOL = False
     EMPTY_LIST = []  # noqa: RUF012
+    EMPTY_DICT = {}  # noqa: RUF012
+
+    # default loss weights
+    loss_weights: dict[str, float] = EMPTY_DICT
 
     # Hyperparameters
     sequence_length: int = DEFAULT_NUMBER
@@ -267,6 +271,17 @@ class Config:
                 raise ValueError(f"Unknown tokenize_mode '{value}' in {self.config_path}") from e
             setattr(self, setting, cast)
 
+        elif setting == "loss_weights":
+            if not isinstance(value, dict):
+                self.logger.error("loss_weights must be a mapping")
+                return
+            try:
+                loss_weights = {str(key): float(value) for key, value in value.items()}
+            except (TypeError, ValueError) as e:
+                raise ValueError("loss_weights values must be numeric") from e
+            setattr(self, setting, loss_weights)
+            self.logger.debug(f"Set setting {setting} to value {loss_weights}")
+        # Das ist neu von mir reingemerged. Prüfe, ob alles noch klappt
         elif setting == "features":
             try:
                 cast = [Feature(*entry) for entry in value]
