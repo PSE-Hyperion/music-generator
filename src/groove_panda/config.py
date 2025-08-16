@@ -270,7 +270,7 @@ class Config:
             except KeyError as e:
                 raise ValueError(f"Unknown tokenize_mode '{value}' in {self.config_path}") from e
             setattr(self, setting, cast)
-        
+
         elif setting == "loss_weights":
             if not isinstance(value, dict):
                 self.logger.error("loss_weights must be a mapping")
