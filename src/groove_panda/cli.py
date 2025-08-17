@@ -5,12 +5,14 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
 
 from groove_panda import controller, data_managment
+from groove_panda.config import Config
 
-HELP_INSTRUCTIONS = "the following commands exists:"
+HELP_INSTRUCTIONS = "the following commands exist:"
 MIN_DELETE_COMMAND_PARTS = 2
 ARG_INDEX_RESULT_ID = 2
 ARG_MODEL_PRESET = 2
 
+config = Config()
 logger = logging.getLogger(__name__)
 
 
@@ -26,9 +28,7 @@ class Command(Enum):
     SHOW = "-show"
     DELETE = "-delete"
     EXIT = "-exit"
-
-
-ARGUMENTLENGTH_GENERATE = 3
+    CONFIG = "-config"
 
 
 def handle_help(_args: list[str]):
@@ -102,6 +102,36 @@ def handle_delete(args: list[str]):
         controller.delete_processed(id)
     else:
         logger.info(f"Invalid delete subject: {delete_subject}")
+
+
+def handle_config(args: list[str]):
+    """
+    Handler for the various config commands. It will be optimized in a future update.
+    """
+    command = args[0]
+
+    match command:
+        case "load":
+            config.load_config(args[1])
+        case "save":
+            if len(args) <= 2:  # noqa: PLR2004 - will be taken care of later with a handler overhaul.
+                config.save_config(args[1])
+            else:
+                config.save_config(args[1], args[2])
+        case "set":
+            config.change_setting(args[1], args[2])
+        case "update":
+            config.update()
+        case "overwrite":
+            config.overwrite()
+        case _:
+            logger.error(f"Unknown config command '{command}'")
+            logger.error("The available commands are:")
+            logger.error("'load [config name]'")
+            logger.error("'save [new name] (opt[directory])'")
+            logger.error("'set [setting name] [new value]")
+            logger.error("'update'")
+            logger.error("'overwrite")
 
 
 def handle_exit():
@@ -180,7 +210,7 @@ def complete_generate(arg_index, word, _parts):
     if arg_index == 0:
         yield from id_completion(data_managment.get_existing_model_ids(), word)
     if arg_index == 1:
-        yield from id_completion(data_managment.get_existing_processed_ids(), word)
+        yield from id_completion(data_managment.get_existing_input_ids(), word)
     if arg_index == ARG_INDEX_RESULT_ID:
         yield Completion("new_results_id", start_position=-len(word))
 
@@ -201,6 +231,13 @@ def id_completion(existing_ids, word):
 
 def complete_help():
     pass  # should do nothing
+
+
+def complete_config(arg_index, word, _parts):
+    if arg_index == 0:
+        for option in ["load", "save", "set", "update", "overwrite"]:
+            if option.startswith(word):
+                yield Completion(option, start_position=-len(word))
 
 
 def parse_command(command: str):
@@ -240,10 +277,6 @@ def process_input(input: str):
         logger.error("Command has no length assigned.")
         return
 
-    if length != (len(parts) - 1):
-        logger.info(f"Command should get {length} arguments, but got {len(parts) - 1}")
-        return
-
     handler = COMMAND_HANDLERS.get(command)
 
     if handler is None:
@@ -258,16 +291,18 @@ COMMAND_HANDLERS = {
     Command.TRAIN: handle_train,  # -train model_id(new) processed_id model_architecture_preset
     Command.HELP: handle_help,  # -help
     Command.DELETE: handle_delete,  # -delete file/dataset/processed/model ids/all
-    Command.GENERATE: handle_generate,  # -generate model_id input result_id(new) (not implemented yet)
+    Command.GENERATE: handle_generate,  # -generate model_id input result_id(new)
     Command.SHOW: handle_show,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
+    Command.CONFIG: handle_config,  # -config load/save/update/set/overwrite
 }
 COMMAND_LENGTHS = {
     Command.PROCESS: 2,  # -process dataset_id processed_id(new)
     Command.TRAIN: 3,  # -train [model_id(new)] [processed_dataset_id] [model_architecture_preset]
     Command.HELP: 0,
     Command.DELETE: 2,  # file/dataset/processed/model ids/all
-    Command.GENERATE: 3,  # -generate model_id input result_id(new) (not implemented yet)
+    Command.GENERATE: 3,  # -generate model_id input result_id(new)
     Command.SHOW: 0,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
+    Command.CONFIG: 69,  # We need to get rid of fixed lengths
 }
 
 COMMAND_COMPLETERS = {
@@ -277,6 +312,7 @@ COMMAND_COMPLETERS = {
     Command.HELP: complete_help,  # needs no completion
     Command.GENERATE: complete_generate,  # model_id, input, result_id(new)
     Command.SHOW: complete_show,  # not implemented
+    Command.CONFIG: complete_config,  # not implemented
 }
 
 
@@ -323,7 +359,7 @@ def start_session():
     session = PromptSession(completer=CommandCompleter())
     while True:
         try:
-            u_input = session.prompt("Music_Generation_LSTM> ")
+            u_input = session.prompt("Groove_Panda> ")
 
             if parse_command(u_input.strip()) == Command.EXIT:
                 handle_exit()

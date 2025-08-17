@@ -3,9 +3,10 @@ import logging
 import numpy as np
 from tensorflow.keras.utils import Sequence  # type: ignore - IGNORE ERROR, NOT ACTUAL ERROR
 
-from groove_panda.config import FEATURE_NAMES
+from groove_panda.config import Config
 from groove_panda.processing.process import extract_subsequence
 
+config = Config()
 logger = logging.getLogger(__name__)
 
 
@@ -97,7 +98,7 @@ class FlexibleSequenceGenerator(Sequence):
         y_array = np.array(batch_y)
 
         # Split inputs into feature-wise dictionaries for multi-input model
-        x_dict = {f"input_{FEATURE_NAMES[i]}": x_array[:, :, i] for i in range(len(FEATURE_NAMES))}
+        x_dict = {f"input_{config.features[i].name}": x_array[:, :, i] for i in range(len(config.features))}
 
         # Split outputs into feature-wise arrays for multi-output model
         y_outputs = tuple(y_array[:, i] for i in range(6))

@@ -1,12 +1,14 @@
 import json
 import os
 
-from groove_panda.config import FEATURE_NAMES, MODEL_PRESETS
+from groove_panda.config import Config
 from groove_panda.models import models, train as tr
 from groove_panda.models.flexible_sequence_generator import FlexibleSequenceGenerator
 from groove_panda.models.model_io import get_model_path, load_model, save_model
 from groove_panda.processing import processed_io
 from groove_panda.processing.tokenization import token_map_io
+
+config = Config()
 
 
 def train_model(model_id: str, processed_dataset_id: str, preset_name: str):
@@ -21,24 +23,19 @@ def train_model(model_id: str, processed_dataset_id: str, preset_name: str):
     file_paths = processed_io.get_processed_file_paths(processed_dataset_id)
 
     # Load metadata for vocab sizes
-    token_maps_dir = os.path.join("data/token_maps", processed_dataset_id)
+    token_maps_dir = os.path.join(config.token_maps_dir, processed_dataset_id)
     with open(os.path.join(token_maps_dir, "metadata.json")) as f:
         metadata = json.load(f)
 
     vocab_sizes = {
-        "bar": metadata[token_map_io.TOTAL_UNIQUE_BAR_TOKENS],
-        "position": metadata[token_map_io.TOTAL_UNIQUE_POSITION_TOKENS],
-        "pitch": metadata[token_map_io.TOTAL_UNIQUE_PITCH_TOKENS],
-        "duration": metadata[token_map_io.TOTAL_UNIQUE_DURATION_TOKENS],
-        "velocity": metadata[token_map_io.TOTAL_UNIQUE_VELOCITY_TOKENS],
-        "tempo": metadata[token_map_io.TOTAL_UNIQUE_TEMPO_TOKENS],
+        feature.name: metadata[token_map_io.TOTAL_UNIQUE_BLANK_TOKENS % feature.name] for feature in config.features
     }
 
     # Get preset config
-    preset = MODEL_PRESETS[preset_name]
+    preset = config.model_presets[preset_name]
     sequence_length = preset["sequence_length"]
 
-    input_shape = (sequence_length, len(FEATURE_NAMES))
+    input_shape = (sequence_length, len(config.features))
 
     model_path = get_model_path(model_id)
 

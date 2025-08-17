@@ -6,11 +6,12 @@ from tensorflow.keras.layers import LSTM, Concatenate, Dense, Dropout, Embedding
 from tensorflow.keras.models import Model  # type: ignore
 from tensorflow.keras.optimizers import Adam  # type: ignore
 
-from groove_panda.config import MODEL_PRESETS
+from groove_panda.config import Config
 from groove_panda.models.tf_custom.callbacks import TerminalPrettyCallback
 from groove_panda.models.tf_custom.losses import SoftCategoricalKLDivergence
 from groove_panda.models.utils import get_loss_weights
 
+config = Config()
 logger = logging.getLogger(__name__)
 
 
@@ -34,7 +35,7 @@ class BaseModel:
 
         raise NotImplementedError
 
-    def train(self, dataset, epochs, callbacks, tensorboard):
+    def train(self, dataset, validation_data, epochs, callbacks, tensorboard):
         raise NotImplementedError
 
     def set_model(self, model: Model):
@@ -96,33 +97,33 @@ class LSTMModel(BaseModel):
     def build(self, vocab_sizes: dict[str, int], preset_name: str = "basic"):
         """
         Builds the LSTMModel according to the hyperparameters defined
-        in MODEL_PRESETS[preset_name].
+        in the chosen preset.
 
         Arguments:
             vocab_sizes: A dict mapping each feature name to its vocabulary size.
-            preset_name: The key for the preset in MODEL_PRESETS to use.
+            preset_name: The key for the preset in config.model_presets to use.
         """
 
-        if preset_name not in MODEL_PRESETS:
-            raise ValueError(f"Unknown preset '{preset_name}'. Available presets: {list(MODEL_PRESETS.keys())}")
+        if preset_name not in config.model_presets:
+            raise ValueError(f"Unknown preset '{preset_name}'. Available presets: {list(config.model_presets.keys())}")
 
         logger.info(f"Training new model with the '{preset_name}' architecture preset.")
 
-        # Load configuration
-        config = MODEL_PRESETS[preset_name]
+        # Load preset
+        preset = config.model_presets[preset_name]
 
-        sequence_length: int = config["sequence_length"]
-        lstm_units: int = config["lstm_units"]
-        num_lstm_layers: int = config["num_lstm_layers"]
-        dropout_rate: float = config["dropout_rate"]
-        learning_rate: float = config["learning_rate"]
-        embedding_dims_config = config["embedding_dims"]  # Raw embedding dims, either an int or a dict
+        sequence_length: int = preset["sequence_length"]
+        lstm_units: int = preset["lstm_units"]
+        num_lstm_layers: int = preset["num_lstm_layers"]
+        dropout_rate: float = preset["dropout_rate"]
+        learning_rate: float = preset["learning_rate"]
+        embedding_dims_preset = preset["embedding_dims"]  # Raw embedding dims, either an int or a dict
 
-        if isinstance(embedding_dims_config, int):
+        if isinstance(embedding_dims_preset, int):
             # If user gave a single integer, apply it to all features
-            embedding_dims: dict[str, int] = dict.fromkeys(vocab_sizes, embedding_dims_config)
+            embedding_dims: dict[str, int] = dict.fromkeys(vocab_sizes, embedding_dims_preset)
         else:
-            embedding_dims: dict[str, int] = embedding_dims_config
+            embedding_dims: dict[str, int] = embedding_dims_preset
 
         # Create one Input() per feature, each taking a sequence of tokens
         input_layers = {
@@ -195,21 +196,20 @@ class LSTMModel(BaseModel):
 
         # Compile model using the specified learning rate
         # Adding gradient clipping to avoid extreme gradient values that may destroy the learning process
-        optimizer = Adam(
-            learning_rate=learning_rate,
-            clipnorm=1.0
-        )
-        built_model.compile(
-            optimizer=optimizer,
-            loss=loss_dict,
-            loss_weights=get_loss_weights(),
-            metrics=metric_dict
-        )
+        optimizer = Adam(learning_rate=learning_rate, clipnorm=1.0)
+        built_model.compile(optimizer=optimizer, loss=loss_dict, loss_weights=get_loss_weights(), metrics=metric_dict)
 
         # Assign model to this Model object's LSTM model.
         self._model = built_model
 
-    def train(self, dataset: tf.data.Dataset, epochs: int, callbacks: TerminalPrettyCallback, tensorboard):
+    def train(
+        self,
+        dataset: tf.data.Dataset,
+        validation_dataset: tf.data.Dataset,
+        epochs: int,
+        callbacks: TerminalPrettyCallback,
+        tensorboard,
+    ):
         """
         Trains the model using the provided sequence generator for the provided number of epochs.
         Updates the model's history to reflect data from ALL training sessions.
@@ -220,6 +220,7 @@ class LSTMModel(BaseModel):
             total_epochs = self._epochs_trained + epochs
             history = self._model.fit(
                 dataset,
+                validation_data=validation_dataset,
                 epochs=total_epochs,
                 initial_epoch=self._epochs_trained,
                 verbose=0,

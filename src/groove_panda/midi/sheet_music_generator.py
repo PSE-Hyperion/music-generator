@@ -6,8 +6,9 @@ import os
 
 from music21 import stream
 
-from groove_panda.config import CREATE_SHEET_MUSIC, OUTPUT_SHEET_MUSIC_DIR
+from groove_panda.config import Config
 
+config = Config()
 logger = logging.getLogger(__name__)
 
 # Counter for automatic, sequential filenames
@@ -29,15 +30,15 @@ def generate_sheet_music(
         - Prints status messages; does not return a value.
     """
     # Only generate sheet music if enabled in config
-    if not CREATE_SHEET_MUSIC:
+    if not config.create_sheet_music:
         logger.info("Sheet music generation is disabled (CREATE_SHEET_MUSIC=False).")
         return
 
-    os.makedirs(OUTPUT_SHEET_MUSIC_DIR, exist_ok=True)
+    os.makedirs(config.output_sheet_music_dir, exist_ok=True)
 
     # Construct filename and write, overwriting if necessary
     index = next(SHEET_INDEX)
     filename = f"{prefix}{index}.xml"
-    filepath = os.path.join(OUTPUT_SHEET_MUSIC_DIR, filename)
+    filepath = os.path.join(config.output_sheet_music_dir, filename)
     score.write("musicxml", fp=filepath)
     logger.info("Wrote MusicXML to %s", filepath)

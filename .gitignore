@@ -73,3 +73,5 @@ data/**
 
 # Exclude config.py for now (if you want to push a new version, containging new features, use git add file_dir -f)
 src/groove_panda/config.py
+data/
+/data
