@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.losses import CategoricalCrossentropy, KLDivergence, Loss
 
-from groove_panda.models.tf_custom.math_utils import get_normal_distribution_array
+from groove_panda.models.tf_custom import math_utils
 
 
 class SoftCategoricalKLDivergence(Loss):
@@ -79,5 +79,26 @@ class NormalDistributedCategorialKLDivergence(SoftCategoricalKLDivergence):
         reduction='sum_over_batch_size',
         from_logits: bool = False,
     ):
-        distribution = get_normal_distribution_array(sigma, epsilon)
+        distribution = math_utils.generate_normal_distribution_array(sigma, epsilon)
         super().__init__(distribution=distribution, name=name, reduction=reduction, from_logits=from_logits)
+
+class CategoricalExpectedMSE(Loss):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+    def call(self, y_true: tf.Tensor, y_pred: tf.Tensor):
+        return tf.map_fn(
+            lambda x: math_utils.expected_mse(x[0], x[1]),
+            (y_pred, y_true),
+            fn_output_signature=tf.float32
+        )
+
+class SumUnderRange(Loss):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def call(self, y_true: tf.Tensor, y_pred: tf.Tensor):
+        return tf.map_fn(
+            lambda x: math_utils.sum_under_range(x[0], x[1]),
+            (y_pred, y_true),
+            fn_output_signature=tf.float32
+        )

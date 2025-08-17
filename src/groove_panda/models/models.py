@@ -3,12 +3,13 @@ import logging
 import tensorflow as tf
 from tensorflow.keras.callbacks import History  # type: ignore
 from tensorflow.keras.layers import LSTM, Concatenate, Dense, Dropout, Embedding, Input  # type: ignore
+from tensorflow.keras.losses import SparseCategoricalCrossentropy
 from tensorflow.keras.models import Model  # type: ignore
 from tensorflow.keras.optimizers import Adam  # type: ignore
 
 from groove_panda.config import Config
+from groove_panda.models.tf_custom import feature_losses
 from groove_panda.models.tf_custom.callbacks import TerminalPrettyCallback
-from groove_panda.models.tf_custom.losses import SoftCategoricalKLDivergence
 from groove_panda.models.utils import get_loss_weights
 
 config = Config()
@@ -187,11 +188,21 @@ class LSTMModel(BaseModel):
             name=f"{self.model_id}_midi_lstm",
         )
 
-        # Prepare and set the loss function and metrics for each output
-        loss_dict = {
-            f"output_{feature_name}": SoftCategoricalKLDivergence([0.05, 0.1, 0.7, 0.1, 0.05])
-            for feature_name in vocab_sizes
-        }
+        if config.enable_custom_losses:
+            loss_dict = {
+                "output_bar": feature_losses.Bar(),
+                "output_position": feature_losses.Position(),
+                "output_pitch": feature_losses.Pitch(),
+                "output_duration": feature_losses.Duration(),
+                "output_velocity": feature_losses.Velocity(),
+                "output_tempo": feature_losses.Tempo()
+            }
+        else:
+            loss_dict = {
+                f"output_{feature_name}": SparseCategoricalCrossentropy()
+                for feature_name in vocab_sizes
+            }
+
         metric_dict = {f"output_{feature_name}": "accuracy" for feature_name in vocab_sizes}
 
         # Compile model using the specified learning rate

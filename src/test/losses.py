@@ -22,3 +22,11 @@ loss_fn = losses.NormalDistributedCategorialKLDivergence(1, 1e-4)
 
 loss = loss_fn(y_true, y_pred)
 print("Loss:", loss.numpy())
+
+
+y_true = tf.constant([3])
+y_pred = tf.constant([[0.1, 0.2, 0.4, 0.2, 0.1]])
+
+loss_fn = losses.SumUnderRange()
+loss = loss_fn(y_true, y_pred)
+print(f"Expected distance: {loss}")
