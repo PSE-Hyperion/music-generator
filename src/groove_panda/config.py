@@ -57,7 +57,10 @@ class Config:
     Important for the split into training and validation dataset.
     Seed is useful for random but repeatable split.
     """
-    song_shuffle_seed: int = DEFAULT_NUMBER
+    training_validation_split_seed: int = DEFAULT_NUMBER
+    dataset_shuffle_seed: int = DEFAULT_NUMBER
+    model_init_params_seed: int = DEFAULT_NUMBER
+    model_dropout_seed: int = DEFAULT_NUMBER
     """
     Relative share of the validation dataset (between 0 and 1)
     The validation will get executed after every epoch

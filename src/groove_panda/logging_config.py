@@ -1,5 +1,6 @@
 import logging
 import sys
+import traceback
 
 """
 Trying to load packages for colored logging outputs
@@ -21,6 +22,12 @@ class ColoredFormatter(logging.Formatter):
     def format(self, record):
         name = record.name.upper()
         msg = record.getMessage()
+
+        # Exception-Info ergänzen
+        if record.exc_info:
+            msg += "\n" + self.formatException(record.exc_info)
+        if record.stack_info:
+            msg += "\n" + self.formatStack(record.stack_info)
 
         # Choose color for the levels
         if record.levelno >= logging.ERROR:
