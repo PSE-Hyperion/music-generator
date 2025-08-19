@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from itertools import count
 import logging
 import os
 
