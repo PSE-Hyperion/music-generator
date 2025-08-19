@@ -106,6 +106,8 @@ class LSTMModel(BaseModel):
             preset_name: The key for the preset in config.model_presets to use.
         """
         model_init_params_rng = SeedGenerator(seed=config.model_init_params_seed) # random number generator for layer initialization seeds
+        logger.debug("Initializing model with seed %s", config.model_init_params_seed)
+        logger.debug("Dropout layers will be set with seed %s", config.model_dropout_seed)
 
         if preset_name not in config.model_presets:
             raise ValueError(f"Unknown preset '{preset_name}'. Available presets: {list(config.model_presets.keys())}")
