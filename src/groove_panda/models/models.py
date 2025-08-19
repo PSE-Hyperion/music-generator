@@ -1,4 +1,5 @@
 import logging
+import random
 
 import tensorflow as tf
 from tensorflow.keras.callbacks import History  # type: ignore
@@ -9,8 +10,8 @@ from tensorflow.keras.optimizers import Adam  # type: ignore
 from tensorflow.keras.random import SeedGenerator
 
 from groove_panda.config import Config
+from groove_panda.models import utils
 from groove_panda.models.tf_custom.callbacks import TerminalPrettyCallback
-from groove_panda.models.utils import get_loss_weights
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -104,8 +105,7 @@ class LSTMModel(BaseModel):
             vocab_sizes: A dict mapping each feature name to its vocabulary size.
             preset_name: The key for the preset in config.model_presets to use.
         """
-        model_init_params_rng = SeedGenerator(seed=config.model_init_params_seed)
-        model_dropout_rng = SeedGenerator(seed=config.model_dropout_seed)
+        model_init_params_rng = SeedGenerator(seed=config.model_init_params_seed) # random number generator for layer initialization seeds
 
         if preset_name not in config.model_presets:
             raise ValueError(f"Unknown preset '{preset_name}'. Available presets: {list(config.model_presets.keys())}")
@@ -178,7 +178,7 @@ class LSTMModel(BaseModel):
             # Add a Dropout layer to avoid overfitting.
             x = Dropout(
                 rate=dropout_rate,
-                seed=10,
+                seed=random.seed(config.model_dropout_seed),
                 name=f"dropout_after_lstm_{layer_index + 1}"
             )(x)
 
@@ -189,6 +189,7 @@ class LSTMModel(BaseModel):
             dense_output = Dense(
                 units=vocab_size,  # Number of classes for this feature
                 activation="softmax",  # We want a probability distribution
+                kernel_initializer=GlorotUniform(seed=model_init_params_rng),
                 name=f"output_{feature_name}",
             )(x)  # Append this dense layer to the last LSTM/Dropout output
             output_tensors[f"output_{feature_name}"] = dense_output
@@ -207,10 +208,11 @@ class LSTMModel(BaseModel):
         # Compile model using the specified learning rate
         # Adding gradient clipping to avoid extreme gradient values that may destroy the learning process
         optimizer = Adam(learning_rate=learning_rate, clipnorm=1.0)
-        built_model.compile(optimizer=optimizer, loss=loss_dict, loss_weights=get_loss_weights(), metrics=metric_dict)
+        built_model.compile(optimizer=optimizer, loss=loss_dict, loss_weights=utils.get_loss_weights(), metrics=metric_dict)
 
         # Assign model to this Model object's LSTM model.
         self._model = built_model
+        logger.debug("Built model with initial weights hash: %s", utils.model_weights_hash(built_model))
 
     def train(
         self,
