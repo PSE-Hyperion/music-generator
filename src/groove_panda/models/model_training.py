@@ -1,10 +1,12 @@
 import json
 import os
 
+from groove_panda import directories
 from groove_panda.config import Config
 from groove_panda.models import models, train as tr
 from groove_panda.models.flexible_sequence_generator import FlexibleSequenceGenerator
 from groove_panda.models.model_io import get_model_path, load_model, save_model
+from groove_panda.models.utils import generate_unique_name
 from groove_panda.processing import processed_io
 from groove_panda.processing.tokenization import token_map_io
 
@@ -23,7 +25,7 @@ def train_model(model_id: str, processed_dataset_id: str, preset_name: str):
     file_paths = processed_io.get_processed_file_paths(processed_dataset_id)
 
     # Load metadata for vocab sizes
-    token_maps_dir = os.path.join(config.token_maps_dir, processed_dataset_id)
+    token_maps_dir = os.path.join(directories.token_maps_dir, processed_dataset_id)
     with open(os.path.join(token_maps_dir, "metadata.json")) as f:
         metadata = json.load(f)
 
@@ -43,7 +45,7 @@ def train_model(model_id: str, processed_dataset_id: str, preset_name: str):
     if os.path.exists(model_path):
         model = load_model(model_id)[0]  # Get the model, discard the config
     else:
-        model = models.LSTMModel(model_id, input_shape)
+        model = models.LSTMModel(generate_unique_name(model_id), input_shape)
         model.build(vocab_sizes=vocab_sizes, preset_name=preset_name)
 
     # Use flexible sequence generator instead of loading all data

@@ -5,6 +5,7 @@ import shutil
 from matplotlib import pyplot as plt
 from tensorflow.keras.callbacks import History  # type: ignore
 
+from groove_panda import directories
 from groove_panda.config import Config
 
 config = Config()
@@ -17,15 +18,15 @@ logger = logging.getLogger(__name__)
 
 def plot_training(history: History, model_name: str):
     if config.plot_training:
-        dir_path = os.path.join(config.plot_dir, f"training_{model_name}")
+        plot_path = os.path.join(directories.models_dir, model_name, f"training_{model_name}")
 
         # If the dir exists, it's an old version. Delete it so the new version can be saved.
-        if os.path.exists(dir_path):
-            shutil.rmtree(dir_path)
+        if os.path.exists(plot_path):
+            shutil.rmtree(plot_path)
 
-        os.makedirs(dir_path, exist_ok=False)
-        _plot_training_history(history, model_name, dir_path)
-        _plot_training_metrics_separate(history, model_name, dir_path)
+        os.makedirs(plot_path, exist_ok=False)
+        _plot_training_history(history, model_name, plot_path)
+        _plot_training_metrics_separate(history, model_name, plot_path)
 
 
 def _plot_training_history(history, model_name: str, dir_path: str):

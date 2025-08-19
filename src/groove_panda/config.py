@@ -3,8 +3,8 @@ import json
 import logging
 import os
 import threading
-from typing import Final
 
+from groove_panda import directories
 from groove_panda.utils import overwrite_json
 
 logger = logging.getLogger(__name__)
@@ -68,7 +68,7 @@ class Config:
     EMPTY_LIST = []  # noqa: RUF012
     EMPTY_DICT = {}  # noqa: RUF012
 
-    # default loss weights
+    # Loss weights
     loss_weights: dict[str, float] = EMPTY_DICT
 
     # Hyperparameters
@@ -108,20 +108,9 @@ class Config:
     # Generation settings
     feature_temperatures: dict[str, float] = {}  # noqa: RUF012
 
-    # Directories
-    config_dir: Final[str] = "data/configs"
+    # Others
     config_path: str
     config_name: str
-    datasets_midi_dir: str = DEFAULT_STR
-    input_midi_dir: str = DEFAULT_STR
-    results_midi_dir: str = DEFAULT_STR
-    models_dir: str = DEFAULT_STR
-    processed_dir: str = DEFAULT_STR
-    token_maps_dir: str = DEFAULT_STR
-    plot_dir: str = DEFAULT_STR
-    output_sheet_music_dir: str = DEFAULT_STR
-    log_dir: str = DEFAULT_STR
-    result_tokens_dir: str = DEFAULT_STR
 
     # Debugging and diagnostics settings
     plot_training: bool = DEFAULT_BOOL
@@ -180,7 +169,7 @@ class Config:
 
     def load_config(self, config_name: str):
         config_file_name = config_name + ".json"
-        config_path = os.path.join(self.config_dir, config_file_name)
+        config_path = os.path.join(directories.config_dir, config_file_name)
 
         logger.info(f"Loading config {config_name}...")
 
@@ -216,6 +205,10 @@ class Config:
 
             if isinstance(current_setting, Enum):
                 self.config[key] = current_setting.name
+            elif isinstance(current_setting, list):
+                if isinstance(list[0], Feature):
+                    feature_list = [feature.name for feature in current_setting]
+                    self.config[key] = feature_list
             else:
                 self.config[key] = current_setting
 
@@ -223,7 +216,7 @@ class Config:
         if directory is not self.DEFAULT_STR:
             config_path = os.path.join(directory, name + ".json")
         else:
-            config_path = os.path.join(self.config_dir, name + ".json")
+            config_path = os.path.join(directories.config_dir, name + ".json")
 
         # Convert the config dictionary to a .json and save it in the configs folder
         overwrite_json(config_path, self.config)
@@ -241,7 +234,7 @@ class Config:
         This method takes the current config settings and overwrites the file that they are based on.
         After this method is called, the file will reflect the config settings currently active in the program.
         """
-        self.save_config(self.config_name, self.config_dir)
+        self.save_config(self.config_name, directories.config_dir)
 
     def update(self):
         """
@@ -310,8 +303,8 @@ class Config:
                     setattr(self, setting, value)
             else:
                 setattr(self, setting, value)
-                logger.info(f"The setting {setting} might be too complicated to change via the terminal")
-                logger.info("If it failed, consider changing it in the file itself and using the '-update' command :D")
+                logger.debug(f"The setting {setting} might be too complicated to change via the terminal")
+                logger.debug("If it failed, consider changing it in the file itself and using the '-update' command :D")
                 return
 
             self.logger.debug(f"Set setting {setting} to value {value}")

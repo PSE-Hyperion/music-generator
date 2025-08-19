@@ -5,6 +5,7 @@ import os
 from mido import MidiFile
 from music21 import converter, key, stream
 
+from groove_panda import directories
 from groove_panda.config import Config, Parser
 
 config = Config()
@@ -22,7 +23,7 @@ def get_midi_paths_from_dataset(dataset_id: str) -> list[str]:
 
     logger.info("Started parsing %s...", dataset_id)
 
-    path = os.path.join(config.datasets_midi_dir, dataset_id)
+    path = os.path.join(directories.raw_datasets_dir, dataset_id)
 
     midi_paths = []
 
