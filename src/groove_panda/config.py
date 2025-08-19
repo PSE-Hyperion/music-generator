@@ -31,6 +31,30 @@ class Parser(Enum):
     MIDO = auto()
 
 
+class Feature:
+    def __init__(self, name: str, min_value: float, max_value: float, step: float) -> None:
+        self._name = name
+        self._min_value = min_value
+        self._max_value = max_value
+        self._step = step
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def min_value(self) -> float:
+        return self._min_value
+
+    @property
+    def max_value(self) -> float:
+        return self._max_value
+
+    @property
+    def step(self) -> float:
+        return self._step
+
+
 class Config:
     # Special config settings - do not touch
     _instance: "Config | None" = None  # Holds the one-and-only instance
@@ -42,6 +66,10 @@ class Config:
     DEFAULT_STR = ""
     DEFAULT_BOOL = False
     EMPTY_LIST = []  # noqa: RUF012
+    EMPTY_DICT = {}  # noqa: RUF012
+
+    # default loss weights
+    loss_weights: dict[str, float] = EMPTY_DICT
 
     # Hyperparameters
     sequence_length: int = DEFAULT_NUMBER
@@ -70,7 +98,8 @@ class Config:
     # General settings
     parser: Parser
     allowed_music_file_extensions: list[str] = EMPTY_LIST
-    feature_names: list[str] = EMPTY_LIST
+    features: list[Feature] = EMPTY_LIST
+    feature_token_separator: str = DEFAULT_STR
     model_type: str = DEFAULT_STR
     config: dict  # The entire config file will be saved here
 
@@ -80,8 +109,7 @@ class Config:
     default_tempo: int = DEFAULT_NUMBER
 
     # Generation settings
-    tempo_round_value: int = DEFAULT_NUMBER  # Rounds all tempo values
-    generation_temperature: float = DEFAULT_NUMBER
+    feature_temperatures: dict[str, float] = {}  # noqa: RUF012
 
     # Directories
     config_dir: Final[str] = "data/configs"
@@ -236,7 +264,7 @@ class Config:
             try:
                 cast = Parser[value]
             except KeyError as e:
-                raise ValueError(f"Unknown tokenize_mode '{value}' in {self.config_path}") from e
+                raise ValueError(f"Unknown parser '{value}' in {self.config_path}") from e
             setattr(self, setting, cast)
 
         elif setting == "tokenize_mode":
@@ -244,6 +272,24 @@ class Config:
                 cast = TokenizeMode[value]
             except KeyError as e:
                 raise ValueError(f"Unknown tokenize_mode '{value}' in {self.config_path}") from e
+            setattr(self, setting, cast)
+
+        elif setting == "loss_weights":
+            if not isinstance(value, dict):
+                self.logger.error("loss_weights must be a mapping")
+                return
+            try:
+                loss_weights = {str(key): float(value) for key, value in value.items()}
+            except (TypeError, ValueError) as e:
+                raise ValueError("loss_weights values must be numeric") from e
+            setattr(self, setting, loss_weights)
+            self.logger.debug(f"Set setting {setting} to value {loss_weights}")
+        # Das ist neu von mir reingemerged. Prüfe, ob alles noch klappt
+        elif setting == "features":
+            try:
+                cast = [Feature(*entry) for entry in value]
+            except KeyError as e:
+                raise ValueError(f"Unknown features '{value}' in {self.config_path}") from e
             setattr(self, setting, cast)
 
         else:

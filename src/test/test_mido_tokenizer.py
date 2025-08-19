@@ -1,6 +1,6 @@
 import os
 
-from groove_panda.config import Config, Parser, TokenizeMode
+from groove_panda.config import Config
 from groove_panda.midi import parser, writer
 from groove_panda.processing.tokenization import tokenizer as t
 
@@ -15,8 +15,6 @@ def test_tokenize_detokenize(midi_file: str):
 
     Uses mido as parser and tokenizer mode original.
     """
-    config.parser = Parser.MIDO
-    config.tokenize_mode = TokenizeMode.ORIGINAL
     tokenizer = t.Tokenizer("")
     writer.write_midi(
         "tokenize_detokenize_mido_result",

@@ -7,11 +7,6 @@ from groove_panda.config import Config
 logger = logging.getLogger(__name__)
 config = Config()
 
-existing_result_ids = set()
-existing_dataset_ids = set()
-existing_processed_ids = set()
-existing_model_ids = set()
-
 
 def delete_dataset_data(dataset_id: str):
     """
@@ -116,42 +111,58 @@ def _delete_folder_contents(folder_path):
             logger.info(f"Could not remove: {content_path}")
 
 
-def add_result_id(result_id: str):
-    if result_id not in existing_result_ids:
-        existing_result_ids.add(result_id)
-
-
-def get_existing_result_ids():
-    # look at all the files in results, needed in case the programm got closed
+def get_existing_result_ids() -> list[str]:
+    """
+    Iterates through all entries in the respected data folder and returns all names (ids) sorted.
+    """
+    existing_result_ids = set()
     for result in os.listdir(config.results_midi_dir):
         if result != ".gitkeep":
             existing_result_ids.add(result)
     return sorted(existing_result_ids)
 
 
-def get_existing_processed_ids():
-    # needed in case the programm got closed
+def get_existing_processed_ids() -> list[str]:
+    """
+    Iterates through all entries in the respected data folder and returns all names (ids) sorted.
+    """
+    existing_processed_ids = set()
     for processed in os.listdir(config.processed_dir):
         if processed != ".gitkeep":
-            existing_dataset_ids.add(processed)
-    return sorted(existing_dataset_ids)
+            existing_processed_ids.add(processed)
+    return sorted(existing_processed_ids)
 
 
-def add_dataset_id(dataset_id: str):
-    if dataset_id not in existing_dataset_ids:
-        existing_dataset_ids.add(dataset_id)
+def get_existing_input_ids() -> list[str]:
+    """
+    Iterates through all entries in the respected data folder and returns all names (ids) sorted.
+
+    Removes extensions from input file names.
+    """
+    existing_input_ids = set()
+    for input in os.listdir(config.input_midi_dir):
+        if input != ".gitkeep":
+            input_without_extension = os.path.splitext(input)[0]
+            existing_input_ids.add(input_without_extension)
+    return sorted(existing_input_ids)
 
 
-def get_existing_dataset_ids():
-    # neede in case the programm got closed
+def get_existing_dataset_ids() -> list[str]:
+    """
+    Iterates through all entries in the respected data folder and returns all names (ids) sorted.
+    """
+    existing_dataset_ids = set()
     for dataset in os.listdir(config.datasets_midi_dir):
         if dataset != ".gitkeep":
             existing_dataset_ids.add(dataset)
     return sorted(existing_dataset_ids)
 
 
-def get_existing_model_ids():
-    # neede in case the programm got closed
+def get_existing_model_ids() -> list[str]:
+    """
+    Iterates through all entries in the respected data folder and returns all names (ids) sorted.
+    """
+    existing_model_ids = set()
     for model in os.listdir(config.models_dir):
         if model != ".gitkeep":
             existing_model_ids.add(model)

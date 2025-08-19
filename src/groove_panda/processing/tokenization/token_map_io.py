@@ -9,13 +9,9 @@ from groove_panda.processing.tokenization.tokenizer import SixtupleTokenMaps
 config = Config()
 logger = logging.getLogger(__name__)
 
-TOTAL_UNIQUE_BAR_TOKENS: Final = "total_unique_bar_tokens"
-TOTAL_UNIQUE_POSITION_TOKENS: Final = "total_unique_position_tokens"
-TOTAL_UNIQUE_PITCH_TOKENS: Final = "total_unique_pitch_tokens"
-TOTAL_UNIQUE_DURATION_TOKENS: Final = "total_unique_duration_tokens"
-TOTAL_UNIQUE_VELOCITY_TOKENS: Final = "total_unique_velocity_tokens"
-TOTAL_UNIQUE_TEMPO_TOKENS: Final = "total_unique_tempo_tokens"
+TOTAL_UNIQUE_BLANK_TOKENS: Final = "total_unique_%s_tokens"
 TOTAL_UNIQUE_TOKENS: Final = "total_unique_tokens"
+MAP: Final = "_map"
 
 
 def save_token_maps(processed_dataset_id: str, token_maps: SixtupleTokenMaps):
@@ -27,43 +23,31 @@ def save_token_maps(processed_dataset_id: str, token_maps: SixtupleTokenMaps):
 
     logger.info("Start saving maps...")
 
-    total_unique_tokens = token_maps.total_size
-
-    logger.info("Total unique tokens: %s", total_unique_tokens)
-
     folder_path = os.path.join(config.token_maps_dir, processed_dataset_id)
     os.makedirs(folder_path, exist_ok=False)
 
-    # save important information with maps just in case
-    metadata = {
-        TOTAL_UNIQUE_BAR_TOKENS: token_maps.bar_map_size,
-        TOTAL_UNIQUE_POSITION_TOKENS: token_maps.position_map_size,
-        TOTAL_UNIQUE_PITCH_TOKENS: token_maps.pitch_map_size,
-        TOTAL_UNIQUE_DURATION_TOKENS: token_maps.duration_map_size,
-        TOTAL_UNIQUE_VELOCITY_TOKENS: token_maps.velocity_map_size,
-        TOTAL_UNIQUE_TEMPO_TOKENS: token_maps.tempo_map_size,
-        TOTAL_UNIQUE_TOKENS: total_unique_tokens,
-    }
+    _save_token_maps_metadata(folder_path, token_maps)
+
+    # Saves individual maps as readable json (could be made to pkl later)
+    for name, d in token_maps.maps:
+        file_path = os.path.join(folder_path, f"{name}{MAP}.json")
+        with open(file_path, "w") as f:
+            json.dump(d, f, indent=4)
+
+    logger.info("Finished saving maps")
+
+
+def _save_token_maps_metadata(folder_path: str, token_maps: SixtupleTokenMaps):
+    total_unique_tokens = token_maps.total_size
+    logger.info("Total unique tokens: %s", total_unique_tokens)
+    metadata = {TOTAL_UNIQUE_BLANK_TOKENS % name: size for name, size in token_maps.map_sizes}
+    metadata[TOTAL_UNIQUE_TOKENS] = total_unique_tokens
+    with open(os.path.join(folder_path, "metadata.json"), "w") as f:
+        json.dump(metadata, f, indent=4)
 
     # Saves metadata of all maps
     with open(os.path.join(folder_path, "metadata.json"), "w") as f:
         json.dump(metadata, f, indent=4)
-
-    # Saves individual maps as readable json (could be made to pkl later)
-    with open(os.path.join(folder_path, "bar_map.json"), "w") as f:
-        json.dump(token_maps.bar_map, f, indent=4)
-    with open(os.path.join(folder_path, "position_map.json"), "w") as f:
-        json.dump(token_maps.position_map, f, indent=4)
-    with open(os.path.join(folder_path, "pitch_map.json"), "w") as f:
-        json.dump(token_maps.pitch_map, f, indent=4)
-    with open(os.path.join(folder_path, "duration_map.json"), "w") as f:
-        json.dump(token_maps.duration_map, f, indent=4)
-    with open(os.path.join(folder_path, "velocity_map.json"), "w") as f:
-        json.dump(token_maps.velocity_map, f, indent=4)
-    with open(os.path.join(folder_path, "tempo_map.json"), "w") as f:
-        json.dump(token_maps.tempo_map, f, indent=4)
-
-    logger.info("Finished saving maps")
 
 
 def load_token_maps(processed_dataset_id: str) -> tuple[dict, dict, dict]:

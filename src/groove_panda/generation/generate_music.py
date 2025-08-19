@@ -19,7 +19,7 @@ def generate_music(model_name: str, input_name: str, output_name: str):
     Load model -> Load input MIDI -> Generate -> Save output
     """
 
-    print(f"Starting music generation with model: {model_name}")
+    logger.info(f"Starting music generation with model: {model_name}")
 
     # Load the trained model
     model, model_metadata = load_model(model_name)
@@ -31,12 +31,12 @@ def generate_music(model_name: str, input_name: str, output_name: str):
         )
 
     token_maps, metadata, reverse_mappings = token_map_io.load_token_maps(processed_dataset_id)
-    generator = MusicGenerator(model.model, token_maps, reverse_mappings, metadata, config.generation_temperature)
+    generator = MusicGenerator(model.model, token_maps, reverse_mappings, metadata)
 
     # Load seed sequence from input MIDI file
     input_midi_path = None
     for ext in config.allowed_music_file_extensions:
-        candidate = os.path.join("data/midi/input", f"{input_name}{ext}")
+        candidate = os.path.join(config.input_midi_dir, f"{input_name}{ext}")
         if os.path.exists(candidate):
             input_midi_path = candidate
             break
@@ -47,7 +47,7 @@ def generate_music(model_name: str, input_name: str, output_name: str):
 
     score = parse_midi(input_midi_path)
     tokenizer = Tokenizer(processed_dataset_id)
-    sixtuples = tokenizer.tokenize(score)
+    sixtuples = tokenizer.tokenize_original_key(score)
 
     # Convert to numeric tuples
     seed_sequence = []
