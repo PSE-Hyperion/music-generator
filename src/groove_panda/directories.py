@@ -6,7 +6,7 @@ Excluded are directories and paths that change frequently or during runtime.
 import os
 from typing import Final
 
-base_dir: Final[str] = "testdata"
+base_dir: Final[str] = "data"
 
 # Config
 config_name: Final[str] = "config"
