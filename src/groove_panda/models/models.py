@@ -9,7 +9,6 @@ from tensorflow.keras.optimizers import Adam  # type: ignore
 
 from groove_panda.config import Config
 from groove_panda.models.tf_custom import feature_losses
-from groove_panda.models.tf_custom.callbacks import TerminalPrettyCallback
 from groove_panda.models.utils import get_loss_weights
 
 config = Config()
@@ -36,7 +35,7 @@ class BaseModel:
 
         raise NotImplementedError
 
-    def train(self, dataset, validation_data, epochs, callbacks, tensorboard):
+    def train(self, dataset, validation_data, epochs, callbacks):
         raise NotImplementedError
 
     def set_model(self, model: Model):
@@ -218,8 +217,7 @@ class LSTMModel(BaseModel):
         dataset: tf.data.Dataset,
         validation_dataset: tf.data.Dataset,
         epochs: int,
-        callbacks: TerminalPrettyCallback,
-        tensorboard,
+        callbacks: list,
     ):
         """
         Trains the model using the provided sequence generator for the provided number of epochs.
@@ -234,8 +232,8 @@ class LSTMModel(BaseModel):
                 validation_data=validation_dataset,
                 epochs=total_epochs,
                 initial_epoch=self._epochs_trained,
-                verbose=0,
-                callbacks=[callbacks, tensorboard],
+                verbose=1,
+                callbacks=callbacks
             )
             self.add_epochs(epochs)
 

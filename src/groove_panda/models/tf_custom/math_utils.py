@@ -18,9 +18,9 @@ def expected_mse(distribution: tf.Tensor, target: tf.Tensor) -> tf.Tensor:
     difference = indexes - target
     normalized_difference = difference / max_possible_distance
     mse_distances = normalized_difference ** 2
-    expected_mse = tf.reduce_sum(mse_distances * distribution)
+    expected_mse_value = tf.reduce_sum(mse_distances * distribution)
 
-    return expected_mse
+    return expected_mse_value  # noqa: RET504
 
 def sum_under_range(distribution: tf.Tensor, limit: tf.Tensor) -> tf.Tensor:
     limit = tf.maximum(tf.cast(limit, tf.int32), 0)
@@ -35,6 +35,6 @@ def generate_normal_distribution_array(sigma, epsilon):
     distribution = np.exp(-0.5 * (distribution_arguments / sigma) ** 2)
     distribution = distribution / np.sum(distribution)
 
-    return distribution
+    return distribution  # noqa: RET504
     # Calculate he gauss probability function
 

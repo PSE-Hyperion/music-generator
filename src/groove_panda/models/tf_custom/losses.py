@@ -2,11 +2,13 @@ from typing import Literal
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.losses import CategoricalCrossentropy, KLDivergence, Loss
+from tensorflow.keras.losses import KLDivergence, Loss
+from tensorflow.keras.saving import register_keras_serializable
 
 from groove_panda.models.tf_custom import math_utils
 
 
+@register_keras_serializable(package="Custom", name="SoftCategoricalKLDivergence")
 class SoftCategoricalKLDivergence(Loss):
     def __init__(
         self,
@@ -30,7 +32,6 @@ class SoftCategoricalKLDivergence(Loss):
     def call(self, y_true: tf.Tensor, y_pred: tf.Tensor):
         #  shape of y_true is a 2D matrix with batch on axis 0 and probability on axis 1.
         # Create an empty 2D matrix for the ground truth distribution, but softened.
-        batch_size = tf.shape(y_pred)[0]
         num_classes = tf.cast(tf.shape(y_pred)[1], dtype=tf.int32)
 
 
@@ -60,16 +61,13 @@ class SoftCategoricalKLDivergence(Loss):
             indices = tf.expand_dims(indices, 1)
             soft = tf.tensor_scatter_nd_update(soft, indices, values_to_insert)
 
-            return soft
+            return soft  # noqa: RET504
 
-        y_true_soft = tf.map_fn(create_soft_label, y_true, dtype=tf.float32)
-        cce_loss = CategoricalCrossentropy(reduction=self.reduction)
+        y_true_soft = tf.map_fn(create_soft_label, y_true, fn_output_signature=tf.float32)
         kl_loss = KLDivergence(reduction=self.reduction)
-        print(y_true)
-        print(y_true_soft)
-        print(y_pred)
         return kl_loss(y_true_soft, y_pred)
 
+@register_keras_serializable(package="Custom", name="NormalDistributedCategorialKLDivergence")
 class NormalDistributedCategorialKLDivergence(SoftCategoricalKLDivergence):
     def __init__(
         self,
@@ -82,6 +80,7 @@ class NormalDistributedCategorialKLDivergence(SoftCategoricalKLDivergence):
         distribution = math_utils.generate_normal_distribution_array(sigma, epsilon)
         super().__init__(distribution=distribution, name=name, reduction=reduction, from_logits=from_logits)
 
+@register_keras_serializable(package="Custom", name="CategoricalExpectedMSE")
 class CategoricalExpectedMSE(Loss):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -92,6 +91,7 @@ class CategoricalExpectedMSE(Loss):
             fn_output_signature=tf.float32
         )
 
+@register_keras_serializable(package="Custom", name="CategoricalExpectedMSE")
 class SumUnderRange(Loss):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
