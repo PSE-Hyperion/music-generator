@@ -1,6 +1,5 @@
 import logging
 import sys
-import traceback
 
 """
 Trying to load packages for colored logging outputs

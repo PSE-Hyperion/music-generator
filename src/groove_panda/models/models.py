@@ -105,7 +105,7 @@ class LSTMModel(BaseModel):
             vocab_sizes: A dict mapping each feature name to its vocabulary size.
             preset_name: The key for the preset in config.model_presets to use.
         """
-        model_init_params_rng = SeedGenerator(seed=config.model_init_params_seed) # random number generator for layer initialization seeds
+        model_init_params_rng = SeedGenerator(seed=config.model_init_params_seed) #seed generator for initial parameters
         logger.debug("Initializing model with seed %s", config.model_init_params_seed)
         logger.debug("Dropout layers will be set with seed %s", config.model_dropout_seed)
 
@@ -210,7 +210,12 @@ class LSTMModel(BaseModel):
         # Compile model using the specified learning rate
         # Adding gradient clipping to avoid extreme gradient values that may destroy the learning process
         optimizer = Adam(learning_rate=learning_rate, clipnorm=1.0)
-        built_model.compile(optimizer=optimizer, loss=loss_dict, loss_weights=utils.get_loss_weights(), metrics=metric_dict)
+        built_model.compile(
+            optimizer=optimizer,
+            loss=loss_dict,
+            loss_weights=utils.get_loss_weights(),
+            metrics=metric_dict
+        )
 
         # Assign model to this Model object's LSTM model.
         self._model = built_model

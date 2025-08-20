@@ -175,7 +175,7 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
         training_callback = TerminalPrettyCallback()
 
         tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=config.log_dir, histogram_freq=1)  # type: ignore
-        # Other callbacks can be added here for specific purposes
+        # Otinther callbacks can be added here for specific purposes
 
         history = model.train(
             train_dataset,
