@@ -102,6 +102,7 @@ class Config:
     features: list[Feature] = EMPTY_LIST
     feature_token_separator: str = DEFAULT_STR
     model_type: str = DEFAULT_STR
+    enable_custom_losses: bool = DEFAULT_BOOL
     config: dict  # The entire config file will be saved here
 
     # Tokenization settings
@@ -148,6 +149,7 @@ class Config:
                 cls._instance = super().__new__(cls)
 
                 """
+
                 Now an instance exists, but has not been initialized
                 It is necessary to let __init__ know that it still
                 has to do its one-time set up

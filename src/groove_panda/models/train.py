@@ -160,7 +160,7 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
 
         # Callbacks for pretty printing in the terminal and for TensorBoard logging
         # Early stopping ensures that the training stops when the validation loss doesn't improve
-        callbacks = [TensorBoard(log_dir=directories.log_dir, histogram_freq=1), TerminalPrettyCallback()]
+        callbacks = [TensorBoard(log_dir=directories.log_dir, histogram_freq=1)]
         if config.early_stopping_enabled:
             callbacks.append(
                 EarlyStopping(
@@ -173,17 +173,15 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
 
         logger.info("Start training...")
 
-        training_callback = TerminalPrettyCallback()
+        # training_callback = TerminalPrettyCallback() - left out for nowte
 
-        tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=directories.log_dir, histogram_freq=1)  # type: ignore
         # Other callbacks can be added here for specific purposes
 
         history = model.train(
             train_dataset,
             val_dataset,
             epochs=config.training_epochs,
-            callbacks=training_callback,
-            tensorboard=tensorboard_cb,
+            callbacks=callbacks,
         )
 
         logger.info("Finished training %s", model.model_id)

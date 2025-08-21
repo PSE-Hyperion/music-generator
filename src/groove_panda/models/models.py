@@ -5,13 +5,14 @@ import tensorflow as tf
 from tensorflow.keras.callbacks import History  # type: ignore
 from tensorflow.keras.initializers import GlorotUniform, Orthogonal, RandomUniform
 from tensorflow.keras.layers import LSTM, Concatenate, Dense, Dropout, Embedding, Input  # type: ignore
+from tensorflow.keras.losses import SparseCategoricalCrossentropy
 from tensorflow.keras.models import Model  # type: ignore
 from tensorflow.keras.optimizers import Adam  # type: ignore
 from tensorflow.keras.random import SeedGenerator
 
 from groove_panda.config import Config
 from groove_panda.models import utils
-from groove_panda.models.tf_custom.callbacks import TerminalPrettyCallback
+from groove_panda.models.tf_custom import feature_losses
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -37,7 +38,7 @@ class BaseModel:
 
         raise NotImplementedError
 
-    def train(self, dataset, validation_data, epochs, callbacks, tensorboard):
+    def train(self, dataset, validation_data, epochs, callbacks):
         raise NotImplementedError
 
     def set_model(self, model: Model):
@@ -105,7 +106,9 @@ class LSTMModel(BaseModel):
             vocab_sizes: A dict mapping each feature name to its vocabulary size.
             preset_name: The key for the preset in config.model_presets to use.
         """
-        model_init_params_rng = SeedGenerator(seed=config.model_init_params_seed) #seed generator for initial parameters
+        model_init_params_rng = SeedGenerator(
+            seed=config.model_init_params_seed
+        )  # seed generator for initial parameters
         logger.debug("Initializing model with seed %s", config.model_init_params_seed)
         logger.debug("Dropout layers will be set with seed %s", config.model_dropout_seed)
 
@@ -174,14 +177,14 @@ class LSTMModel(BaseModel):
                 return_sequences=return_sequences_flag,
                 kernel_initializer=GlorotUniform(seed=model_init_params_rng),
                 recurrent_initializer=Orthogonal(seed=model_init_params_rng),
-                name=f"lstm_layer_{layer_index + 1}"
+                name=f"lstm_layer_{layer_index + 1}",
             )(x)
 
             # Add a Dropout layer to avoid overfitting.
             x = Dropout(
                 rate=dropout_rate,
                 seed=random.seed(config.model_dropout_seed),
-                name=f"dropout_after_lstm_{layer_index + 1}"
+                name=f"dropout_after_lstm_{layer_index + 1}",
             )(x)
 
         # Add a per feature dense layer
@@ -203,18 +206,25 @@ class LSTMModel(BaseModel):
             name=f"{self.model_id}_midi_lstm",
         )
 
-        # Prepare and set the loss function and metrics for each output
-        loss_dict = {f"output_{feature_name}": "sparse_categorical_crossentropy" for feature_name in vocab_sizes}
+        if config.enable_custom_losses:
+            loss_dict = {
+                "output_bar": feature_losses.Bar(),
+                "output_position": feature_losses.Position(),
+                "output_pitch": feature_losses.Pitch(),
+                "output_duration": feature_losses.Duration(),
+                "output_velocity": feature_losses.Velocity(),
+                "output_tempo": feature_losses.Tempo(),
+            }
+        else:
+            loss_dict = {f"output_{feature_name}": SparseCategoricalCrossentropy() for feature_name in vocab_sizes}
+
         metric_dict = {f"output_{feature_name}": "accuracy" for feature_name in vocab_sizes}
 
         # Compile model using the specified learning rate
         # Adding gradient clipping to avoid extreme gradient values that may destroy the learning process
         optimizer = Adam(learning_rate=learning_rate, clipnorm=1.0)
         built_model.compile(
-            optimizer=optimizer,
-            loss=loss_dict,
-            loss_weights=utils.get_loss_weights(),
-            metrics=metric_dict
+            optimizer=optimizer, loss=loss_dict, loss_weights=utils.get_loss_weights(), metrics=metric_dict
         )
 
         # Assign model to this Model object's LSTM model.
@@ -226,8 +236,7 @@ class LSTMModel(BaseModel):
         dataset: tf.data.Dataset,
         validation_dataset: tf.data.Dataset,
         epochs: int,
-        callbacks: TerminalPrettyCallback,
-        tensorboard,
+        callbacks: list,
     ):
         """
         Trains the model using the provided sequence generator for the provided number of epochs.
@@ -242,8 +251,8 @@ class LSTMModel(BaseModel):
                 validation_data=validation_dataset,
                 epochs=total_epochs,
                 initial_epoch=self._epochs_trained,
-                verbose=0,
-                callbacks=[callbacks, tensorboard],
+                verbose=1,
+                callbacks=callbacks,
             )
             self.add_epochs(epochs)
 
