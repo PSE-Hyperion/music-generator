@@ -30,6 +30,8 @@ def sum_under_range(distribution: tf.Tensor, limit: tf.Tensor) -> tf.Tensor:
 def generate_normal_distribution_array(sigma, epsilon):
     # Create a 1D tensor with the indices as float entries.
     # Those will be the arguments for the gauss probability function
+    if sigma <= 0:
+        return np.asarray([1])
     max_index = int(np.floor(sigma * np.sqrt(-2 * np.log(epsilon))))
     distribution_arguments = np.arange(-max_index, max_index + 1)
     distribution = np.exp(-0.5 * (distribution_arguments / sigma) ** 2)
