@@ -5,6 +5,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.callbacks import EarlyStopping, History, TensorBoard  # type: ignore
 
+from groove_panda import directories
 from groove_panda.config import (
     Config,
 )
@@ -159,7 +160,7 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
 
         # Callbacks for pretty printing in the terminal and for TensorBoard logging
         # Early stopping ensures that the training stops when the validation loss doesn't improve
-        callbacks = [TensorBoard(log_dir=config.log_dir, histogram_freq=1), TerminalPrettyCallback()]
+        callbacks = [TensorBoard(log_dir=directories.log_dir, histogram_freq=1), TerminalPrettyCallback()]
         if config.early_stopping_enabled:
             callbacks.append(
                 EarlyStopping(
@@ -174,7 +175,7 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
 
         training_callback = TerminalPrettyCallback()
 
-        tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=config.log_dir, histogram_freq=1)  # type: ignore
+        tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=directories.log_dir, histogram_freq=1)  # type: ignore
         # Other callbacks can be added here for specific purposes
 
         history = model.train(

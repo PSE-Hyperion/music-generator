@@ -3,6 +3,7 @@ import logging
 import os
 from typing import Final
 
+from groove_panda import directories
 from groove_panda.config import Config
 from groove_panda.processing.tokenization.tokenizer import SixtupleTokenMaps
 
@@ -23,7 +24,7 @@ def save_token_maps(processed_dataset_id: str, token_maps: SixtupleTokenMaps):
 
     logger.info("Start saving maps...")
 
-    folder_path = os.path.join(config.token_maps_dir, processed_dataset_id)
+    folder_path = os.path.join(directories.token_maps_dir, processed_dataset_id)
     os.makedirs(folder_path, exist_ok=False)
 
     _save_token_maps_metadata(folder_path, token_maps)
@@ -54,7 +55,7 @@ def load_token_maps(processed_dataset_id: str) -> tuple[dict, dict, dict]:
     """
     Load token maps, metadata and reverse mapping for a processed dataset
     """
-    token_maps_dir = os.path.join(config.token_maps_dir, processed_dataset_id)
+    token_maps_dir = os.path.join(directories.token_maps_dir, processed_dataset_id)
 
     # Load metadata
     metadata_path = os.path.join(token_maps_dir, "metadata.json")

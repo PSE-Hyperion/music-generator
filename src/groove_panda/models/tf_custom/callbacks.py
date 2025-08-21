@@ -47,11 +47,11 @@ class TerminalPrettyCallback(callbacks.Callback):
 
         Preview:
             ```
-            Epoch | Loss | Pitch | Duration | Position | Bar | Bar | Tempo | Velocity
-            0     | 16   | 0.1   | 0.1      | 0.1      | 0.1 | 0.1 | 0.1   | 0.1
-            1     | 12   | 0.2   | 0.1      | 0.2      | 0.2 | 0.2 | 0.2   | 0.2
-            2     | 10   | 0.3   | 0.3        | 0.3    | 0.3 | 0.3 | 0.3   | 0.3
-            3     | 8    | 0.4   | 0.4      | 0.4      | 0.4 | 0.4 | 0.4   | 0.4
+            Epoch | Loss | Pitch | Duration | Position | Bar | Tempo | Velocity
+            0     | 16   | 0.1   | 0.1      | 0.1      | 0.1 | 0.1   | 0.1
+            1     | 12   | 0.2   | 0.2      | 0.2      | 0.2 | 0.2   | 0.2
+            2     | 10   | 0.3   | 0.3      | 0.3      | 0.3 | 0.3   | 0.3
+            3     | 8    | 0.4   | 0.4      | 0.4      | 0.4 | 0.4   | 0.4
             ```
         """
 

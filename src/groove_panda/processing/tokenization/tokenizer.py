@@ -6,7 +6,6 @@ from music21 import chord, interval, key, note, pitch, stream
 from music21.tempo import MetronomeMark, TempoIndication
 
 from groove_panda.config import Config, Feature, TokenizeMode
-from groove_panda.midi.sheet_music_generator import generate_sheet_music
 from groove_panda.processing.tokenization import midi_file_utils
 
 config = Config()
@@ -148,9 +147,6 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
 
         # Update current offset to the end of this event
         current_offset = abs_offset + event_duration
-
-    if config.create_sheet_music:
-        generate_sheet_music(s)
 
     logger.info("Finished detokenizing.")
 
