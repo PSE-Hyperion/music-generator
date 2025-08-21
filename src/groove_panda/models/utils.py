@@ -1,3 +1,7 @@
+import hashlib
+
+import numpy as np
+
 from groove_panda.config import Config
 
 config = Config()
@@ -17,3 +21,7 @@ def get_loss_weights() -> dict[str, float]:
         raise ValueError("Sum of loss_weights must not be 0")  # prevents divide by zero
 
     return {key: value / total for key, value in loss_weights_relative.items()}
+
+def model_weights_hash(model):
+    flat_weights = np.concatenate([w.ravel() for w in model.get_weights()])
+    return hashlib.sha256(flat_weights.tobytes()).hexdigest()
