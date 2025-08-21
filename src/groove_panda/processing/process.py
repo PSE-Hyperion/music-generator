@@ -2,112 +2,100 @@ import logging
 
 import numpy as np
 
-from groove_panda.config import SEQUENCE_LENGTH
+from groove_panda.config import Config
 from groove_panda.processing.tokenization.tokenizer import Sixtuple, SixtupleTokenMaps
 
+config = Config()
 logger = logging.getLogger(__name__)
 
 
-class NumericSixtuple:
-    def __init__(self, bar: int, position: int, pitch: int, duration: int, velocity: int, tempo: int):
-        self._bar = bar
-        self._position = position
-        self._pitch = pitch
-        self._duration = duration
-        self._velocity = velocity
-        self._tempo = tempo
-
-    @property
-    def bar(self):
-        return self._bar
-
-    @property
-    def position(self):
-        return self._position
-
-    @property
-    def pitch(self):
-        return self._pitch
-
-    @property
-    def duration(self):
-        return self._duration
-
-    @property
-    def velocity(self):
-        return self._velocity
-
-    @property
-    def tempo(self):
-        return self._tempo
-
-
-def numerize(sixtuples: list[Sixtuple], sixtuple_token_maps: SixtupleTokenMaps) -> list[NumericSixtuple]:
-    #   Turns a list of embedded token events into its numeric equivalent
-    #   Uses maps of the given tokenizer
-    #
-
-    logger.info("Start numerize...")
-
-    bar_map = sixtuple_token_maps.bar_map
-    position_map = sixtuple_token_maps.position_map
-    pitch_map = sixtuple_token_maps.pitch_map
-    duration_map = sixtuple_token_maps.duration_map
-    velocity_map = sixtuple_token_maps.velocity_map
-    tempo_map = sixtuple_token_maps.tempo_map
-
-    numeric_sixtuples = []
-    for sixtuple in sixtuples:
-        numeric_sixtuple = NumericSixtuple(
-            bar_map[sixtuple.bar],
-            position_map[sixtuple.position],
-            pitch_map[sixtuple.pitch],
-            duration_map[sixtuple.duration],
-            velocity_map[sixtuple.velocity],
-            tempo_map[sixtuple.tempo],
-        )
-        numeric_sixtuples.append(numeric_sixtuple)
-
-    logger.info("Finished numerize.")
-
-    return numeric_sixtuples
-
-
-def sequenize(numeric_sixtuples: list[NumericSixtuple]):
-    """creates sequences of feature tuples (extracts feature num val from embeddednumericevent class)
-    and corresponding next event feature tuples
-    uses sliding window of size of SEQUENCE_LENGTH
-    X contains sequences of features of an event, y contains the next features of an event
-    X = [[1, 2], [2, 3], [3, 4]], y = [3, 4, 5]
-    sequence X[i] is followed by y[i]
+class NumericTuple:
+    """
+    The numerical representation of token tuples (instead of string tokens, integers are stored).
     """
 
-    logger.info("Start sequenizing...")
+    def __init__(self, *values: int):
+        # The *values parameter makes sequential NumericTuple(1, 2, 3) and grouped NumericTuple(*[1, 2, 3]) possible.
+        self._values = list(values)
 
-    x, y = [], []
+    def __repr__(self):
+        return f"NumericTuple({', '.join(str(v) for v in self.values)})"
 
-    if len(numeric_sixtuples) < SEQUENCE_LENGTH + 1:
-        raise Exception("Skipped a score, since the song was shorter than the sequence length")
+    @property
+    def values(self):
+        return self._values
 
-    for i in range(len(numeric_sixtuples) - SEQUENCE_LENGTH):
-        input_seq = [
-            (event.bar, event.position, event.pitch, event.duration, event.velocity, event.tempo)
-            for event in numeric_sixtuples[i : i + SEQUENCE_LENGTH]
-        ]
-        output_event = numeric_sixtuples[i + SEQUENCE_LENGTH]
-        output_tuple = (
-            output_event.bar,
-            output_event.position,
-            output_event.pitch,
-            output_event.duration,
-            output_event.velocity,
-            output_event.tempo,
-        )
 
-        x.append(input_seq)
-        y.append(output_tuple)
+def numerize(sixtuples: list[Sixtuple], sixtuple_token_maps: SixtupleTokenMaps) -> list[NumericTuple]:
+    """
+    Turns the incoming list of sixtuples into a list of numeric tuples using the given sixtuple token maps, to translate
+    tokens into integers.
 
-    logger.info("Finished sequenizing")
+    Sixtuple is a class of six features, encoded as strings, while NumericTuple is a class of features, as defined in
+    configs (dynamic size), encoded as integers.
+    """
+    logger.info("Start numerize...")
+
+    numeric_tuples = []
+
+    feature_maps = sixtuple_token_maps.maps  # [(name, dict), ...]
+
+    for sixtuple in sixtuples:
+        numeric_values = []
+        for name, mapping in feature_maps:
+            # Use getattr to get the attribute dynamically from sixtuple. Features that aren't defined in configs, are
+            # ignored.
+            value = getattr(sixtuple, name)
+            try:
+                numeric_value = mapping[value]
+            except KeyError as e:
+                raise KeyError(f"Value {value} for feature '{name}' not found in {mapping}") from e
+            numeric_values.append(numeric_value)
+
+        numeric_tuple = NumericTuple(*numeric_values)
+        numeric_tuples.append(numeric_tuple)
+
+    logger.info("Finished numerize.")
+    return numeric_tuples
+
+
+def create_continuous_sequence(numeric_tuples: list[NumericTuple]) -> np.ndarray:
+    """
+    Return the entire sequence of numeric tuples as an array of integers of dim (n, m) for
+
+    n = length of numeric tuples and
+
+    m = amount of features in numeric sixtuple.
+    """
+    logger.info("Creating continuous sequence...")
+
+    sequence = np.array(
+        [event.values for event in numeric_tuples],
+        dtype=np.int32,
+    )
+
+    logger.info("Finished creating continuous sequence")
+    return sequence
+
+
+def extract_subsequence(
+    full_sequence: np.ndarray, sequence_length: int, stride: int = 1, start_idx: int | None = None
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Extract a subsequence of given length from the full sequence
+    """
+    if len(full_sequence) < sequence_length + 1:
+        raise ValueError(f"Sequence too short: {len(full_sequence)} < {sequence_length + 1}")
+
+    if start_idx is None:
+        # Calculate max start index considering stride
+        max_start_steps = (len(full_sequence) - sequence_length) // stride
+        start_step = np.random.randint(0, max_start_steps + 1)
+        start_idx = start_step * stride
+
+    x = full_sequence[start_idx : start_idx + sequence_length]
+    y = full_sequence[start_idx + sequence_length]
+
     return x, y
 
 
@@ -120,7 +108,7 @@ def sequence_to_model_input(sequence: list[tuple[int, int, int, int, int, int]])
     seq_array = np.array(sequence)
 
     # Create input dictionary for the model
-    feature_names = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
+    feature_names = [feature.name for feature in config.features]
 
     model_input = {}
     for i, feature_name in enumerate(feature_names):
@@ -143,7 +131,7 @@ def reshape_x(x):
     return x
 
 
-def denumerize(_numeric_sixtuples: list[NumericSixtuple], _sixtuple_token_maps: SixtupleTokenMaps) -> list[Sixtuple]:
+def denumerize(_numeric_sixtuples: list[NumericTuple], _sixtuple_token_maps: SixtupleTokenMaps) -> list[Sixtuple]:
     #   Turns list of embedded numeric events into list of embedded token events,
     #   by using the maps provided by the given tokenizer instance
     #
@@ -161,4 +149,4 @@ def build_input_dict():  # Unsure about what this is, but afraid to delete - joa
 #    """ Turns list of embedded numeric events into list of embedded token events, by using the maps provided
 #        by the given tokenizer instance """
 #
-#    return []
+#    return [] - this is done, no? - Joao

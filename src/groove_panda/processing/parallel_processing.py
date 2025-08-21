@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 import logging
 from multiprocessing import Pool, cpu_count
-
-from groove_panda.config import TOKENIZE_MODE, TokenizeMode
+import os
 
 from ..midi import parser
 from . import process, processed_io
@@ -22,7 +21,9 @@ class SixtupleSets:
     tempo_set: set[str]
 
 
-def _parallel_tokenize_worker(midi_path: str, processed_dataset_id: str) -> tuple[str, list[Sixtuple], SixtupleSets]:
+def _parallel_tokenize_worker(
+    midi_path: str, processed_dataset_id: str
+) -> tuple[str, list[list[Sixtuple]], SixtupleSets]:
     """
     A worker (per cpu core) tokenizing
         1. parse
@@ -33,22 +34,10 @@ def _parallel_tokenize_worker(midi_path: str, processed_dataset_id: str) -> tupl
     tokenizer = Tokenizer(processed_dataset_id)
 
     # Parse
-    score = parser.parse_midi(midi_path)
+    parsed_midi = parser.parse_midi(midi_path)
 
-    # Tokenize according to mode
-    if TOKENIZE_MODE is TokenizeMode.ORIGINAL:
-        sixtuples = tokenizer.tokenize_original_key(score)
-
-    elif TOKENIZE_MODE is TokenizeMode.ALL_KEYS:
-        sixtuples = tokenizer.tokenize_all_keys(score)
-        # token_result is now a dict[int, list[Sixtuple]]
-
-    elif TOKENIZE_MODE is TokenizeMode.C_MAJOR_A_MINOR:
-        sixtuples = tokenizer.tokenize_cmajor_aminor(score)
-        # token_result is now a dict[str, list[Sixtuple]]
-
-    else:
-        raise ValueError(f"Unsupported TOKENIZE_MODE: {TOKENIZE_MODE!r}")
+    # Tokenize according to mode and type of parser
+    song_versions = tokenizer.tokenize(parsed_midi)
 
     # Create sets of unique tokens (per feature)
     bar_set = set()
@@ -58,19 +47,27 @@ def _parallel_tokenize_worker(midi_path: str, processed_dataset_id: str) -> tupl
     velocity_set = set()
     tempo_set = set()
 
-    for s in sixtuples:
-        bar_set.add(s.bar)
-        position_set.add(s.position)
-        pitch_set.add(s.pitch)
-        duration_set.add(s.duration)
-        velocity_set.add(s.velocity)
-        tempo_set.add(s.tempo)
+    for version_sixtuples in song_versions:  # Iterate through each version
+        for s in version_sixtuples:  # Iterate through sixtuples in each version
+            bar_set.add(s.bar)
+            position_set.add(s.position)
+            pitch_set.add(s.pitch)
+            duration_set.add(s.duration)
+            velocity_set.add(s.velocity)
+            tempo_set.add(s.tempo)
 
-    return midi_path, sixtuples, SixtupleSets(bar_set, position_set, pitch_set, duration_set, velocity_set, tempo_set)
+    return (
+        midi_path,
+        song_versions,
+        SixtupleSets(bar_set, position_set, pitch_set, duration_set, velocity_set, tempo_set),
+    )
 
 
 def _parallel_process_worker(
-    sixtuples: list[Sixtuple], sixtuple_token_maps: SixtupleTokenMaps, midi_path: str, processed_dataset_id: str
+    song_versions: list[list[Sixtuple]],
+    sixtuple_token_maps: SixtupleTokenMaps,
+    midi_path: str,
+    processed_dataset_id: str,
 ):
     """
     A worker (per cpu core) processing
@@ -80,31 +77,40 @@ def _parallel_process_worker(
     a single sixtuple list using the given (complete) sixtuple token maps
     """
 
-    # Numerize
-    numeric_sixtuples = process.numerize(sixtuples, sixtuple_token_maps)
+    base_name = os.path.splitext(os.path.basename(midi_path))[0]
 
-    # Sequenize + reshape
-    x, y = process.sequenize(numeric_sixtuples)
-    x = process.reshape_x(x)
+    for i, version_sixtuples in enumerate(song_versions):
+        unique_name = f"{base_name}_original" if i == 0 else f"{base_name}_transpose{i}"
 
-    # Save .npz
-    processed_io.save_processed_data(processed_dataset_id, midi_path, x, y)
+        # Numerize
+        numeric_sixtuples = process.numerize(version_sixtuples, sixtuple_token_maps)
+
+        # Save as continuous sequence instead of sequenizing
+        continuous_sequence = process.create_continuous_sequence(numeric_sixtuples)
+
+        # Save .npz with continuous sequence
+        processed_io.save_continuous_data(processed_dataset_id, unique_name, continuous_sequence)
 
 
 def parallel_process(dataset_id: str, processed_dataset_id: str):
     """
     Finds all midi paths in dataset
+
     Start worker pool for tokenization (heavy task)
+
     Each worker does tokenization of a single score at the given midi path
+
     Collect worker sixtuples and create a complete sixtuple token maps instance
+
     Start worker pool for processing
+
     Each worker does processing and saving the processed result of a single sixtuple list
     """
 
     midi_paths = parser.get_midi_paths_from_dataset(dataset_id)
 
     with Pool(cpu_count()) as pool:
-        results: list[tuple[str, list[Sixtuple], SixtupleSets]] = pool.starmap(
+        results: list[tuple[str, list[list[Sixtuple]], SixtupleSets]] = pool.starmap(
             _parallel_tokenize_worker, [(midi_path, processed_dataset_id) for midi_path in midi_paths]
         )
 
@@ -125,12 +131,15 @@ def parallel_process(dataset_id: str, processed_dataset_id: str):
         tempo_set |= token_sets.tempo_set
 
     sixtuple_token_maps = SixtupleTokenMaps()
-    sixtuple_token_maps.create_from_sets(bar_set, position_set, pitch_set, duration_set, velocity_set, tempo_set)
+    sixtuple_token_maps.create_from_ranges()
 
     with Pool(cpu_count()) as pool:
         pool.starmap(
             _parallel_process_worker,
-            [(sixtuples, sixtuple_token_maps, midi_path, processed_dataset_id) for midi_path, sixtuples, _ in results],
+            [
+                (song_versions, sixtuple_token_maps, midi_path, processed_dataset_id)
+                for midi_path, song_versions, _ in results
+            ],
         )
 
     #   Calls parallel_tokenize_worker

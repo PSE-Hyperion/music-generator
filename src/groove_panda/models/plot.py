@@ -1,11 +1,14 @@
 import logging
 import os
+import shutil
 
 from matplotlib import pyplot as plt
 from tensorflow.keras.callbacks import History  # type: ignore
 
-from groove_panda.config import PLOT_DIR, PLOT_TRAINING, SAVE_PLOT_TRAINING
+from groove_panda import directories
+from groove_panda.config import Config
 
+config = Config()
 logger = logging.getLogger(__name__)
 
 # The docker container is missing a backend to display plot results (plt.show wont work)
@@ -14,11 +17,16 @@ logger = logging.getLogger(__name__)
 
 
 def plot_training(history: History, model_name: str):
-    if PLOT_TRAINING:
-        dir_path = os.path.join(PLOT_DIR, f"training_{model_name}")
-        os.makedirs(dir_path, exist_ok=False)
-        _plot_training_history(history, model_name, dir_path)
-        _plot_training_metrics_separate(history, model_name, dir_path)
+    if config.plot_training:
+        plot_path = os.path.join(directories.models_dir, model_name, f"training_{model_name}")
+
+        # If the dir exists, it's an old version. Delete it so the new version can be saved.
+        if os.path.exists(plot_path):
+            shutil.rmtree(plot_path)
+
+        os.makedirs(plot_path, exist_ok=False)
+        _plot_training_history(history, model_name, plot_path)
+        _plot_training_metrics_separate(history, model_name, plot_path)
 
 
 def _plot_training_history(history, model_name: str, dir_path: str):
@@ -26,7 +34,7 @@ def _plot_training_history(history, model_name: str, dir_path: str):
     Plot training history showing loss and accuracy for all 6 feature outputs.
     """
 
-    feature_names = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
+    feature_names = [feature.name for feature in config.features]
 
     # Create subplots: 4 rows x 3 columns (loss and accuracy for each feature)
     fig, axes = plt.subplots(4, 3, figsize=(18, 20))
@@ -37,7 +45,7 @@ def _plot_training_history(history, model_name: str, dir_path: str):
         row = i // 3
         col = i % 3
 
-        loss_key = f"{feature}_output_loss"
+        loss_key = f"output_{feature}_loss"
         val_loss_key = f"val_{feature}_output_loss"
 
         if loss_key in history.history:
@@ -56,7 +64,7 @@ def _plot_training_history(history, model_name: str, dir_path: str):
         row = (i // 3) + 2  # Offset by 2 rows for accuracy plots
         col = i % 3
 
-        acc_key = f"{feature}_output_accuracy"
+        acc_key = f"output_{feature}_accuracy"
         val_acc_key = f"val_{feature}_output_accuracy"
 
         if acc_key in history.history:
@@ -76,7 +84,7 @@ def _plot_training_history(history, model_name: str, dir_path: str):
     plt.tight_layout()
 
     # Optional save
-    if SAVE_PLOT_TRAINING:
+    if config.save_plot_training:
         file_path = os.path.join(dir_path, f"training_history_{model_name}.png")
         plt.savefig(file_path, dpi=300, bbox_inches="tight")
         logger.info("Training history plot saved to: %s", file_path)
@@ -89,7 +97,7 @@ def _plot_training_metrics_separate(history: History, model_name: str, dir_path:
     Alternative version: Plot loss and accuracy in separate figures for better readability.
     """
 
-    feature_names = ["bar", "position", "pitch", "duration", "velocity", "tempo"]
+    feature_names = [feature.name for feature in config.features]
 
     # Seperate loss plot
     plt.figure(figsize=(15, 10))
@@ -97,7 +105,7 @@ def _plot_training_metrics_separate(history: History, model_name: str, dir_path:
     for i, feature in enumerate(feature_names):
         plt.subplot(2, 3, i + 1)
 
-        loss_key = f"{feature}_output_loss"
+        loss_key = f"output_{feature}_loss"
         val_loss_key = f"val_{feature}_output_loss"
 
         if loss_key in history.history:
@@ -115,7 +123,7 @@ def _plot_training_metrics_separate(history: History, model_name: str, dir_path:
     plt.tight_layout()
 
     # Optional save
-    if SAVE_PLOT_TRAINING:
+    if config.save_plot_training:
         file_path = os.path.join(dir_path, f"loss_{model_name}.png")
         plt.savefig(file_path, dpi=300, bbox_inches="tight")
         logger.info("Loss plot saved to: %s", file_path)
@@ -123,7 +131,7 @@ def _plot_training_metrics_separate(history: History, model_name: str, dir_path:
     # plt.show()
 
     # Seperate accuracy plot
-    has_accuracy = any(f"{feature}_output_accuracy" in history.history for feature in feature_names)
+    has_accuracy = any(f"output_{feature}_accuracy" in history.history for feature in feature_names)
 
     if has_accuracy:
         plt.figure(figsize=(15, 10))
@@ -131,7 +139,7 @@ def _plot_training_metrics_separate(history: History, model_name: str, dir_path:
         for i, feature in enumerate(feature_names):
             plt.subplot(2, 3, i + 1)
 
-            acc_key = f"{feature}_output_accuracy"
+            acc_key = f"output_{feature}_accuracy"
             val_acc_key = f"val_{feature}_output_accuracy"
 
             if acc_key in history.history:
@@ -149,7 +157,7 @@ def _plot_training_metrics_separate(history: History, model_name: str, dir_path:
         plt.tight_layout()
 
     # Optional save
-    if SAVE_PLOT_TRAINING:
+    if config.save_plot_training:
         file_path = os.path.join(dir_path, f"accuracy_{model_name}.png")
         plt.savefig(file_path, dpi=300, bbox_inches="tight")
         logger.info("Accuracy plot saved to: %s", file_path)

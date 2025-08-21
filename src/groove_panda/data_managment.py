@@ -2,14 +2,11 @@ import logging
 import os
 import shutil
 
-from groove_panda.config import DATASETS_MIDI_DIR, MODELS_DIR, PROCESSED_DIR, RESULTS_MIDI_DIR, TOKEN_MAPS_DIR
+from groove_panda import directories
+from groove_panda.config import Config
 
 logger = logging.getLogger(__name__)
-
-existing_result_ids = set()
-existing_dataset_ids = set()
-existing_processed_ids = set()
-existing_model_ids = set()
+config = Config()
 
 
 def delete_dataset_data(dataset_id: str):
@@ -20,7 +17,7 @@ def delete_dataset_data(dataset_id: str):
     if dataset_id == "all":
         _delete_all_datasets()
     else:
-        dataset_path = os.path.join(DATASETS_MIDI_DIR, dataset_id)
+        dataset_path = os.path.join(directories.raw_datasets_dir, dataset_id)
         shutil.rmtree(dataset_path)
 
 
@@ -32,7 +29,7 @@ def delete_model_data(model_id: str):
     if model_id == "all":
         _delete_all_models()
     else:
-        model_path = os.path.join(MODELS_DIR, model_id)
+        model_path = os.path.join(directories.models_dir, model_id)
         shutil.rmtree(model_path)
 
 
@@ -43,7 +40,7 @@ def delete_result_data(result_id: str):
     if result_id == "all":
         _delete_all_results()
     else:
-        result_path = os.path.join(RESULTS_MIDI_DIR, result_id)
+        result_path = os.path.join(directories.output_dir, result_id)
         _delete_file(result_path)
 
 
@@ -55,27 +52,28 @@ def delete_processed_data(processed_id: str):
     if processed_id == "all":
         _delete_all_processed()
     else:
-        processed_path = os.path.join(PROCESSED_DIR, processed_id)  # processed and map are deleted together
-        map_path = os.path.join(TOKEN_MAPS_DIR, processed_id)  # maybe should be possible to delete only one
+        # Processed dataset and the corresponding maps are deleted together
+        processed_path = os.path.join(directories.processed_datasets_dir, processed_id)
+        map_path = os.path.join(directories.token_maps_dir, processed_id)  # maybe should be possible to delete only one
 
         _delete_file(processed_path)
         shutil.rmtree(map_path)
 
 
 def _delete_all_results():
-    _delete_folder_contents(RESULTS_MIDI_DIR)
+    _delete_folder_contents(directories.output_dir)
 
 
 def _delete_all_models():
-    _delete_folder_contents(MODELS_DIR)
+    _delete_folder_contents(directories.models_dir)
 
 
 def _delete_all_datasets():
-    _delete_folder_contents(DATASETS_MIDI_DIR)
+    _delete_folder_contents(directories.raw_datasets_dir)
 
 
 def _delete_all_processed():
-    _delete_folder_contents(PROCESSED_DIR)
+    _delete_folder_contents(directories.processed_datasets_dir)
 
 
 def _delete_file(file_path):
@@ -115,43 +113,59 @@ def _delete_folder_contents(folder_path):
             logger.info(f"Could not remove: {content_path}")
 
 
-def add_result_id(result_id: str):
-    if result_id not in existing_result_ids:
-        existing_result_ids.add(result_id)
-
-
-def get_existing_result_ids():
-    # look at all the files in results, needed in case the programm got closed
-    for result in os.listdir(RESULTS_MIDI_DIR):
+def get_existing_result_ids() -> list[str]:
+    """
+    Iterates through all entries in the respected data folder and returns all names (ids) sorted.
+    """
+    existing_result_ids = set()
+    for result in os.listdir(directories.output_dir):
         if result != ".gitkeep":
             existing_result_ids.add(result)
     return sorted(existing_result_ids)
 
 
-def get_existing_processed_ids():
-    # needed in case the programm got closed
-    for processed in os.listdir(PROCESSED_DIR):
+def get_existing_processed_ids() -> list[str]:
+    """
+    Iterates through all entries in the respected data folder and returns all names (ids) sorted.
+    """
+    existing_processed_ids = set()
+    for processed in os.listdir(directories.processed_datasets_dir):
         if processed != ".gitkeep":
-            existing_dataset_ids.add(processed)
-    return sorted(existing_dataset_ids)
+            existing_processed_ids.add(processed)
+    return sorted(existing_processed_ids)
 
 
-def add_dataset_id(dataset_id: str):
-    if dataset_id not in existing_dataset_ids:
-        existing_dataset_ids.add(dataset_id)
+def get_existing_input_ids() -> list[str]:
+    """
+    Iterates through all entries in the respected data folder and returns all names (ids) sorted.
+
+    Removes extensions from input file names.
+    """
+    existing_input_ids = set()
+    for input in os.listdir(directories.input_dir):
+        if input != ".gitkeep":
+            input_without_extension = os.path.splitext(input)[0]
+            existing_input_ids.add(input_without_extension)
+    return sorted(existing_input_ids)
 
 
-def get_existing_dataset_ids():
-    # neede in case the programm got closed
-    for dataset in os.listdir(DATASETS_MIDI_DIR):
+def get_existing_dataset_ids() -> list[str]:
+    """
+    Iterates through all entries in the respected data folder and returns all names (ids) sorted.
+    """
+    existing_dataset_ids = set()
+    for dataset in os.listdir(directories.raw_datasets_dir):
         if dataset != ".gitkeep":
             existing_dataset_ids.add(dataset)
     return sorted(existing_dataset_ids)
 
 
-def get_existing_model_ids():
-    # neede in case the programm got closed
-    for model in os.listdir(MODELS_DIR):
+def get_existing_model_ids() -> list[str]:
+    """
+    Iterates through all entries in the respected data folder and returns all names (ids) sorted.
+    """
+    existing_model_ids = set()
+    for model in os.listdir(directories.models_dir):
         if model != ".gitkeep":
             existing_model_ids.add(model)
     return sorted(existing_model_ids)

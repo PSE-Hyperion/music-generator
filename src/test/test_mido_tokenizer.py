@@ -12,22 +12,11 @@ def test_tokenize_detokenize(midi_file: str):
     Tokenizes and immediatly detokenizes given midi song in test folder (assummes folder called test in datasets).
 
     Stores result in results data folder.
-    """
 
+    Uses mido as parser and tokenizer mode original.
+    """
     tokenizer = t.Tokenizer("")
     writer.write_midi(
-        "tokenize_detokenize_result",
+        "tokenize_detokenize_mido_result",
         t.detokenize(tokenizer.tokenize(parser.parse_midi(os.path.join(config.datasets_midi_dir, "test", midi_file)))),
     )
-
-
-"""
-
-Für chords und noten gleichzeitig gespielt unterschiedliche länge (ähnliche länge und stark unterschiedliche länge)
-1bitdragon files erstellen
-
-Diese detokenize(tokenize(x))
-
-Prüfen, ob mehr chords erstellt werden als sollten
-
-"""

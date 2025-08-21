@@ -8,6 +8,7 @@ from groove_panda.data_managment import (
 )
 from groove_panda.generation.generate_music import generate_music
 from groove_panda.models.model_training import train_model
+from groove_panda.models.utils import generate_unique_name
 from groove_panda.processing import parallel_processing
 
 logger = logging.getLogger(__name__)
@@ -54,7 +55,7 @@ def generate(model_name: str, input_name: str, output_name: str):
     """
     Generate music using a trained model
     """
-    generate_music(model_name, input_name, output_name)
+    generate_music(model_name, input_name, generate_unique_name(output_name))
 
 
 def show():
