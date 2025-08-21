@@ -10,7 +10,7 @@ def main():
     Starts the program by starting logging and a cli session
     """
 
-    setup_logging(level="INFO")
+    setup_logging(level="DEBUG")
     logging.getLogger("main").info("Starting CLI")
     config = Config()
     config.load_config(directories.config_name)

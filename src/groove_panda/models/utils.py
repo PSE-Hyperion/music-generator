@@ -1,5 +1,8 @@
 import datetime
+import hashlib
 import random
+
+import numpy as np
 
 from groove_panda.config import Config
 
@@ -34,3 +37,8 @@ def generate_unique_name(name: str) -> str:
     random_id = random.randint(10000, 99999)
 
     return f"{name}_{random_id}_{date_str}"
+
+
+def model_weights_hash(model):
+    flat_weights = np.concatenate([w.ravel() for w in model.get_weights()])
+    return hashlib.sha256(flat_weights.tobytes()).hexdigest()

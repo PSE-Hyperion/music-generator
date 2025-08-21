@@ -12,7 +12,6 @@ base_dir: Final[str] = "data"
 config_name: Final[str] = "config"
 config_dir: Final[str] = os.path.join(base_dir, "configs")
 
-
 # Directory to save the models
 models_dir: Final[str] = os.path.join(base_dir, "models")
 

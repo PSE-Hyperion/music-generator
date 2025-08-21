@@ -360,5 +360,5 @@ def start_session():
                 break
 
             process_input(u_input)
-        except Exception as e:
-            logger.error("Something went wrong: %s", e)
+        except Exception:
+            logger.exception("Execution of command failed.")
