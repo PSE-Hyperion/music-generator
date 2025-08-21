@@ -85,6 +85,7 @@ class Config:
     Important for the split into training and validation dataset.
     Seed is useful for random but repeatable split.
     """
+    # TODO: completely random seeds should be possible to use.
     training_validation_split_seed: int = DEFAULT_NUMBER
     dataset_shuffle_seed: int = DEFAULT_NUMBER
     model_init_params_seed: int = DEFAULT_NUMBER

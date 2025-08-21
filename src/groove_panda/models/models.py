@@ -55,7 +55,7 @@ class BaseModel:
 
     def set_history(self, history: History):
         """
-        Sets thigroove_pandas model's history to the given argument, including the epochs
+        Sets this model's history to the given argument, including the epochs
         this model was trained on in previous sessions.
         """
         self._history = history
