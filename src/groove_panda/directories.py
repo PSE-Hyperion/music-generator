@@ -20,6 +20,7 @@ models_dir: Final[str] = os.path.join(base_dir, "models")
 generation_dir: Final[str] = os.path.join(base_dir, "generation")
 input_dir: Final[str] = os.path.join(generation_dir, "input")
 output_dir: Final[str] = os.path.join(generation_dir, "output")
+result_tokens_dir: Final[str] = os.path.join(base_dir, "tokens/results")
 
 # Directories for datasets
 datasets_dir: Final[str] = os.path.join(base_dir, "datasets")
@@ -29,6 +30,3 @@ token_maps_dir: Final[str] = os.path.join(datasets_dir, "token_maps")
 
 # Others
 log_dir: Final[str] = os.path.join(base_dir, "logs")  # Should be added to models
-
-# MAKE SURE THAT THE "TOKENS RESULTS" ARE SAVED AS SIXTUPLES
-result_tokens_dir: Final[str] = os.path.join(base_dir, "tokens/results")
