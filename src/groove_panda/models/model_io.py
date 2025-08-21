@@ -7,6 +7,7 @@ from typing import Final
 from tensorflow.keras.callbacks import History  # type: ignore
 from tensorflow.keras.models import load_model as load_keras_model  # type: ignore
 
+from groove_panda import directories
 from groove_panda.config import Config
 from groove_panda.models.models import MODEL_TYPES, BaseModel
 from groove_panda.models.tf_custom.feature_losses import *  # noqa: F403
@@ -18,13 +19,14 @@ HISTORY_FILE_NAME: Final = "history.json"
 MODEL_METADATA_FILE_NAME: Final = "model_metadata.json"
 MODEL_FILE_NAME: Final = "model.keras"
 METADATA_FILE_NAME: Final = "metadata.json"
+CONFIG_FILE_NAME_PREFIX: Final = "config"
 
 config = Config()
 logger = logging.getLogger(__name__)
 
 
 def save_model(model: BaseModel, processed_dataset_id: str):
-    model_directory = os.path.join(config.models_dir, model.model_id)
+    model_directory = os.path.join(directories.models_dir, model.model_id)
 
     # Make sure directory exists and if not, create it
     os.makedirs(model_directory, exist_ok=True)
@@ -49,6 +51,10 @@ def save_model(model: BaseModel, processed_dataset_id: str):
     model_metadata_filepath = os.path.join(model_directory, MODEL_METADATA_FILE_NAME)
     overwrite_json(model_metadata_filepath, model_metadata)
 
+    # Save config that was used to train this model
+    config_name = CONFIG_FILE_NAME_PREFIX + config.config_name
+    config.save_config(config_name + "_config", model_directory)
+
     # Save history .json (overwritting old versions if present)
     if model.history is not None:
         model_history_dict = model.history.history
@@ -61,7 +67,7 @@ def save_model(model: BaseModel, processed_dataset_id: str):
 
 
 def load_model(name: str) -> tuple[BaseModel, dict[str, str]]:
-    model_dir = os.path.join(config.models_dir, name)
+    model_dir = os.path.join(directories.models_dir, name)
     model_metadata_path = os.path.join(model_dir, MODEL_METADATA_FILE_NAME)
     history_path = os.path.join(model_dir, HISTORY_FILE_NAME)
     model_path = os.path.join(model_dir, MODEL_FILE_NAME)
@@ -98,7 +104,7 @@ def load_model(name: str) -> tuple[BaseModel, dict[str, str]]:
 
 
 def delete_model(name: str):
-    model_dir = os.path.join(config.models_dir, name)
+    model_dir = os.path.join(directories.models_dir, name)
 
     if not os.path.exists(model_dir):
         raise FileNotFoundError(f"Failed deleting folder {name} at {model_dir}")
@@ -108,8 +114,8 @@ def delete_model(name: str):
 
 def get_all_models_str_list() -> list[str]:
     models_str_list = []
-    os.makedirs(config.models_dir, exist_ok=True)
-    for entry in os.listdir(config.models_dir):
+    os.makedirs(directories.models_dir, exist_ok=True)
+    for entry in os.listdir(directories.models_dir):
         if entry not in {METADATA_FILE_NAME, ".gitkeep"}:
             models_str_list.append(entry)
 
@@ -128,4 +134,4 @@ def _overwrite_saved_model(model: BaseModel, model_path: str):
 
 
 def get_model_path(model_id: str) -> str:
-    return os.path.join(config.models_dir, model_id)
+    return os.path.join(directories.models_dir, model_id)

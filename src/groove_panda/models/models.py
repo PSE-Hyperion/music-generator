@@ -1,15 +1,18 @@
 import logging
+import random
 
 import tensorflow as tf
 from tensorflow.keras.callbacks import History  # type: ignore
+from tensorflow.keras.initializers import GlorotUniform, Orthogonal, RandomUniform
 from tensorflow.keras.layers import LSTM, Concatenate, Dense, Dropout, Embedding, Input  # type: ignore
 from tensorflow.keras.losses import SparseCategoricalCrossentropy
 from tensorflow.keras.models import Model  # type: ignore
 from tensorflow.keras.optimizers import Adam  # type: ignore
+from tensorflow.keras.random import SeedGenerator
 
 from groove_panda.config import Config
+from groove_panda.models import utils
 from groove_panda.models.tf_custom import feature_losses
-from groove_panda.models.utils import get_loss_weights
 
 config = Config()
 logger = logging.getLogger(__name__)
@@ -103,6 +106,11 @@ class LSTMModel(BaseModel):
             vocab_sizes: A dict mapping each feature name to its vocabulary size.
             preset_name: The key for the preset in config.model_presets to use.
         """
+        model_init_params_rng = SeedGenerator(
+            seed=config.model_init_params_seed
+        )  # seed generator for initial parameters
+        logger.debug("Initializing model with seed %s", config.model_init_params_seed)
+        logger.debug("Dropout layers will be set with seed %s", config.model_dropout_seed)
 
         if preset_name not in config.model_presets:
             raise ValueError(f"Unknown preset '{preset_name}'. Available presets: {list(config.model_presets.keys())}")
@@ -139,12 +147,12 @@ class LSTMModel(BaseModel):
         for feature_name, vocab_size in vocab_sizes.items():
             # Look up how many dimensions we want for this feature
             feature_embedding_dim = embedding_dims[feature_name]
-
             # Build the Embedding layer
             embedded_tensor = Embedding(
                 input_dim=vocab_size,  # Size of this feature's vocabulary.
                 # Embedding matrix has [vocab_size] rows to choose from for each feature
                 output_dim=feature_embedding_dim,  # Ex: Pitch -> 128, Bar -> 8, etc.
+                embeddings_initializer=RandomUniform(seed=model_init_params_rng),
                 name=f"embedding_{feature_name}",  # Helps with debugging & saving
             )(input_layers[feature_name])  # Apply embedding to the corresponding Input()
             embedding_layers[feature_name] = embedded_tensor
@@ -164,10 +172,20 @@ class LSTMModel(BaseModel):
             # Build the LSTM layer
             # - units: how many hidden units in this layer
             # - return_sequences: True for all but the last layer, so layers have temporal knowledge
-            x = LSTM(units=lstm_units, return_sequences=return_sequences_flag, name=f"lstm_layer_{layer_index + 1}")(x)
+            x = LSTM(
+                units=lstm_units,
+                return_sequences=return_sequences_flag,
+                kernel_initializer=GlorotUniform(seed=model_init_params_rng),
+                recurrent_initializer=Orthogonal(seed=model_init_params_rng),
+                name=f"lstm_layer_{layer_index + 1}",
+            )(x)
 
             # Add a Dropout layer to avoid overfitting.
-            x = Dropout(rate=dropout_rate, name=f"dropout_after_lstm_{layer_index + 1}")(x)
+            x = Dropout(
+                rate=dropout_rate,
+                seed=random.seed(config.model_dropout_seed),
+                name=f"dropout_after_lstm_{layer_index + 1}",
+            )(x)
 
         # Add a per feature dense layer
         output_tensors = {}
@@ -176,6 +194,7 @@ class LSTMModel(BaseModel):
             dense_output = Dense(
                 units=vocab_size,  # Number of classes for this feature
                 activation="softmax",  # We want a probability distribution
+                kernel_initializer=GlorotUniform(seed=model_init_params_rng),
                 name=f"output_{feature_name}",
             )(x)  # Append this dense layer to the last LSTM/Dropout output
             output_tensors[f"output_{feature_name}"] = dense_output
@@ -194,23 +213,23 @@ class LSTMModel(BaseModel):
                 "output_pitch": feature_losses.Pitch(),
                 "output_duration": feature_losses.Duration(),
                 "output_velocity": feature_losses.Velocity(),
-                "output_tempo": feature_losses.Tempo()
+                "output_tempo": feature_losses.Tempo(),
             }
         else:
-            loss_dict = {
-                f"output_{feature_name}": SparseCategoricalCrossentropy()
-                for feature_name in vocab_sizes
-            }
+            loss_dict = {f"output_{feature_name}": SparseCategoricalCrossentropy() for feature_name in vocab_sizes}
 
         metric_dict = {f"output_{feature_name}": "accuracy" for feature_name in vocab_sizes}
 
         # Compile model using the specified learning rate
         # Adding gradient clipping to avoid extreme gradient values that may destroy the learning process
         optimizer = Adam(learning_rate=learning_rate, clipnorm=1.0)
-        built_model.compile(optimizer=optimizer, loss=loss_dict, loss_weights=get_loss_weights(), metrics=metric_dict)
+        built_model.compile(
+            optimizer=optimizer, loss=loss_dict, loss_weights=utils.get_loss_weights(), metrics=metric_dict
+        )
 
         # Assign model to this Model object's LSTM model.
         self._model = built_model
+        logger.debug("Built model with initial weights hash: %s", utils.model_weights_hash(built_model))
 
     def train(
         self,
@@ -233,7 +252,7 @@ class LSTMModel(BaseModel):
                 epochs=total_epochs,
                 initial_epoch=self._epochs_trained,
                 verbose=1,
-                callbacks=callbacks
+                callbacks=callbacks,
             )
             self.add_epochs(epochs)
 

@@ -158,15 +158,6 @@ def complete_delete(arg_index, word, parts):
         if len(parts) < MIN_DELETE_COMMAND_PARTS:
             return
 
-        delete_type = parts[1]
-        if delete_type == "file":
-            id_completion(data_managment.get_existing_result_ids(), word)
-        elif delete_type == "dataset":
-            id_completion(data_managment.get_existing_dataset_ids(), word)
-        elif delete_type == "processed":
-            id_completion(data_managment.get_existing_processed_ids(), word)
-        elif delete_type == "model":
-            id_completion(data_managment.get_existing_model_ids(), word)
         id_sources = {
             "file": data_managment.get_existing_result_ids,
             "dataset": data_managment.get_existing_dataset_ids,
@@ -174,6 +165,7 @@ def complete_delete(arg_index, word, parts):
             "model": data_managment.get_existing_model_ids,
         }
 
+        delete_type = parts[1]
         if delete_type in id_sources:
             yield from id_completion(id_sources[delete_type](), word)
 
@@ -189,15 +181,17 @@ def complete_process(arg_index, word, _parts):
 
 
 def complete_train(arg_index, word, _parts):
-    # completes train command
-    # first  the new model id
-    # second the all possible processed-id
+    """
+    Auto-completes the "-train" command.
+    First it recommends model names, then names of datasets,
+    and finally names of available model architecture presets.
+    """
     if arg_index == 0:
-        yield Completion("new_model_id", start_position=-len(word))
+        yield from id_completion(data_managment.get_existing_model_ids(), word)
     if arg_index == 1:
         yield from id_completion(data_managment.get_existing_processed_ids(), word)
     if arg_index == ARG_MODEL_PRESET:
-        for option in ["basic", "light", "advanced"]:
+        for option in config.model_presets:
             if option.startswith(word):
                 yield Completion(option, start_position=-len(word))
 
@@ -366,5 +360,5 @@ def start_session():
                 break
 
             process_input(u_input)
-        except Exception as e:
-            logger.error("Something went wrong: %s", e)
+        except Exception:
+            logger.exception("Execution of command failed.")
