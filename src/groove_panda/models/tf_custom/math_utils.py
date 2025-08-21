@@ -18,7 +18,7 @@ def expected_mse(distribution: tf.Tensor, target: tf.Tensor) -> tf.Tensor:
     difference = indexes - target
     normalized_difference = difference / max_possible_distance
     mse_distances = normalized_difference ** 2
-    expected_mse_value = tf.reduce_sum(mse_distances * distribution)
+    expected_mse_value = tf.sqrt(tf.reduce_sum(mse_distances * distribution))
 
     return expected_mse_value  # noqa: RET504
 

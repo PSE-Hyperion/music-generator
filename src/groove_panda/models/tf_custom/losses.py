@@ -24,6 +24,7 @@ class SoftCategoricalKLDivergence(Loss):
             self.true_idx = tf.cast(len(distribution) // 2, dtype=tf.int32)
         else:
             self.true_idx = tf.cast(0, dtype=tf.int32)
+            
         self.len_left = self.true_idx
         self.len_right = tf.cast(len(distribution), dtype=tf.int32) - self.true_idx
         self.reduction = reduction
