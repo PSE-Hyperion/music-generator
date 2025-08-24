@@ -27,6 +27,7 @@ def plot_training(history: History, model_name: str):
         os.makedirs(plot_path, exist_ok=False)
         _plot_training_history(history, model_name, plot_path)
         _plot_training_metrics_separate(history, model_name, plot_path)
+        _plot_training_validation(history, model_name, plot_path)
 
 
 def _plot_training_history(history, model_name: str, dir_path: str):
@@ -46,7 +47,7 @@ def _plot_training_history(history, model_name: str, dir_path: str):
         col = i % 3
 
         loss_key = f"output_{feature}_loss"
-        val_loss_key = f"val_{feature}_output_loss"
+        val_loss_key = f"val_output_{feature}_loss"
 
         if loss_key in history.history:
             axes[row, col].plot(history.history[loss_key], label="Training Loss", color="blue")
@@ -65,7 +66,7 @@ def _plot_training_history(history, model_name: str, dir_path: str):
         col = i % 3
 
         acc_key = f"output_{feature}_accuracy"
-        val_acc_key = f"val_{feature}_output_accuracy"
+        val_acc_key = f"val_output_{feature}_accuracy"
 
         if acc_key in history.history:
             axes[row, col].plot(history.history[acc_key], label="Training Accuracy", color="green")
@@ -106,7 +107,7 @@ def _plot_training_metrics_separate(history: History, model_name: str, dir_path:
         plt.subplot(2, 3, i + 1)
 
         loss_key = f"output_{feature}_loss"
-        val_loss_key = f"val_{feature}_output_loss"
+        val_loss_key = f"val_output_{feature}_loss"
 
         if loss_key in history.history:
             plt.plot(history.history[loss_key], label="Training Loss", color="blue")
@@ -140,7 +141,7 @@ def _plot_training_metrics_separate(history: History, model_name: str, dir_path:
             plt.subplot(2, 3, i + 1)
 
             acc_key = f"output_{feature}_accuracy"
-            val_acc_key = f"val_{feature}_output_accuracy"
+            val_acc_key = f"val_output_{feature}_accuracy"
 
             if acc_key in history.history:
                 plt.plot(history.history[acc_key], label="Training Accuracy", color="green")
@@ -163,3 +164,68 @@ def _plot_training_metrics_separate(history: History, model_name: str, dir_path:
         logger.info("Accuracy plot saved to: %s", file_path)
 
     # plt.show()
+
+
+def _plot_training_validation(history: History, model_name: str, dir_path: str):
+    """
+    Plot only validation loss and accuracy in separate figures for better readability.
+    """
+
+    feature_names = [feature.name for feature in config.features]
+
+    # Validation loss plot
+    plt.figure(figsize=(15, 10))
+
+    for i, feature in enumerate(feature_names):
+        plt.subplot(2, 3, i + 1)
+
+        val_loss_key = f"val_output_{feature}_loss"
+
+        if val_loss_key in history.history:
+            plt.plot(history.history[val_loss_key], label="Validation Loss", color="red")
+
+            plt.title(f"{feature.title()} Validation Loss")
+            plt.xlabel("Epoch")
+            plt.ylabel("Loss")
+            plt.legend()
+            plt.grid(True, alpha=0.3)
+
+    plt.suptitle(f"Validation Loss History - {model_name}", fontsize=16, fontweight="bold")
+    plt.tight_layout()
+
+    # Optional save
+    if config.save_plot_training:
+        file_path = os.path.join(dir_path, f"val_loss_{model_name}.png")
+        plt.savefig(file_path, dpi=300, bbox_inches="tight")
+        logger.info("Validation loss plot saved to: %s", file_path)
+
+    # plt.show()
+
+    # Validation accuracy plot
+    has_val_accuracy = any(f"val_output_{feature}_accuracy" in history.history for feature in feature_names)
+
+    if has_val_accuracy:
+        plt.figure(figsize=(15, 10))
+
+        for i, feature in enumerate(feature_names):
+            plt.subplot(2, 3, i + 1)
+
+            val_acc_key = f"val_output_{feature}_accuracy"
+
+            if val_acc_key in history.history:
+                plt.plot(history.history[val_acc_key], label="Validation Accuracy", color="orange")
+
+                plt.title(f"{feature.title()} Validation Accuracy")
+                plt.xlabel("Epoch")
+                plt.ylabel("Accuracy")
+                plt.legend()
+                plt.grid(True, alpha=0.3)
+
+        plt.suptitle(f"Validation Accuracy History - {model_name}", fontsize=16, fontweight="bold")
+        plt.tight_layout()
+
+        # Optional save
+        if config.save_plot_training:
+            file_path = os.path.join(dir_path, f"val_accuracy_{model_name}.png")
+            plt.savefig(file_path, dpi=300, bbox_inches="tight")
+            logger.info("Validation accuracy plot saved to: %s", file_path)
