@@ -1,5 +1,6 @@
 from fractions import Fraction
 import logging
+from typing import Set
 
 from mido import MidiFile
 from music21 import chord, interval, key, note, pitch, stream
@@ -73,6 +74,7 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
     logger.info("Start detokenizing...")
 
     s = stream.Stream()
+    pitch_at_offset = {}
     current_offset = 0.0  # absolute
     current_tempo = None
 
@@ -106,6 +108,7 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
     # Big loop, inserting multiple events, if needed, per iteration into the stream
     for abs_offset in sorted_offsets:
         events_at_position = pending_notes[abs_offset]
+        pitches_at_position = set()
 
         # Check if tempo has changed at this position
         if events_at_position:
@@ -136,7 +139,11 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
 
             n = note.Note(midi=pitch_midi, quarterLength=duration)
             n.volume.velocity = velocity
-            s.insert(abs_offset, n)
+            if pitch_midi not in pitches_at_position:
+                s.insert(abs_offset, n)
+                pitches_at_position.add(pitch_midi)
+            else:
+                logger.warning("Duplicate pitch found at position %s. Skipping.", abs_offset)
 
             """
             event_duration is used to calculate rests in between notes.
