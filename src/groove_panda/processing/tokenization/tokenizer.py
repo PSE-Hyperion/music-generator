@@ -1,6 +1,5 @@
 from fractions import Fraction
 import logging
-from typing import Set
 
 from mido import MidiFile
 from music21 import chord, interval, key, note, pitch, stream
@@ -74,7 +73,6 @@ def detokenize(sixtuples: list[Sixtuple]) -> stream.Stream:
     logger.info("Start detokenizing...")
 
     s = stream.Stream()
-    pitch_at_offset = {}
     current_offset = 0.0  # absolute
     current_tempo = None
 
