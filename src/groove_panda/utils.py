@@ -2,7 +2,7 @@ import json
 import os
 
 
-def overwrite_json(file_path: str, data):
+def overwrite_json(file_path: str, data) -> None:
     """
     Checks if an outdated version of the data to be saved exists and overwrites it if it's the case.
     If no data is present, the provided data is simply saved.

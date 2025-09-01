@@ -11,14 +11,10 @@ from groove_panda.config import Config
 config = Config()
 logger = logging.getLogger(__name__)
 
-# The docker container is missing a backend to display plot results (plt.show wont work)
-# This means we can add this, to allow the plots to be displayed upon training completion, if enabled,
-# or we keep this as is (should suffice)
 
-
-def plot_training(history: History, model_name: str):
+def plot_training(history: History, model_name: str) -> None:
     if config.plot_training:
-        plot_path = os.path.join(directories.models_dir, model_name, f"training_{model_name}")
+        plot_path = os.path.join(directories.MODELS_DIR, model_name, f"training_{model_name}")
 
         # If the dir exists, it's an old version. Delete it so the new version can be saved.
         if os.path.exists(plot_path):
@@ -30,7 +26,7 @@ def plot_training(history: History, model_name: str):
         _plot_training_validation(history, model_name, plot_path)
 
 
-def _plot_training_history(history, model_name: str, dir_path: str):
+def _plot_training_history(history, model_name: str, dir_path: str) -> None:
     """
     Plot training history showing loss and accuracy for all 6 feature outputs.
     """
@@ -93,7 +89,7 @@ def _plot_training_history(history, model_name: str, dir_path: str):
     # plt.show()
 
 
-def _plot_training_metrics_separate(history: History, model_name: str, dir_path: str):
+def _plot_training_metrics_separate(history: History, model_name: str, dir_path: str) -> None:
     """
     Alternative version: Plot loss and accuracy in separate figures for better readability.
     """
@@ -166,7 +162,7 @@ def _plot_training_metrics_separate(history: History, model_name: str, dir_path:
     # plt.show()
 
 
-def _plot_training_validation(history: History, model_name: str, dir_path: str):
+def _plot_training_validation(history: History, model_name: str, dir_path: str) -> None:
     """
     Plot only validation loss and accuracy in separate figures for better readability.
     """

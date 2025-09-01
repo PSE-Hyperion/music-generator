@@ -16,10 +16,11 @@ JSON_METADATA_SHAPE: Final = "input_shape"
 JSON_METADATA_MAP_ID: Final = "map_id"
 
 
-# Saves the tokenized dataset and metadata, X and y are numpy arrays, X is a sequence of integer inputs for the model
-def save_processed_data(processed_dataset_id: str, music_path: str, x, y):
+def save_processed_data(processed_dataset_id: str, music_path: str, x, y) -> None:
+    """Saves the tokenized dataset and metadata, X and y are numpy arrays, X is a sequence of integer inputs for the
+    model"""
     music_file_name = os.path.splitext(os.path.basename(music_path))[0]
-    target_folder_path = os.path.join(directories.processed_datasets_dir, processed_dataset_id, music_file_name)
+    target_folder_path = os.path.join(directories.PROCESSED_DATASET_DIR, processed_dataset_id, music_file_name)
     os.makedirs(target_folder_path, exist_ok=False)
     try:
         logger.info("Start saving processed dataset as %s...", processed_dataset_id)
@@ -41,12 +42,12 @@ def save_processed_data(processed_dataset_id: str, music_path: str, x, y):
     logger.info("Input Shape: %s", x.shape)
 
 
-def save_continuous_data(processed_dataset_id: str, music_path: str, continuous_sequence):
+def save_continuous_data(processed_dataset_id: str, music_path: str, continuous_sequence) -> None:
     """
     Save continuous sequence data instead of pre-chunked sequences
     """
     music_file_name = os.path.splitext(os.path.basename(music_path))[0]
-    target_folder_path = os.path.join(directories.processed_datasets_dir, processed_dataset_id, music_file_name)
+    target_folder_path = os.path.join(directories.PROCESSED_DATASET_DIR, processed_dataset_id, music_file_name)
     os.makedirs(target_folder_path, exist_ok=False)
 
     try:
@@ -74,10 +75,10 @@ def save_continuous_data(processed_dataset_id: str, music_path: str, continuous_
 
 
 # Loads tokenized dataset and associated metadata for a given processed_dataset_id.
-def load_tokenized_data(processed_dataset_id: str):
+def load_tokenized_data(processed_dataset_id: str) -> tuple[np.ndarray, np.ndarray, tuple, str]:
     logger.info("Enter tokenized data getter")
 
-    target_folder_path = os.path.join(directories.processed_datasets_dir, processed_dataset_id)
+    target_folder_path = os.path.join(directories.PROCESSED_DATASET_DIR, processed_dataset_id)
     target_data_path = os.path.join(target_folder_path, processed_dataset_id + ".npz")
     target_metadata_path = os.path.join(target_folder_path, "metadata.json")
 
@@ -85,36 +86,36 @@ def load_tokenized_data(processed_dataset_id: str):
         raise Exception(f"File not found. Searched for {target_data_path}")
 
     npz_data = np.load(target_data_path)
-    x = npz_data["x"]
-    y = npz_data["y"]
+    x: np.ndarray = npz_data["x"]
+    y: np.ndarray = npz_data["y"]
 
     if not os.path.exists(target_metadata_path):
         raise Exception("Metadata couldn't be found")
 
     with open(target_metadata_path) as f:
         metadata = json.load(f)
-    data_input_shape = metadata[JSON_METADATA_SHAPE]
-    data_map_id = metadata[JSON_METADATA_MAP_ID]
+    data_input_shape: tuple = metadata[JSON_METADATA_SHAPE]
+    data_map_id: str = metadata[JSON_METADATA_MAP_ID]
 
     logger.info("Tokenized data loaded")
 
     return x, y, data_input_shape, data_map_id
 
 
-# Deletes the entire folder of a tokenized dataset.
-def delete_data(name: str):
-    data_dir = os.path.join(directories.processed_datasets_dir, name)
+def delete_data(name: str) -> None:
+    """Deletes the entire folder of a tokenized dataset."""
+    data_dir = os.path.join(directories.PROCESSED_DATASET_DIR, name)
     if not os.path.exists(data_dir):
         logger.error("Deleting data %s failed", name)
         return
     shutil.rmtree(data_dir)
 
 
-# Returns dataset IDs (folder names) inside PROCESSED_DIR excluding non-data-files: metadata, system files,...
 def get_all_data_str_list() -> list[str]:
+    """Returns dataset IDs (folder names) inside PROCESSED_DIR excluding non-data-files: metadata, system files,..."""
     data_str_list = []
-    os.makedirs(directories.processed_datasets_dir, exist_ok=True)
-    for entry in os.listdir(directories.processed_datasets_dir):
+    os.makedirs(directories.PROCESSED_DATASET_DIR, exist_ok=True)
+    for entry in os.listdir(directories.PROCESSED_DATASET_DIR):
         if entry not in {"metadata.json", ".gitkeep"}:
             logger.error("This will never happen")
             data_str_list.append(entry)
@@ -123,7 +124,7 @@ def get_all_data_str_list() -> list[str]:
 
 
 def does_data_exist(name: str) -> bool:
-    data_folder_dir = os.path.join(directories.processed_datasets_dir, name)
+    data_folder_dir = os.path.join(directories.PROCESSED_DATASET_DIR, name)
     return os.path.exists(data_folder_dir)
 
 
@@ -137,7 +138,7 @@ def get_processed_file_paths(processed_dataset_id: str) -> list[str]:
     Returns:
         List of absolute paths to .npz files
     """
-    processed_dir = os.path.join(directories.processed_datasets_dir, processed_dataset_id)
+    processed_dir = os.path.join(directories.PROCESSED_DATASET_DIR, processed_dataset_id)
 
     if not os.path.exists(processed_dir):
         raise FileNotFoundError(f"Processed dataset directory not found: {processed_dir}")

@@ -6,26 +6,27 @@ Excluded are directories and paths that change frequently or during runtime.
 import os
 from typing import Final
 
-base_dir: Final[str] = "data"
+BASE_DIR: Final[str] = "data"
 
 # Config
-config_name: Final[str] = "config"
-config_dir: Final[str] = os.path.join(base_dir, "configs")
+CONFIG_NAME: Final[str] = "config_julien"
+
+CONFIG_DIR: Final[str] = os.path.join(BASE_DIR, "configs")
 
 # Directory to save the models
-models_dir: Final[str] = os.path.join(base_dir, "models")
+MODELS_DIR: Final[str] = os.path.join(BASE_DIR, "models")
 
 # Directories to save everything related to song generation
-generation_dir: Final[str] = os.path.join(base_dir, "generation")
-input_dir: Final[str] = os.path.join(generation_dir, "input")
-output_dir: Final[str] = os.path.join(generation_dir, "output")
-result_tokens_dir: Final[str] = os.path.join(base_dir, "tokens/results")
+GENERATION_DIR: Final[str] = os.path.join(BASE_DIR, "generation")
+INPUT_DIR: Final[str] = os.path.join(GENERATION_DIR, "input")
+OUTPUT_DIR: Final[str] = os.path.join(GENERATION_DIR, "output")
+RESULT_TOKEN_DIR: Final[str] = os.path.join(BASE_DIR, "tokens/results")
 
 # Directories for datasets
-datasets_dir: Final[str] = os.path.join(base_dir, "datasets")
-raw_datasets_dir: Final[str] = os.path.join(datasets_dir, "raw")
-processed_datasets_dir: Final[str] = os.path.join(datasets_dir, "processed")
-token_maps_dir: Final[str] = os.path.join(datasets_dir, "token_maps")
+DATASET_DIR: Final[str] = os.path.join(BASE_DIR, "datasets")
+RAW_DATASET_DIR: Final[str] = os.path.join(DATASET_DIR, "raw")
+PROCESSED_DATASET_DIR: Final[str] = os.path.join(DATASET_DIR, "processed")
+TOKEN_MAPS_DIR: Final[str] = os.path.join(DATASET_DIR, "token_maps")
 
 # Others
-log_dir: Final[str] = os.path.join(base_dir, "logs")  # Should be added to models
+LOG_DIR: Final[str] = os.path.join(BASE_DIR, "logs")

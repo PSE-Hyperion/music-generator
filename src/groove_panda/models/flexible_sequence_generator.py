@@ -22,7 +22,7 @@ class FlexibleSequenceGenerator(Sequence):
 
     def __init__(
         self, file_paths: list[str], sequence_length: int, stride: int = 1, batch_size: int = 32, shuffle: bool = True
-    ):
+    ) -> None:
         self.file_paths = file_paths
         self.sequence_length = sequence_length
         self.stride = stride
@@ -36,7 +36,7 @@ class FlexibleSequenceGenerator(Sequence):
         # Call super().__init__ to avoid a warning
         super().__init__()
 
-    def _build_sample_index(self):
+    def _build_sample_index(self) -> None:
         """Build deterministic index of all possible subsequences"""
         self.sample_map = []
 
@@ -48,7 +48,7 @@ class FlexibleSequenceGenerator(Sequence):
                 start_idx = start_step * self.stride
                 self.sample_map.append((song_idx, start_idx))
 
-    def _load_continuous_data(self):
+    def _load_continuous_data(self) -> None:
         """
         Load all continuous sequences and calculate total possible samples
         """
@@ -68,7 +68,7 @@ class FlexibleSequenceGenerator(Sequence):
                         "Sequence in %s too short: %d < %d", file_path, len(continuous_seq), self.sequence_length + 1
                     )
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         Returns how many batches exist per epoch
         """
@@ -105,7 +105,7 @@ class FlexibleSequenceGenerator(Sequence):
 
         return x_dict, y_outputs
 
-    def on_epoch_end(self):
+    def on_epoch_end(self) -> None:
         """Shuffle sample indices at epoch end"""
         self.indexes = np.arange(len(self.sample_map))
         if self.shuffle:

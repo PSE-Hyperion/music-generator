@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 SONG_METADATA_FILE_NAME: Final = "song_metadata.json"
 
 
-def generate_music(model_name: str, input_name: str, output_name: str):
+def generate_music(model_name: str, input_name: str, output_name: str) -> None:
     """
     Load model -> Load input MIDI -> Generate -> Save output
     """
@@ -41,7 +41,7 @@ def generate_music(model_name: str, input_name: str, output_name: str):
     # Load seed sequence from input MIDI file
     input_midi_path = None
     for ext in config.allowed_music_file_extensions:
-        candidate = os.path.join(directories.input_dir, f"{input_name}{ext}")
+        candidate = os.path.join(directories.INPUT_DIR, f"{input_name}{ext}")
         if os.path.exists(candidate):
             input_midi_path = candidate
             break
@@ -71,7 +71,7 @@ def generate_music(model_name: str, input_name: str, output_name: str):
 
     # Generate and save
     generated_sixtuples = generator.generate_sequence(seed_sequence)
-    output_directory = os.path.join(directories.output_dir, output_name)
+    output_directory = os.path.join(directories.OUTPUT_DIR, output_name)
 
     # Save the song with the input sequence
     generated_stream_full = detokenize(seed_sixtuple + generated_sixtuples)

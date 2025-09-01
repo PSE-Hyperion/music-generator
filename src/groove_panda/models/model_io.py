@@ -25,8 +25,8 @@ config = Config()
 logger = logging.getLogger(__name__)
 
 
-def save_model(model: BaseModel, processed_dataset_id: str):
-    model_directory = os.path.join(directories.models_dir, model.model_id)
+def save_model(model: BaseModel, processed_dataset_id: str) -> None:
+    model_directory = os.path.join(directories.MODELS_DIR, model.model_id)
 
     # Make sure directory exists and if not, create it
     os.makedirs(model_directory, exist_ok=True)
@@ -67,7 +67,7 @@ def save_model(model: BaseModel, processed_dataset_id: str):
 
 
 def load_model(name: str) -> tuple[BaseModel, dict[str, str]]:
-    model_dir = os.path.join(directories.models_dir, name)
+    model_dir = os.path.join(directories.MODELS_DIR, name)
     model_metadata_path = os.path.join(model_dir, MODEL_METADATA_FILE_NAME)
     history_path = os.path.join(model_dir, HISTORY_FILE_NAME)
     model_path = os.path.join(model_dir, MODEL_FILE_NAME)
@@ -103,8 +103,8 @@ def load_model(name: str) -> tuple[BaseModel, dict[str, str]]:
     return model, model_metadata
 
 
-def delete_model(name: str):
-    model_dir = os.path.join(directories.models_dir, name)
+def delete_model(name: str) -> None:
+    model_dir = os.path.join(directories.MODELS_DIR, name)
 
     if not os.path.exists(model_dir):
         raise FileNotFoundError(f"Failed deleting folder {name} at {model_dir}")
@@ -114,15 +114,15 @@ def delete_model(name: str):
 
 def get_all_models_str_list() -> list[str]:
     models_str_list = []
-    os.makedirs(directories.models_dir, exist_ok=True)
-    for entry in os.listdir(directories.models_dir):
+    os.makedirs(directories.MODELS_DIR, exist_ok=True)
+    for entry in os.listdir(directories.MODELS_DIR):
         if entry not in {METADATA_FILE_NAME, ".gitkeep"}:
             models_str_list.append(entry)
 
     return models_str_list
 
 
-def _overwrite_saved_model(model: BaseModel, model_path: str):
+def _overwrite_saved_model(model: BaseModel, model_path: str) -> None:
     """
     Checks if an older version of the model already exists at that location.
     If so, deletes it and saves the new one. If not, it simply saves the model.
@@ -134,4 +134,4 @@ def _overwrite_saved_model(model: BaseModel, model_path: str):
 
 
 def get_model_path(model_id: str) -> str:
-    return os.path.join(directories.models_dir, model_id)
+    return os.path.join(directories.MODELS_DIR, model_id)

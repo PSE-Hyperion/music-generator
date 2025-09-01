@@ -10,7 +10,7 @@ config = Config()
 logger = logging.getLogger(__name__)
 
 
-def write_midi(output_dir: str, result_id: str, result: stream.Stream | MidiFile):
+def write_midi(output_dir: str, result_id: str, result: stream.Stream | MidiFile) -> None:
     """
     Writes given stream into it's own folder in the results dir as a midi file
     """
@@ -30,13 +30,9 @@ def write_midi(output_dir: str, result_id: str, result: stream.Stream | MidiFile
     logger.info("Finished saving %s.", result_id)
 
 
-def _write_midi_music21(result_id: str, result_dir: str, stream: stream.Stream):
+def _write_midi_music21(result_id: str, result_dir: str, stream: stream.Stream) -> None:
     stream.write("midi", fp=os.path.join(result_dir, f"{result_id}.midi"))
 
-    # data_managment.add_result_id(result_id) unused
 
-
-def _write_midi_mido(result_id: str, result_dir: str, midi_file: MidiFile):
+def _write_midi_mido(result_id: str, result_dir: str, midi_file: MidiFile) -> None:
     midi_file.save(os.path.join(result_dir, f"{result_id}.mid"))
-
-    # data_managment.add_result_id(result_id) unused

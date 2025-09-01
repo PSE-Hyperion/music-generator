@@ -12,8 +12,6 @@ config = Config()
 logger = logging.getLogger(__name__)
 
 
-# this could be changed to instead be a token class of undefined size, like the new numeric tuple in process.
-# this would make "deactivating features" possible
 class Sixtuple:
     """
     Sixtuple note event featuring bar, position, pitch, duration, velocity, tempo
@@ -28,7 +26,7 @@ class Sixtuple:
     VELOCITY_PREFIX = "velocity_"
     TEMPO_PREFIX = "tempo_"
 
-    def __init__(self, bar: str, position: str, pitch: str, duration: str, velocity: str, tempo: str):
+    def __init__(self, bar: str, position: str, pitch: str, duration: str, velocity: str, tempo: str) -> None:
         self._bar = Sixtuple.BAR_PREFIX + bar
         self._position = Sixtuple.POSITION_PREFIX + position
         self._pitch = Sixtuple.PITCH_PREFIX + pitch
@@ -166,10 +164,10 @@ class SixtupleTokenMaps:
     The tokenizer can use this container to extend the token maps during processing of a dataset
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._feature_maps: list[tuple[Feature, dict[str, int]]] = [(feature, {}) for feature in config.features]
 
-    def create_from_ranges(self):
+    def create_from_ranges(self) -> None:
         """
         Creates complete token maps from predefined ranges.
 
@@ -178,14 +176,14 @@ class SixtupleTokenMaps:
         self._feature_maps = [
             (
                 feature,
-                self.create_map(
+                self._create_map(
                     feature.name + config.feature_token_separator, feature.min_value, feature.max_value, feature.step
                 ),
             )
             for feature in config.features
         ]
 
-    def create_map(self, feature_prefix: str, min: float, max: float, step: float) -> dict[str, int]:
+    def _create_map(self, feature_prefix: str, min: float, max: float, step: float) -> dict[str, int]:
         return {feature_prefix + str(min + i * step): i for i in range(int((max - min) / step) + 1)}
 
     @property
@@ -208,6 +206,7 @@ class SixtupleTokenMaps:
 
 
 def tokenize_feature_int(feature_name: str, value: int | None) -> int:
+    """Tokenize a integer feature value according to it's feature constraints (min, max, step) as defined in config."""
     if value is None:
         logger.warning(f"Tried to tokenize feature {feature_name} with null value. Value set to 0.")
         value = 0
@@ -228,6 +227,7 @@ def tokenize_feature_int(feature_name: str, value: int | None) -> int:
 
 
 def tokenize_feature_float(feature_name: str, value: float | None) -> float:
+    """Tokenize a float feature value according to it's feature constraints (min, max, step) as defined in config."""
     if value is None:
         logger.warning(f"Tried to tokenize feature {feature_name} with null value. Value set to 0.")
         value = 0
@@ -248,7 +248,7 @@ def tokenize_feature_float(feature_name: str, value: float | None) -> float:
 
 
 class Tokenizer:
-    def __init__(self, processed_dataset_id: str = "EMPTY"):
+    def __init__(self, processed_dataset_id: str = "EMPTY") -> None:
         self.processed_dataset_id = processed_dataset_id
 
         self.sixtuple_token_maps = SixtupleTokenMaps()

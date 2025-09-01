@@ -15,7 +15,7 @@ TOTAL_UNIQUE_TOKENS: Final = "total_unique_tokens"
 MAP: Final = "_map"
 
 
-def save_token_maps(processed_dataset_id: str, token_maps: SixtupleTokenMaps):
+def save_token_maps(processed_dataset_id: str, token_maps: SixtupleTokenMaps) -> None:
     """
     Saves all the token maps into a file (with metadata).
 
@@ -24,7 +24,7 @@ def save_token_maps(processed_dataset_id: str, token_maps: SixtupleTokenMaps):
 
     logger.info("Start saving maps...")
 
-    folder_path = os.path.join(directories.token_maps_dir, processed_dataset_id)
+    folder_path = os.path.join(directories.TOKEN_MAPS_DIR, processed_dataset_id)
     os.makedirs(folder_path, exist_ok=False)
 
     _save_token_maps_metadata(folder_path, token_maps)
@@ -38,7 +38,7 @@ def save_token_maps(processed_dataset_id: str, token_maps: SixtupleTokenMaps):
     logger.info("Finished saving maps")
 
 
-def _save_token_maps_metadata(folder_path: str, token_maps: SixtupleTokenMaps):
+def _save_token_maps_metadata(folder_path: str, token_maps: SixtupleTokenMaps) -> None:
     total_unique_tokens = token_maps.total_size
     logger.info("Total unique tokens: %s", total_unique_tokens)
     metadata = {TOTAL_UNIQUE_BLANK_TOKENS % name: size for name, size in token_maps.map_sizes}
@@ -55,7 +55,7 @@ def load_token_maps(processed_dataset_id: str) -> tuple[dict, dict, dict]:
     """
     Load token maps, metadata and reverse mapping for a processed dataset
     """
-    token_maps_dir = os.path.join(directories.token_maps_dir, processed_dataset_id)
+    token_maps_dir = os.path.join(directories.TOKEN_MAPS_DIR, processed_dataset_id)
 
     # Load metadata
     metadata_path = os.path.join(token_maps_dir, "metadata.json")
