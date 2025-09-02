@@ -4,6 +4,7 @@ import random
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.callbacks import EarlyStopping, History, TensorBoard  # type: ignore
+from tensorflow.keras.utils import Sequence  # type: ignore
 
 from groove_panda import directories
 from groove_panda.config import (
@@ -12,10 +13,53 @@ from groove_panda.config import (
 from groove_panda.models import plot
 from groove_panda.models.flexible_sequence_generator import FlexibleSequenceGenerator
 from groove_panda.models.models import BaseModel
+from groove_panda.models.tf_custom.callbacks import TerminalPrettyCallback
 from groove_panda.processing.process import extract_subsequence
 
 config = Config()
 logger = logging.getLogger(__name__)
+
+
+def train_model(model: BaseModel, train_generator: Sequence):
+    """
+    Train model using sequence generator for memory-efficient training on large datasets.
+    Supports both LazySequenceGenerator (legacy) and FlexibleSequenceGenerator (new).
+    """
+
+    logger.info("Start training with sequence generator...")
+
+    try:
+        steps_per_epoch = len(train_generator)
+
+        logger.info(
+            "Training with %s files, containing %s total samples",
+            len(train_generator.file_paths),
+            len(train_generator.sample_map),
+        )
+        logger.info("Sequence length: %s, Stride: %s", train_generator.sequence_length, train_generator.stride)
+        logger.info("Steps per epoch: %s, Batch size: %s", steps_per_epoch, train_generator.batch_size)
+
+        training_callback = TerminalPrettyCallback()
+        tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=config.log_dir, histogram_freq=1)  # type: ignore
+
+        # fit() will automatically call on_epoch_end of lazy sequence generator, to get new samples
+        history = model.model.fit(
+            train_generator,
+            epochs=config.training_epochs,
+            steps_per_epoch=steps_per_epoch,
+            verbose=2,  # type: ignore
+            callbacks=[training_callback, tensorboard_cb],
+            # Note: validation_split doesn't work with generators,
+            # you'd need a separate validation generator (or other solution)
+        )
+
+    except Exception as e:
+        raise Exception(f"Training failed: {e}") from e
+
+    logger.info("Finished training %s", model.model_id)
+
+    if isinstance(history, History):
+        plot.plot_training(history, model.model_id)
 
 
 def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerator) -> None:

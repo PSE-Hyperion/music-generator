@@ -1,7 +1,7 @@
 import logging
 
 import numpy as np
-from tensorflow.keras.utils import Sequence  # type: ignore - IGNORE ERROR, NOT ACTUAL ERROR
+from tensorflow.keras.utils import Sequence  # type: ignore
 
 from groove_panda.config import Config
 from groove_panda.processing.process import extract_subsequence
