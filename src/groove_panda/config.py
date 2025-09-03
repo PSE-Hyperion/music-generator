@@ -103,7 +103,8 @@ class Config:
     feature_token_separator: str = DEFAULT_STR
     model_type: str = DEFAULT_STR
     enable_custom_losses: bool = DEFAULT_BOOL
-    config: dict  # The entire config file will be saved here
+    enable_training_augmentation = DEFAULT_BOOL
+    config: dict  # The entire config file will be saved heredefault_tempo
 
     # Tokenization settings
     tokenize_mode: TokenizeMode

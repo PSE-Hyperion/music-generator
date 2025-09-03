@@ -108,10 +108,10 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
 
         logger.info("Splitting the dataset into training and validation...")
 
-        train_x_array = full_x_array[:train_dataset_size]
-        train_y_array = full_y_array[:train_dataset_size]
-        val_x_array = full_x_array[train_dataset_size:]
-        val_y_array = full_y_array[train_dataset_size:]
+        train_x_array = full_x_array[:train_dataset_size].astype(np.int32)
+        train_y_array = full_y_array[:train_dataset_size].astype(np.int32)
+        val_x_array = full_x_array[train_dataset_size:].astype(np.int32)
+        val_y_array = full_y_array[train_dataset_size:].astype(np.int32)
 
         logger.info("Start converting the data into the required format for Keras...")
         # Conversion for the model input layers
@@ -150,6 +150,8 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
         # Since we already tell TF to shuffle all samples and the samples are all stored in the dict in the RAM,
         # this could have no effect at all (maybe on GPU training)
 
+        if config.enable_training_augmentation:
+            train_dataset.map(map_func=augment, num_parallel_calls=tf.data.experimental.AUTOTUNE)
         train_dataset = train_dataset.shuffle(buffer_size=dataset_size, seed=config.dataset_shuffle_seed)
 
         train_dataset = train_dataset.batch(train_generator.batch_size)
@@ -191,3 +193,65 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
 
     except Exception as e:
         raise Exception(f"Training failed: {e}") from e
+
+def augment(x_dict, y_dict):
+    x_aug_dict = {}
+    y_aug_dict = {}
+
+    for feature in config.features:
+        input_feature_name = f"input_{feature.name}"
+        output_feature_name = f"output_{feature.name}"
+
+        x_sequence = x_dict[input_feature_name]
+        y_value = y_dict[output_feature_name]
+        x_aug_sequence = x_sequence
+        y_aug_value = y_value
+
+        min_range = feature.min_value
+        max_range = feature.max_value
+
+        if feature.name == "pitch":
+            (x_aug_sequence, y_aug_value) = augment_pitch(
+                x_sequence,
+                y_value,
+                min_range,
+                max_range
+            )
+        elif feature.name == "velocity":
+            (x_aug_sequence, y_aug_value) = augment_velocity(
+                x_sequence,
+                y_value,
+                min_range,
+                max_range
+            )
+        elif feature.name == "tempo":
+            (x_aug_sequence, y_aug_value) = augment_tempo(
+                x_sequence,
+                y_value,
+                min_range,
+                max_range
+            )
+
+        x_aug_dict[input_feature_name] = x_aug_sequence
+        y_aug_dict[output_feature_name] = y_aug_value
+
+    return x_aug_dict, y_aug_dict
+
+def augment_pitch(x_sequence, y_value, min_range, max_range):
+    global_shift = tf.random.uniform(shape=[],minval=-6,maxval=6,dtype=tf.int32)
+    return apply_global_shift(x_sequence, y_value, global_shift, min_range, max_range)
+
+def augment_velocity(x_sequence, y_value, min_range, max_range):
+    global_shift = tf.random.uniform(shape=[],minval=-5,maxval=6,dtype=tf.int32)
+    return apply_global_shift(x_sequence, y_value, global_shift, min_range, max_range)
+
+def augment_tempo(x_sequence, y_value, min_range, max_range):
+    global_shift = tf.random.uniform(shape=[],minval=-2,maxval=3,dtype=tf.int32)
+    return apply_global_shift(x_sequence, y_value, global_shift, min_range, max_range)
+
+def apply_global_shift(x_sequence, y_value, shift, min_range, max_range):
+    x_shifted = x_sequence + shift
+    y_shifted = y_value + shift
+    x_shifted = tf.clip_by_value(x_shifted, min_range, max_range)
+    y_shifted = tf.clip_by_value(y_shifted, min_range, max_range)
+    return (x_shifted, y_shifted)
