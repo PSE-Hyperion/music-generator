@@ -137,6 +137,7 @@ class LSTMModel(BaseModel):
         input_layers = {
             feature_name: Input(
                 shape=(sequence_length,),  # -> Ex: (32,)
+                dtype=tf.int32,
                 name=f"input_{feature_name}",
             )
             for feature_name in vocab_sizes

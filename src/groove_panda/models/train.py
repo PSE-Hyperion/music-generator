@@ -151,7 +151,7 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
         # this could have no effect at all (maybe on GPU training)
 
         if config.enable_training_augmentation:
-            train_dataset.map(map_func=augment, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+            train_dataset = train_dataset.map(map_func=augment, num_parallel_calls=tf.data.experimental.AUTOTUNE)
         train_dataset = train_dataset.shuffle(buffer_size=dataset_size, seed=config.dataset_shuffle_seed)
 
         train_dataset = train_dataset.batch(train_generator.batch_size)
@@ -163,10 +163,10 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
         # Callbacks for pretty printing in the terminal and for TensorBoard logging
         # Early stopping ensures that the training stops when the validation loss doesn't improve
         callbacks = [TensorBoard(log_dir=directories.log_dir, histogram_freq=1)]
-        if config.early_stopping_enabled:
+        if config.enable_early_stopping:
             callbacks.append(
                 EarlyStopping(
-                    monitor="val_loss",
+                    monitor=config.early_stopping_output_to_track,
                     patience=config.early_stopping_epochs_to_wait,
                     min_delta=config.early_stopping_threshold,
                     restore_best_weights=True,
@@ -207,8 +207,8 @@ def augment(x_dict, y_dict):
         x_aug_sequence = x_sequence
         y_aug_value = y_value
 
-        min_range = feature.min_value
-        max_range = feature.max_value
+        min_range = 0
+        max_range = (feature.max_value - feature.min_value) // feature.step
 
         if feature.name == "pitch":
             (x_aug_sequence, y_aug_value) = augment_pitch(

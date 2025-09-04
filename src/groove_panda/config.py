@@ -80,6 +80,7 @@ class Config:
     # Further parameters
     early_stopping_epochs_to_wait: int = DEFAULT_NUMBER  # How many epochs with no change to wait until it will stop
     early_stopping_threshold: float = DEFAULT_NUMBER  # Difference that will be considered as no improvement
+    early_stopping_output_to_track: str = DEFAULT_STR
     """
     Seed for shuffling the songs before they get transformed to a dataset.
     Important for the split into training and validation dataset.
@@ -103,7 +104,7 @@ class Config:
     feature_token_separator: str = DEFAULT_STR
     model_type: str = DEFAULT_STR
     enable_custom_losses: bool = DEFAULT_BOOL
-    enable_training_augmentation = DEFAULT_BOOL
+    enable_training_augmentation: bool = DEFAULT_BOOL
     config: dict  # The entire config file will be saved heredefault_tempo
 
     # Tokenization settings
@@ -123,7 +124,7 @@ class Config:
     save_plot_training: bool = DEFAULT_BOOL
     create_sheet_music: bool = DEFAULT_BOOL
     save_token_json: bool = DEFAULT_BOOL
-    early_stopping_enabled: bool = (
+    enable_early_stopping: bool = (
         DEFAULT_BOOL  # Whether the model should stop when the validation loss doesn't improve
     )
 
