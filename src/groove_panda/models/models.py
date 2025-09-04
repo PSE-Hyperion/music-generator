@@ -3,12 +3,12 @@ import random
 
 import tensorflow as tf
 from tensorflow.keras.callbacks import History  # type: ignore
-from tensorflow.keras.initializers import GlorotUniform, Orthogonal, RandomUniform
+from tensorflow.keras.initializers import GlorotUniform, Orthogonal, RandomUniform  # type: ignore
 from tensorflow.keras.layers import LSTM, Concatenate, Dense, Dropout, Embedding, Input  # type: ignore
-from tensorflow.keras.losses import SparseCategoricalCrossentropy
+from tensorflow.keras.losses import SparseCategoricalCrossentropy  # type: ignore
 from tensorflow.keras.models import Model  # type: ignore
 from tensorflow.keras.optimizers import Adam  # type: ignore
-from tensorflow.keras.random import SeedGenerator
+from tensorflow.keras.random import SeedGenerator  # type: ignore
 
 from groove_panda.config import Config
 from groove_panda.models import utils
@@ -19,11 +19,9 @@ logger = logging.getLogger(__name__)
 
 
 class BaseModel:
-    #   Base model class, that defines an abstract implementation of a model class
-    #
-    #
+    """Base model class, that defines an abstract implementation of a model class"""
 
-    def __init__(self, model_id: str, input_shape: tuple[int, int]):
+    def __init__(self, model_id: str, input_shape: tuple[int, int]) -> None:
         self._model_id = model_id
         self._input_shape = input_shape
         self._model: Model
@@ -32,19 +30,17 @@ class BaseModel:
         self._version: int = 1
 
     def build(self):
-        #   Should define the architecture of a model
-        #
-        #
+        """Should define the architecture of a model"""
 
         raise NotImplementedError
 
-    def train(self, dataset, validation_data, epochs, callbacks):
+    def train(self, dataset, validation_data, epochs, callbacks) -> None:
         raise NotImplementedError
 
-    def set_model(self, model: Model):
+    def set_model(self, model: Model) -> None:
         self._model = model
 
-    def setup(self, history: History, version: int, epochs_trained: int):
+    def setup(self, history: History, version: int, epochs_trained: int) -> None:
         """
         Sets this model's internal configurations to match those it had after being last trained.
         This includes its history as well as the epochs the model has previously been trained on.
@@ -54,14 +50,14 @@ class BaseModel:
         self._version = version + 1
         self.add_epochs(epochs_trained)
 
-    def set_history(self, history: History):
+    def set_history(self, history: History) -> None:
         """
         Sets this model's history to the given argument, including the epochs
         this model was trained on in previous sessions.
         """
         self._history = history
 
-    def add_epochs(self, new_epochs: int):
+    def add_epochs(self, new_epochs: int) -> None:
         self._epochs_trained += new_epochs
 
     @property
@@ -90,14 +86,12 @@ class BaseModel:
 
 
 class LSTMModel(BaseModel):
-    #
-    # LSTM model class, that implements the architecture of an LSTM model
-    #
+    """LSTM model class, that implements the architecture of an LSTM model"""
 
-    def __init__(self, model_id: str, input_shape: tuple[int, int]):
+    def __init__(self, model_id: str, input_shape: tuple[int, int]) -> None:
         super().__init__(model_id=model_id, input_shape=input_shape)
 
-    def build(self, vocab_sizes: dict[str, int], preset_name: str = "basic"):
+    def build(self, vocab_sizes: dict[str, int], preset_name: str = "basic") -> None:
         """
         Builds the LSTMModel according to the hyperparameters defined
         in the chosen preset.
@@ -237,14 +231,13 @@ class LSTMModel(BaseModel):
         validation_dataset: tf.data.Dataset,
         epochs: int,
         callbacks: list,
-    ):
+    ) -> History:
         """
         Trains the model using the provided sequence generator for the provided number of epochs.
         Updates the model's history to reflect data from ALL training sessions.
         """
         # Train the model for the specified number of epochs
         try:
-            # Verbose set to 0, since we use custom callbacks instead
             total_epochs = self._epochs_trained + epochs
             history = self._model.fit(
                 dataset,
@@ -260,7 +253,7 @@ class LSTMModel(BaseModel):
             raise Exception(f"Training failed: {e}") from e
 
         # Rebuild history (connecting it to previous histories)
-        new_history = history
+        new_history: History = history
 
         if self._history.history:  # If this model has been trained before, combine the histories.
             combined_history = {

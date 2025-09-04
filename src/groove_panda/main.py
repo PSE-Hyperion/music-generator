@@ -5,7 +5,7 @@ from groove_panda.config import Config
 from groove_panda.logging_config import setup_logging
 
 
-def main():
+def main() -> None:
     """
     Starts the program by starting logging and a cli session
     """
@@ -13,7 +13,7 @@ def main():
     setup_logging(level="DEBUG")
     logging.getLogger("main").info("Starting CLI")
     config = Config()
-    config.load_config(directories.config_name)
+    config.load_config(directories.CONFIG_NAME)
     cli.start_session()
 
 

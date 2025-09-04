@@ -5,20 +5,25 @@ import sys
 Trying to load packages for colored logging outputs
 """
 try:
-    from colorama import Fore, Style, init as colorama_init
+    from colorama import Fore, Style, init as colorama_init  # type: ignore
+
     colorama_init(autoreset=True)
 except ImportError:
+
     class Fore:
         RED = YELLOW = GREEN = CYAN = RESET = ""
+
     class Style:
         BRIGHT = NORMAL = RESET_ALL = ""
+
 
 class ColoredFormatter(logging.Formatter):
     """
     Config for cool looking logs.
     Feel free to play around with it, it's just a template i used.
     """
-    def format(self, record):
+
+    def format(self, record) -> str:
         name = record.name.upper()
         msg = record.getMessage()
 
@@ -43,6 +48,7 @@ class ColoredFormatter(logging.Formatter):
             prefix = f"[{name}]"
 
         return f"{color}{prefix} {msg}{Style.RESET_ALL}"
+
 
 def setup_logging(level: str = "INFO") -> None:
     """

@@ -4,6 +4,7 @@ import random
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.callbacks import EarlyStopping, History, TensorBoard  # type: ignore
+from tensorflow.keras.utils import Sequence  # type: ignore
 
 from groove_panda import directories
 from groove_panda.config import (
@@ -19,7 +20,7 @@ config = Config()
 logger = logging.getLogger(__name__)
 
 
-def train_model(model: BaseModel, train_generator):
+def train_model(model: BaseModel, train_generator: Sequence):
     """
     Train model using sequence generator for memory-efficient training on large datasets.
     Supports both LazySequenceGenerator (legacy) and FlexibleSequenceGenerator (new).
@@ -61,7 +62,7 @@ def train_model(model: BaseModel, train_generator):
         plot.plot_training(history, model.model_id)
 
 
-def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerator):
+def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerator) -> None:
     """
     Loads all necessary data upfront.
     This reduces the latency per sample. The model can take the samples
@@ -160,7 +161,7 @@ def train_model_eager(model: BaseModel, train_generator: FlexibleSequenceGenerat
 
         # Callbacks for pretty printing in the terminal and for TensorBoard logging
         # Early stopping ensures that the training stops when the validation loss doesn't improve
-        callbacks = [TensorBoard(log_dir=directories.log_dir, histogram_freq=1)]
+        callbacks = [TensorBoard(log_dir=directories.LOG_DIR, histogram_freq=1)]
         if config.early_stopping_enabled:
             callbacks.append(
                 EarlyStopping(

@@ -13,7 +13,7 @@ from groove_panda.processing.tokenization import token_map_io
 config = Config()
 
 
-def train_model(model_id: str, processed_dataset_id: str, preset_name: str):
+def train_model(model_id: str, processed_dataset_id: str, preset_name: str) -> None:
     """
     Step 1: Get processed datasets .npz file paths via provided processed_dataset_id
     Step 2: Build LSTM model architecture
@@ -25,7 +25,7 @@ def train_model(model_id: str, processed_dataset_id: str, preset_name: str):
     file_paths = processed_io.get_processed_file_paths(processed_dataset_id)
 
     # Load metadata for vocab sizes
-    token_maps_dir = os.path.join(directories.token_maps_dir, processed_dataset_id)
+    token_maps_dir = os.path.join(directories.TOKEN_MAPS_DIR, processed_dataset_id)
     with open(os.path.join(token_maps_dir, "metadata.json")) as f:
         metadata = json.load(f)
 

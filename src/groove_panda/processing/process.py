@@ -14,15 +14,15 @@ class NumericTuple:
     The numerical representation of token tuples (instead of string tokens, integers are stored).
     """
 
-    def __init__(self, *values: int):
+    def __init__(self, *values: int) -> None:
         # The *values parameter makes sequential NumericTuple(1, 2, 3) and grouped NumericTuple(*[1, 2, 3]) possible.
         self._values = list(values)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"NumericTuple({', '.join(str(v) for v in self.values)})"
 
     @property
-    def values(self):
+    def values(self) -> list[int]:
         return self._values
 
 
@@ -118,10 +118,10 @@ def sequence_to_model_input(sequence: list[tuple[int, int, int, int, int, int]])
     return model_input
 
 
-def reshape_x(x):
-    #   reshapes X training data to numpy array (matrix) of shape (num_sequences, SEQUENCE_LENGTH, 6)
-    #   embedding layers expect integers, so we dont need to normalize
-    #
+def reshape_x(x) -> np.ndarray:
+    """reshapes X training data to numpy array (matrix) of shape (num_sequences, SEQUENCE_LENGTH, 6)
+
+    embedding layers expect integers, so we dont need to normalize"""
 
     logger.info("Started reshaping...")
 
@@ -129,24 +129,3 @@ def reshape_x(x):
 
     logger.info("Finished reshaping")
     return x
-
-
-def denumerize(_numeric_sixtuples: list[NumericTuple], _sixtuple_token_maps: SixtupleTokenMaps) -> list[Sixtuple]:
-    #   Turns list of embedded numeric events into list of embedded token events,
-    #   by using the maps provided by the given tokenizer instance
-    #
-    #
-
-    return []
-
-
-def build_input_dict():  # Unsure about what this is, but afraid to delete - joao
-    pass
-
-
-# TODO
-# def denumerize(numeric_sixtuples: list[NumericSixtuple], sixtuple_token_maps: SixtupleTokenMaps) -> list[Sixtuple]:
-#    """ Turns list of embedded numeric events into list of embedded token events, by using the maps provided
-#        by the given tokenizer instance """
-#
-#    return [] - this is done, no? - Joao

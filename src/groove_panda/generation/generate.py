@@ -23,7 +23,7 @@ class ModelPredictions:
 
 
 class MusicGenerator:
-    def __init__(self, model: Model, token_maps: dict, reverse_mappings: dict, metadata: dict):
+    def __init__(self, model: Model, token_maps: dict, reverse_mappings: dict, metadata: dict) -> None:
         self.model = model
         self.token_maps = token_maps
         self.reverse_mappings = reverse_mappings

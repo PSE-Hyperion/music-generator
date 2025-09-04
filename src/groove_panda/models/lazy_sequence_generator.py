@@ -17,7 +17,7 @@ class LazySequenceGenerator(Sequence):
     Assumes, that all file paths are correct
     """
 
-    def __init__(self, file_paths, batch_size=32, shuffle=True):
+    def __init__(self, file_paths, batch_size=32, shuffle=True) -> None:
         self.file_paths = file_paths
         self.batch_size = batch_size
         self.shuffle = shuffle
@@ -28,7 +28,7 @@ class LazySequenceGenerator(Sequence):
         # Call super().__init__ to avoid a warning
         super().__init__()
 
-    def _build_sample_index(self):
+    def _build_sample_index(self) -> None:
         """
         Stores file path and sample count for each file, builds a list of sample indices
         """
@@ -45,7 +45,7 @@ class LazySequenceGenerator(Sequence):
 
         self.n_samples = len(self.sample_map)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         Returns how many batches exist per epoch
         """
@@ -98,7 +98,7 @@ class LazySequenceGenerator(Sequence):
 
         return x_dict, y_outputs
 
-    def on_epoch_end(self):
+    def on_epoch_end(self) -> None:
         """
         Shuffles the sample indices randomly at the end of each epoch
         """

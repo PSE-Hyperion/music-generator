@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from enum import Enum
 import logging
 
@@ -25,25 +26,19 @@ class Command(Enum):
     PROCESS = "-process"
     TRAIN = "-train"
     GENERATE = "-generate"
-    SHOW = "-show"
     DELETE = "-delete"
     EXIT = "-exit"
     CONFIG = "-config"
 
 
-def handle_help(_args: list[str]):
-    #   Handles the help command
-    #   "-help"
-    #
+def handle_help(_args: list[str]) -> None:
     logger.info(HELP_INSTRUCTIONS)
     for command in Command:
         logger.info(command.name)
 
 
-def handle_process(args: list[str]):
-    #   Handles the process command by calling corresponding controller function
-    #   "-process dataset_id processed_id(new)"
-    #
+def handle_process(args: list[str]) -> None:
+    """Handles the process command by calling corresponding controller function"""
 
     dataset_id = args[0]
     processed_dataset_id = args[1]
@@ -51,10 +46,8 @@ def handle_process(args: list[str]):
     controller.process(dataset_id, processed_dataset_id)
 
 
-def handle_train(args: list[str]):
-    #   Handles the train command by calling the corresponding controller function
-    #   "-train [model_id(new)] [processed_dataset_id] [model_architecture_preset]"
-    #
+def handle_train(args: list[str]) -> None:
+    """Handles the train command by calling the corresponding controller function"""
 
     model_id = args[0]
     processed_dataset_id = args[1]
@@ -66,10 +59,8 @@ def handle_train(args: list[str]):
     controller.train(model_id, processed_dataset_id, preset_name)
 
 
-def handle_generate(args: list[str]):
-    #   Handles the generate command by calling corresponding controller function
-    #   Usage: "-generate [model name] [input name] [desired output name]"
-    #
+def handle_generate(args: list[str]) -> None:
+    """Handles the generate command by calling corresponding controller function"""
 
     model_name = args[0]
     input_name = args[1]
@@ -78,17 +69,10 @@ def handle_generate(args: list[str]):
     controller.generate(model_name, input_name, output_name)
 
 
-def handle_show(_args: list[str]):
-    #   Handles the show command by calling corresponding controller function
-    #   "-show models/raw_datasets/results/processed_datasets (not implemented yet)"
-    #
-    controller.show()
+def handle_delete(args: list[str]) -> None:
+    """Handles the delete command for file, dataset, model, processed, it can delete all instances or one given trough
+    the id"""
 
-
-def handle_delete(args: list[str]):
-    #   Handles the delete command for file, dataset, model, processed,
-    #   it can delete all instances or one given trough the id
-    #   "-delete" file/dataset/model/processed id/all
     id = args[1]
     delete_subject = args[0]
 
@@ -104,7 +88,7 @@ def handle_delete(args: list[str]):
         logger.info(f"Invalid delete subject: {delete_subject}")
 
 
-def handle_config(args: list[str]):
+def handle_config(args: list[str]) -> None:
     """
     Handler for the various config commands. It will be optimized in a future update.
     """
@@ -114,7 +98,7 @@ def handle_config(args: list[str]):
         case "load":
             config.load_config(args[1])
         case "save":
-            if len(args) <= 2:  # noqa: PLR2004 - will be taken care of later with a handler overhaul.
+            if len(args) <= 2:  # noqa: PLR2004
                 config.save_config(args[1])
             else:
                 config.save_config(args[1], args[2])
@@ -134,17 +118,14 @@ def handle_config(args: list[str]):
             logger.error("'overwrite")
 
 
-def handle_exit():
-    #   Handles the exit command
-    #   "-exit"
-    #
+def handle_exit() -> None:
+    """Handles the exit command"""
     controller.exit()
 
 
-def complete_delete(arg_index, word, parts):
-    #   commpletes delete command
-    #   first suggestion is what you want to delete(file, dataset, processed, model)
-    #   second is the corresponding id or all
+def complete_delete(arg_index: int, word: str, parts: list[str]) -> Iterator[Completion]:
+    """commpletes delete command, first suggestion is what you want to delete(file, dataset, processed, model), second
+    is the corresponding id or all"""
 
     if arg_index == 0:
         for option in ["file", "dataset", "processed", "model"]:
@@ -170,17 +151,15 @@ def complete_delete(arg_index, word, parts):
             yield from id_completion(id_sources[delete_type](), word)
 
 
-def complete_process(arg_index, word, _parts):
-    # completes process command
-    # first the all possible dataset-id
-    # second the new processed id
+def complete_process(arg_index, word, _parts) -> Iterator[Completion]:
+    """completes process command, first the all possible dataset-id, second the new processed id"""
     if arg_index == 0:
         yield from id_completion(data_managment.get_existing_dataset_ids(), word)
     if arg_index == 1:
         yield Completion("new_processed_id", start_position=-len(word))
 
 
-def complete_train(arg_index, word, _parts):
+def complete_train(arg_index, word, _parts) -> Iterator[Completion]:
     """
     Auto-completes the "-train" command.
     First it recommends model names, then names of datasets,
@@ -196,11 +175,9 @@ def complete_train(arg_index, word, _parts):
                 yield Completion(option, start_position=-len(word))
 
 
-def complete_generate(arg_index, word, _parts):
-    # completes generate command
-    # first  the all possible model_id input
-    # second all possible input
-    # third new results_id
+def complete_generate(arg_index, word, _parts) -> Iterator[Completion]:
+    """completes generate command, first  the all possible model_id input,, second all possible input,
+    third new results_id"""
     if arg_index == 0:
         yield from id_completion(data_managment.get_existing_model_ids(), word)
     if arg_index == 1:
@@ -209,35 +186,27 @@ def complete_generate(arg_index, word, _parts):
         yield Completion("new_results_id", start_position=-len(word))
 
 
-def complete_show(arg_index, word, _parts):
-    # completes show command
-    if arg_index == 0:
-        for option in ["models", "raw_datasets", "results", "processed_datasets"]:
-            if option.startswith(word):
-                yield Completion(option, start_position=-len(word))
-
-
-def id_completion(existing_ids, word):
+def id_completion(existing_ids, word) -> Iterator[Completion]:
     for id in existing_ids:
         if id.startswith(word):
             yield Completion(id, start_position=-len(word))
 
 
-def complete_help():
+def complete_help() -> None:
     pass  # should do nothing
 
 
-def complete_config(arg_index, word, _parts):
+def complete_config(arg_index, word, _parts) -> Iterator[Completion]:
     if arg_index == 0:
         for option in ["load", "save", "set", "update", "overwrite"]:
             if option.startswith(word):
                 yield Completion(option, start_position=-len(word))
 
 
-def parse_command(command: str):
-    #   Parses string command to command from Command Enum
-    #   Prints Warning, if command doesn't exist
-    #
+def parse_command(command: str) -> Command | None:
+    """Parses string command to command from Command Enum.
+
+    Prints Warning, if command doesn't exist."""
 
     try:
         return Command(command)
@@ -245,10 +214,9 @@ def parse_command(command: str):
         return None
 
 
-def process_input(input: str):
-    #   Split user input into parts and parse command part
-    #   Search first part (command) in command map, that maps a command to a handler function
-    #   Call handler with arguments, if it exists
+def process_input(input: str) -> None:
+    """Split user input into parts and parse command part. Search first part (command) in command map, that maps a
+    command to a handler function. Call handler with arguments, if it exists"""
 
     parts = input.split(" ")
 
@@ -286,16 +254,14 @@ COMMAND_HANDLERS = {
     Command.HELP: handle_help,  # -help
     Command.DELETE: handle_delete,  # -delete file/dataset/processed/model ids/all
     Command.GENERATE: handle_generate,  # -generate model_id input result_id(new)
-    Command.SHOW: handle_show,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
     Command.CONFIG: handle_config,  # -config load/save/update/set/overwrite
 }
 COMMAND_LENGTHS = {
     Command.PROCESS: 2,  # -process dataset_id processed_id(new)
     Command.TRAIN: 3,  # -train [model_id(new)] [processed_dataset_id] [model_architecture_preset]
-    Command.HELP: 0,
+    Command.HELP: 0,  # -help
     Command.DELETE: 2,  # file/dataset/processed/model ids/all
     Command.GENERATE: 3,  # -generate model_id input result_id(new)
-    Command.SHOW: 0,  # -show models/raw_datasets/results/processed_datasets (not implemented yet)
     Command.CONFIG: 69,  # We need to get rid of fixed lengths
 }
 
@@ -305,13 +271,12 @@ COMMAND_COMPLETERS = {
     Command.DELETE: complete_delete,  # file/ dataset/processed/model, ids/all
     Command.HELP: complete_help,  # needs no completion
     Command.GENERATE: complete_generate,  # model_id, input, result_id(new)
-    Command.SHOW: complete_show,  # not implemented
     Command.CONFIG: complete_config,  # not implemented
 }
 
 
 class CommandCompleter(Completer):
-    def get_completions(self, document, _event):
+    def get_completions(self, document, _event) -> Iterator[Completion]:
         text = document.text_before_cursor
         parts = text.split()
 
@@ -323,15 +288,15 @@ class CommandCompleter(Completer):
         command = parts[0]
         command_enum = parse_command(command)
 
-        if len(parts) == 1 and not text.endswith(" "):  # command name(-delete, -train, ...)
+        if len(parts) == 1 and not text.endswith(" "):
             current_word = parts[0]
             for command in Command:
                 if command.value.startswith(current_word):
                     yield Completion(command.value, start_position=-len(current_word))
             return
 
-        if command_enum in COMMAND_COMPLETERS:  # arguments (ids, file, ...)
-            if text.endswith(" "):  # " " gedrückt zwischen argumenten
+        if command_enum in COMMAND_COMPLETERS:
+            if text.endswith(" "):
                 current_word = ""
                 arg_index = len(parts) - 1
             else:
@@ -345,10 +310,10 @@ class CommandCompleter(Completer):
                 logger.error(f"[Completion Error] {e}")
 
 
-def start_session():
-    #   Starts the cli loop: input is read, handled and then we repeat (except if exit cmd is called)
-    #   Contains a PromptSession for prompt completion in the terminal
-    #   Also catches errors from handling input and prints them
+def start_session() -> None:
+    """Starts the cli loop: input is read, handled and then we repeat (except if exit cmd is called).
+    Contains a PromptSession for prompt completion in the terminal. Also catches errors from handling
+    input and prints them"""
 
     session = PromptSession(completer=CommandCompleter())
     while True:
