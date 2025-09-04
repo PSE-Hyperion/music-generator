@@ -1,0 +1,13 @@
+ data/
+├── configs/
+├── datasets/├
+│   ├── processed/
+│   ├── raw/
+│   └── token maps/
+├── generation/
+│   ├── input/
+│   └── output/
+├── logs/
+│   ├── train/
+│   └── validation/
+└── models/
