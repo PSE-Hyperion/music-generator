@@ -15,6 +15,8 @@ The list was created using: pip-licenses --from=mixed --with-authors
  Werkzeug                      3.1.3        BSD License                                              UNKNOWN
  absl-py                       2.3.1        Apache Software License                                  The Abseil Authors
  absl-py                       2.3.1        Apache Software License                                  The Abseil Authors
+ astroid                       3.3.11       UNKNOWN                                                  UNKNOWN
+ astroid                       3.3.11       UNKNOWN                                                  UNKNOWN
  astunparse                    1.6.3        BSD License                                              UNKNOWN
  astunparse                    1.6.3        BSD License                                              UNKNOWN
  certifi                       2025.6.15    Mozilla Public License 2.0 (MPL 2.0)                     Kenneth Reitz
@@ -27,6 +29,8 @@ The list was created using: pip-licenses --from=mixed --with-authors
  contourpy                     1.3.2        BSD License                                              Ian Thomas <ianthomas23@gmail.com>
  cycler                        0.12.1       BSD License                                              Thomas A Caswell <matplotlib-users@python.org>
  cycler                        0.12.1       BSD License                                              Thomas A Caswell <matplotlib-users@python.org>
+ dill                          0.4.0        BSD License                                              Mike McKerns
+ dill                          0.4.0        BSD License                                              Mike McKerns
  flatbuffers                   25.2.10      Apache Software License                                  Derek Bailey
  flatbuffers                   25.2.10      Apache Software License                                  Derek Bailey
  fonttools                     4.58.5       MIT                                                      Just van Rossum
@@ -41,6 +45,8 @@ The list was created using: pip-licenses --from=mixed --with-authors
  h5py                          3.14.0       UNKNOWN                                                  Andrew Collette <andrew.collette@gmail.com>
  idna                          3.10         BSD License                                              Kim Davies <kim+pypi@gumleaf.org>
  idna                          3.10         BSD License                                              Kim Davies <kim+pypi@gumleaf.org>
+ isort                         6.0.1        MIT License                                              Timothy Crosley <timothy.crosley@gmail.com>, staticdev <staticdev-support@proton.me>
+ isort                         6.0.1        MIT License                                              Timothy Crosley <timothy.crosley@gmail.com>, staticdev <staticdev-support@proton.me>
  joblib                        1.5.1        BSD License                                              Gael Varoquaux <gael.varoquaux@normalesup.org>
  joblib                        1.5.1        BSD License                                              Gael Varoquaux <gael.varoquaux@normalesup.org>
  jsonpickle                    4.1.1        BSD-3-Clause                                             Theelx
@@ -55,6 +61,8 @@ The list was created using: pip-licenses --from=mixed --with-authors
  markdown-it-py                3.0.0        MIT License                                              Chris Sewell <chrisj_sewell@hotmail.com>
  matplotlib                    3.10.3       Python Software Foundation License                       John D. Hunter, Michael Droettboom
  matplotlib                    3.10.3       Python Software Foundation License                       John D. Hunter, Michael Droettboom
+ mccabe                        0.7.0        MIT License                                              Tarek Ziade
+ mccabe                        0.7.0        MIT License                                              Tarek Ziade
  mdurl                         0.1.2        MIT License                                              Taneli Hukkinen <hukkin@users.noreply.github.com>
  mdurl                         0.1.2        MIT License                                              Taneli Hukkinen <hukkin@users.noreply.github.com>
  mido                          1.3.3        MIT License                                              Ole Martin Bjorndalen <ombdalen@gmail.com>
@@ -77,10 +85,16 @@ The list was created using: pip-licenses --from=mixed --with-authors
  packaging                     25.0         Apache Software License; BSD License                     Donald Stufft <donald@stufft.io>
  pillow                        11.3.0       UNKNOWN                                                  "Jeffrey A. Clark" <aclark@aclark.net>
  pillow                        11.3.0       UNKNOWN                                                  "Jeffrey A. Clark" <aclark@aclark.net>
+ platformdirs                  4.3.8        MIT License                                              UNKNOWN
+ platformdirs                  4.3.8        MIT License                                              UNKNOWN
  prompt_toolkit                3.0.51       BSD License                                              Jonathan Slenders
  prompt_toolkit                3.0.51       BSD License                                              Jonathan Slenders
  protobuf                      5.29.5       3-Clause BSD License                                     protobuf@googlegroups.com
  protobuf                      5.29.5       3-Clause BSD License                                     protobuf@googlegroups.com
+ pydeps                        3.0.1        BSD License                                              bjorn
+ pydeps                        3.0.1        BSD License                                              bjorn
+ pylint                        3.3.8        UNKNOWN                                                  Python Code Quality Authority <code-quality@python.org>
+ pylint                        3.3.8        UNKNOWN                                                  Python Code Quality Authority <code-quality@python.org>
  pyparsing                     3.2.3        MIT License                                              Paul McGuire <ptmcg.gm+pyparsing@gmail.com>
  pyparsing                     3.2.3        MIT License                                              Paul McGuire <ptmcg.gm+pyparsing@gmail.com>
  python-dateutil               2.9.0.post0  Apache Software License; BSD License                     Gustavo Niemeyer
@@ -91,6 +105,8 @@ The list was created using: pip-licenses --from=mixed --with-authors
  rich                          14.0.0       MIT License                                              Will McGugan
  six                           1.17.0       MIT License                                              Benjamin Peterson
  six                           1.17.0       MIT License                                              Benjamin Peterson
+ stdlib-list                   0.11.1       MIT License                                              Jack Maney <jackmaney@gmail.com>
+ stdlib-list                   0.11.1       MIT License                                              Jack Maney <jackmaney@gmail.com>
  tensorboard                   2.19.0       Apache Software License                                  Google Inc.
  tensorboard                   2.19.0       Apache Software License                                  Google Inc.
  tensorboard-data-server       0.7.2        Apache Software License                                  Google Inc.
@@ -101,6 +117,8 @@ The list was created using: pip-licenses --from=mixed --with-authors
  tensorflow_cpu                2.19.0       Apache Software License                                  Google Inc.
  termcolor                     3.1.0        UNKNOWN                                                  Konstantin Lepa <konstantin.lepa@gmail.com>
  termcolor                     3.1.0        UNKNOWN                                                  Konstantin Lepa <konstantin.lepa@gmail.com>
+ tomlkit                       0.13.3       MIT License                                              Sébastien Eustace
+ tomlkit                       0.13.3       MIT License                                              Sébastien Eustace
  typing_extensions             4.14.0       UNKNOWN                                                  "Guido van Rossum, Jukka Lehtosalo, Łukasz Langa, Michael Lee" <levkivskyi@gmail.com>
  typing_extensions             4.14.0       UNKNOWN                                                  "Guido van Rossum, Jukka Lehtosalo, Łukasz Langa, Michael Lee" <levkivskyi@gmail.com>
  urllib3                       2.5.0        UNKNOWN                                                  Andrey Petrov <andrey.petrov@shazow.net>
