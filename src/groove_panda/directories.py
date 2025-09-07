@@ -9,7 +9,7 @@ from typing import Final
 BASE_DIR: Final[str] = "local_data"
 
 # Config
-CONFIG_NAME: Final[str] = "config_final"
+CONFIG_NAME: Final[str] = "config"
 
 CONFIG_DIR: Final[str] = os.path.join(BASE_DIR, "configs")
 
