@@ -1,7 +1,7 @@
 {
-  "sequence_length": 64,
-  "generation_length": 400,
-  "training_epochs": 32,
+  "sequence_length": 48,
+  "generation_length": 500,
+  "training_epochs": 50,
   "training_batch_size": 64,
   "parser": "MUSIC21",
   "allowed_music_file_extensions": [
@@ -23,25 +23,25 @@
     ],
     [
       "pitch",
-      21,
-      108,
+      16,
+      112,
       1
     ],
     [
       "duration",
-      0,
+      1,
       20,
       0.25
     ],
     [
       "velocity",
-      1,
-      127,
+      10,
+      110,
       1
     ],
     [
       "tempo",
-      10,
+      20,
       200,
       5
     ]
@@ -49,31 +49,31 @@
   "feature_token_separator": "_",
   "model_type": "LSTM",
   "tokenize_mode": "ORIGINAL",
-  "tempo_tolerance": 0.01,
+  "tempo_tolerance": 0.05,
   "default_tempo": 120,
   "feature_temperatures": {
-    "bar": 0.5,
-    "position": 0.5,
-    "pitch": 0.5,
-    "duration": 0.5,
-    "velocity": 0.5,
-    "tempo": 0.5
+    "bar": 0.0,
+    "position": 0.0,
+    "pitch": 0.7,
+    "duration": 0.25,
+    "velocity": 1.0,
+    "tempo": 0.2
   },
   "loss_weights": {
-    "output_bar": 1.0,
-    "output_position": 1.0,
-    "output_pitch": 1.0,
-    "output_velocity": 1.0,
-    "output_duration": 1.0,
-    "output_tempo": 1.0
+    "output_bar": 12.0,
+    "output_position": 20.0,
+    "output_pitch": 32.0,
+    "output_velocity": 30.0,
+    "output_duration": 22.0,
+    "output_tempo": 10.0
   },
-  "early_stopping_epochs_to_wait": 3,
-  "early_stopping_threshold": 0,
-  "training_validation_split_seed": 30315205,
-  "dataset_shuffle_seed": 42069036,
+  "early_stopping_epochs_to_wait": 4,
+  "early_stopping_threshold": 0.0,
+  "training_validation_split_seed": 30315201,
+  "dataset_shuffle_seed": 42069037,
   "model_init_params_seed": 83249823,
   "model_dropout_seed": 70982700,
-  "validation_split_proportion": 0.2,
+  "validation_split_proportion": 0.1,
   "plot_training": true,
   "save_plot_training": true,
   "create_sheet_music": false,
@@ -81,6 +81,57 @@
   "early_stopping_enabled": true,
   "enable_custom_losses": false,
   "model_presets": {
+    "flagship_v0": {
+      "sequence_length": 64,
+      "stride": 2,
+      "lstm_units": 384,
+      "num_lstm_layers": 3,
+      "dropout_rate": 0.15,
+      "learning_rate": 0.002,
+      "batch_size": 128,
+      "embedding_dims": {
+        "pitch": 32,
+        "duration": 12,
+        "velocity": 20,
+        "position": 8,
+        "bar": 4,
+        "tempo": 4
+      }
+    },
+    "flagship_v1": {
+      "sequence_length": 32,
+      "stride": 1,
+      "lstm_units": 512,
+      "num_lstm_layers": 3,
+      "dropout_rate": 0.15,
+      "learning_rate": 0.001,
+      "batch_size": 128,
+      "embedding_dims": {
+        "pitch": 32,
+        "duration": 12,
+        "velocity": 20,
+        "position": 8,
+        "bar": 4,
+        "tempo": 4
+      }
+    },
+    "flagship_v2": {
+      "sequence_length": 48,
+      "stride": 1,
+      "lstm_units": 512,
+      "num_lstm_layers": 3,
+      "dropout_rate": 0.15,
+      "learning_rate": 0.001,
+      "batch_size": 128,
+      "embedding_dims": {
+        "pitch": 32,
+        "duration": 12,
+        "velocity": 20,
+        "position": 8,
+        "bar": 4,
+        "tempo": 4
+      }
+    },
     "light": {
       "sequence_length": 16,
       "stride": 1,
