@@ -1,0 +1,41 @@
+src/
+├── groove panda/
+│   ├── generation/
+│   │   ├── generate_music.py
+│   │   └── generate.py
+│   ├── midi/
+│   │   ├── parser.py
+│   │   ├── sheet_music_generator.py
+│   │   └── writer.py
+│   ├── models/
+│   │   ├── tf_custom/
+│   │   │   ├── callbacks.py
+│   │   │   ├── feature_losses.py
+│   │   │   ├── losses.py
+│   │   │   ├── math_utils.py
+│   │   │   └── regularizers.py
+│   │   ├── flexible_sequence_generator.py
+│   │   ├── lazy_sequence_generator.py
+│   │   ├── model_io.py
+│   │   ├── model_training.py
+│   │   ├── models.py
+│   │   ├── plot.py
+│   │   ├── train.py
+│   │   └── utils.py
+│   ├── processing/
+│   │   ├── tokenization/
+│   │   │   ├── midi_file_utils.py
+│   │   │   ├── token_map_io.py
+│   │   │   └── tokenizer.py
+│   │   ├── parallel_processing.py
+│   │   ├── process.py
+│   │   └── processed_io.py
+│   ├── cli.py
+│   ├── config.py
+│   ├── controller.py
+│   ├── data_management.py
+│   ├── directories.py
+│   ├── logging_config.py
+│   ├── main.py
+│   └── utils.py
+└── test/
