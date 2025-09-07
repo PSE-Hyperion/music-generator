@@ -6,10 +6,10 @@ Excluded are directories and paths that change frequently or during runtime.
 import os
 from typing import Final
 
-BASE_DIR: Final[str] = "data"
+BASE_DIR: Final[str] = "local_data"
 
 # Config
-CONFIG_NAME: Final[str] = "config_julien"
+CONFIG_NAME: Final[str] = "config_final"
 
 CONFIG_DIR: Final[str] = os.path.join(BASE_DIR, "configs")
 
