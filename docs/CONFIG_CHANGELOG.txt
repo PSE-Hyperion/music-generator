@@ -1,0 +1,36 @@
+CHANGELOG
+Write changes you made to config, that everyone should now about, here.
+
+Reasons to share changes are:
+    1. New or modified config entry is being used in new feature
+    2. Config entry is unused and should be removed
+    3. Current values makes no sense and everyone should know about that
+
+Write changes as follows:
+
+CHANGELOG (dev name)(date):
+    explanation...
+
+###################################################################################################
+
+
+CHANGELOG (julien)(04/08/2025):
+    Pull request implementing new temperature tuple instead of single value needs entry of such type in config.
+
+    Was already applied to all existing configs.
+
+
+CHANGELOG (julien)(04/08/2025):
+    Pull request for improved token maps includes a modified FEATURE_NAMES entry in configs. Now this is named FEATURES
+    and contains (name, min value, max value, step) (could also contain temperature later). These values are used to generate
+    complete token maps as defined in the FEATURES. This is also used to dynamically create NumericTuples in process.py and some plots.
+
+    Is currently only present in config_julien.json.
+
+CHANGELOG (almut)(16.08.2025)
+    Pull request includes loss_weights in the config.
+    The loss_weights consist of loss weights for bar, position, pitch, velocity, duration, and tempo.
+    To make your code work you need a dictionary with each of these keys mapped to a numeric value.
+    The loss_weights define how much each loss contributes to the overall training loss.
+
+    loss_weights is currently present in config.json.

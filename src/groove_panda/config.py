@@ -9,8 +9,6 @@ from groove_panda.utils import overwrite_json
 
 logger = logging.getLogger(__name__)
 
-""" Enum Definitions """
-
 
 class TokenizeMode(Enum):
     """
@@ -176,7 +174,7 @@ class Config:
 
     def load_config(self, config_name: str):
         config_file_name = config_name + ".json"
-        config_path = os.path.join(directories.config_dir, config_file_name)
+        config_path = os.path.join(directories.CONFIG_DIR, config_file_name)
 
         logger.info(f"Loading config {config_name}...")
 
@@ -223,7 +221,7 @@ class Config:
         if directory is not self.DEFAULT_STR:
             config_path = os.path.join(directory, name + ".json")
         else:
-            config_path = os.path.join(directories.config_dir, name + ".json")
+            config_path = os.path.join(directories.CONFIG_DIR, name + ".json")
 
         # Convert the config dictionary to a .json and save it in the configs folder
         overwrite_json(config_path, self.config)
@@ -241,7 +239,7 @@ class Config:
         This method takes the current config settings and overwrites the file that they are based on.
         After this method is called, the file will reflect the config settings currently active in the program.
         """
-        self.save_config(self.config_name, directories.config_dir)
+        self.save_config(self.config_name, directories.CONFIG_DIR)
 
     def update(self):
         """

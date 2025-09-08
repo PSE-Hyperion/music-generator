@@ -1,0 +1,282 @@
+{
+  "sequence_length": 48,
+  "generation_length": 500,
+  "training_epochs": 50,
+  "training_batch_size": 64,
+  "parser": "MUSIC21",
+  "allowed_music_file_extensions": [
+    ".mid",
+    ".midi"
+  ],
+  "features": [
+    [
+      "bar",
+      0,
+      200,
+      1
+    ],
+    [
+      "position",
+      0,
+      15,
+      1
+    ],
+    [
+      "pitch",
+      16,
+      112,
+      1
+    ],
+    [
+      "duration",
+      1,
+      20,
+      0.25
+    ],
+    [
+      "velocity",
+      10,
+      110,
+      1
+    ],
+    [
+      "tempo",
+      20,
+      200,
+      5
+    ]
+  ],
+  "feature_token_separator": "_",
+  "model_type": "LSTM",
+  "tokenize_mode": "ORIGINAL",
+  "tempo_tolerance": 0.05,
+  "default_tempo": 120,
+  "feature_temperatures": {
+    "bar": 0.0,
+    "position": 0.0,
+    "pitch": 0.7,
+    "duration": 0.25,
+    "velocity": 1.0,
+    "tempo": 0.2
+  },
+  "loss_weights": {
+    "output_bar": 12.0,
+    "output_position": 20.0,
+    "output_pitch": 32.0,
+    "output_velocity": 30.0,
+    "output_duration": 22.0,
+    "output_tempo": 10.0
+  },
+  "early_stopping_epochs_to_wait": 4,
+  "early_stopping_threshold": 0.0,
+  "training_validation_split_seed": 30315201,
+  "dataset_shuffle_seed": 42069037,
+  "model_init_params_seed": 83249823,
+  "model_dropout_seed": 70982700,
+  "validation_split_proportion": 0.1,
+  "plot_training": true,
+  "save_plot_training": true,
+  "create_sheet_music": false,
+  "save_token_json": true,
+  "early_stopping_enabled": true,
+  "enable_custom_losses": false,
+  "model_presets": {
+    "flagship_v0": {
+      "sequence_length": 64,
+      "stride": 2,
+      "lstm_units": 384,
+      "num_lstm_layers": 3,
+      "dropout_rate": 0.15,
+      "learning_rate": 0.002,
+      "batch_size": 128,
+      "embedding_dims": {
+        "pitch": 32,
+        "duration": 12,
+        "velocity": 20,
+        "position": 8,
+        "bar": 4,
+        "tempo": 4
+      }
+    },
+    "flagship_v1": {
+      "sequence_length": 32,
+      "stride": 1,
+      "lstm_units": 512,
+      "num_lstm_layers": 3,
+      "dropout_rate": 0.15,
+      "learning_rate": 0.001,
+      "batch_size": 128,
+      "embedding_dims": {
+        "pitch": 32,
+        "duration": 12,
+        "velocity": 20,
+        "position": 8,
+        "bar": 4,
+        "tempo": 4
+      }
+    },
+    "flagship_v2": {
+      "sequence_length": 48,
+      "stride": 1,
+      "lstm_units": 512,
+      "num_lstm_layers": 3,
+      "dropout_rate": 0.15,
+      "learning_rate": 0.001,
+      "batch_size": 128,
+      "embedding_dims": {
+        "pitch": 32,
+        "duration": 12,
+        "velocity": 20,
+        "position": 8,
+        "bar": 4,
+        "tempo": 4
+      }
+    },
+    "light": {
+      "sequence_length": 16,
+      "stride": 1,
+      "lstm_units": 64,
+      "num_lstm_layers": 1,
+      "dropout_rate": 0.1,
+      "learning_rate": 0.001,
+      "batch_size": 32,
+      "embedding_dims": {
+        "pitch": 16,
+        "duration": 8,
+        "velocity": 8,
+        "position": 8,
+        "bar": 4,
+        "tempo": 8
+      }
+    },
+    "basic": {
+      "sequence_length": 32,
+      "stride": 1,
+      "lstm_units": 128,
+      "num_lstm_layers": 2,
+      "dropout_rate": 0.2,
+      "learning_rate": 0.001,
+      "batch_size": 64,
+      "embedding_dims": {
+        "pitch": 32,
+        "duration": 16,
+        "velocity": 16,
+        "position": 16,
+        "bar": 8,
+        "tempo": 16
+      }
+    },
+    "advanced": {
+      "sequence_length": 64,
+      "stride": 1,
+      "lstm_units": 512,
+      "num_lstm_layers": 3,
+      "dropout_rate": 0.3,
+      "learning_rate": 0.0005,
+      "batch_size": 64,
+      "embedding_dims": {
+        "pitch": 128,
+        "duration": 64,
+        "velocity": 64,
+        "position": 64,
+        "bar": 32,
+        "tempo": 64
+      }
+    },
+    "lightplus": {
+      "sequence_length": 16,
+      "stride": 1,
+      "lstm_units": 64,
+      "num_lstm_layers": 2,
+      "dropout_rate": 0.1,
+      "learning_rate": 0.001,
+      "batch_size": 64,
+      "embedding_dims": {
+        "pitch": 16,
+        "duration": 8,
+        "velocity": 8,
+        "position": 8,
+        "bar": 4,
+        "tempo": 8
+      }
+    },
+    "lightadjust": {
+      "sequence_length": 32,
+      "stride": 1,
+      "lstm_units": 128,
+      "num_lstm_layers": 3,
+      "dropout_rate": 0.2,
+      "learning_rate": 0.001,
+      "batch_size": 64,
+      "embedding_dims": {
+        "pitch": 64,
+        "duration": 8,
+        "velocity": 8,
+        "position": 8,
+        "bar": 2,
+        "tempo": 8
+      }
+    },
+    "test": {
+      "sequence_length": 16,
+      "stride": 1,
+      "lstm_units": 1,
+      "num_lstm_layers": 1,
+      "dropout_rate": 0.1,
+      "learning_rate": 0.001,
+      "batch_size": 64,
+      "embedding_dims": 1
+    },
+    "medadjust": {
+      "sequence_length": 64,
+      "stride": 1,
+      "lstm_units": 256,
+      "num_lstm_layers": 4,
+      "dropout_rate": 0.2,
+      "learning_rate": 0.001,
+      "batch_size": 2048,
+      "embedding_dims": {
+        "pitch": 64,
+        "duration": 8,
+        "velocity": 8,
+        "position": 8,
+        "bar": 4,
+        "tempo": 8
+      }
+    },
+    "overfitter": {
+      "sequence_length": 64,
+      "stride": 1,
+      "lstm_units": 256,
+      "num_lstm_layers": 3,
+      "dropout_rate": 0,
+      "learning_rate": 0.001,
+      "batch_size": 8,
+      "embedding_dims": {
+        "pitch": 64,
+        "duration": 8,
+        "velocity": 8,
+        "position": 8,
+        "bar": 4,
+        "tempo": 8
+      }
+    },
+    "baseline": {
+      "sequence_length": 32,
+      "stride": 1,
+      "lstm_units": 128,
+      "num_lstm_layers": 3,
+      "dropout_rate": 0.2,
+      "learning_rate": 0.001,
+      "batch_size": 64,
+      "embedding_dims": {
+        "pitch": 40,
+        "duration": 20,
+        "velocity": 30,
+        "position": 12,
+        "bar": 12,
+        "tempo": 12
+      }
+    }
+  }
+}
