@@ -80,6 +80,7 @@
   "save_token_json": true,
   "early_stopping_enabled": true,
   "enable_custom_losses": false,
+  "enable_training_augmentation": false,
   "model_presets": {
     "flagship_v0": {
       "sequence_length": 64,
